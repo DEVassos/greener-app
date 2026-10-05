@@ -44,6 +44,7 @@ jobs:
           PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
           BOARD_COMMENT_ON_PUSH: ${{ vars.BOARD_COMMENT_ON_PUSH || 'true' }}
         run: |
+          if [ ! -f .github/scripts/board-route.sh ]; then echo "::notice::.github/scripts ainda não está na branch padrão (bootstrap) — nada a fazer"; exit 0; fi
           if [ -z "$PROJECTS_TOKEN" ] || [ -z "$PROJECT_NUMBER" ]; then
             echo "::warning::PROJECTS_TOKEN/PROJECT_NUMBER ausentes — o quadro não será atualizado por este workflow (issues e labels continuam). Veja docs/processo/quadro.md."
             unset PROJECT_NUMBER
