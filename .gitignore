@@ -1,0 +1,30 @@
+# --- agilekit (local em cada clone; instalado por `bash agilekit/install.sh .`) ---
+agilekit/
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.githooks/
+.gitmessage
+.agilekit/
+
+# --- ambiente e segredos ---
+.env
+.env.*
+!.env.example
+
+# --- Node ---
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+
+# --- sistema / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

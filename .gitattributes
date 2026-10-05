@@ -1,0 +1,41 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.gitattributes)
+# Normaliza fins de linha para LF no repositório (independe do core.autocrlf de cada máquina).
+* text=auto eol=lf
+
+# scripts e hooks sempre LF (CRLF quebra o shebang no Git Bash/Linux/macOS)
+*.sh text eol=lf
+*.bash text eol=lf
+.githooks/* text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.sql text eol=lf
+Dockerfile text eol=lf
+.env.example text eol=lf
+
+# Windows nativo
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# binários
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.gz binary
