@@ -1,0 +1,117 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/ISSUE_TEMPLATE/historia.yml)
+name: "História de usuário"
+description: "Funcionalidade do GreenER ligada a um requisito (RF/RNF). Criada e priorizada pelo PO."
+title: "RFxx — "
+labels: ["tipo:historia"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Escreva pensando no avaliador: esta issue é lida para **ES01** (backlog), **ES03** (critérios de aceite) e **ES04** (rastreabilidade).
+        DoR em `docs/processo/definition-of-done.md`. Prioridade: adicione a label `prioridade:must|should|could`.
+  - type: textarea
+    id: historia
+    attributes:
+      label: "História de usuário"
+      description: "Como <papel>, quero <ação> para <benefício>."
+      placeholder: "Como gestor, quero ver a lista de serviços descobertos com seu estado para saber o que está sendo monitorado."
+    validations:
+      required: true
+  - type: dropdown
+    id: requisito
+    attributes:
+      label: "Requisito relacionado"
+      description: "Código(s) do desafio. As labels RFxx/RNFxx são aplicadas automaticamente a partir daqui."
+      multiple: true
+      options:
+        - "RF01 — Descoberta de serviços"
+        - "RF02 — Monitoramento dinâmico"
+        - "RF03 — Coleta de métricas por serviço"
+        - "RF04 — Tratamento da variação das métricas"
+        - "RF05 — Detecção de indisponibilidade"
+        - "RF06 — Detecção de ausência de métricas"
+        - "RF07 — Cálculo individual (energia e CO₂e)"
+        - "RF08 — Indicadores agregados"
+        - "RF09 — Dashboard operacional"
+        - "RF10 — Histórico de coletas"
+        - "RF11 — Atualização contínua"
+        - "RF12 — Localização dos serviços"
+        - "RF13 — Visualização geográfica (could)"
+        - "RF14 — Ranking de impacto"
+        - "RF15 — Comparação entre serviços"
+        - "RNF01 — Usabilidade e responsividade"
+        - "RNF02 — Atualização em tempo real (intervalos e última atualização)"
+        - "RNF03 — Desempenho"
+        - "RNF04 — Tolerância a falhas"
+        - "RNF05 — Documentação técnica"
+    validations:
+      required: true
+  - type: dropdown
+    id: criterio
+    attributes:
+      label: "Critério da rubrica"
+      description: "Critério(s) que esta história ajuda a comprovar (vai para a coluna Critério do quadro e para o plano de entregas)."
+      multiple: true
+      options:
+        - "DW02 — Integração com as APIs auxiliares"
+        - "DW03 — Estrutura do backend e API REST"
+        - "DW04 — Estrutura e integração do frontend"
+        - "DW05 — Dashboard e atualização"
+        - "DW06 — Autenticação JWT"
+        - "DW07 — Execução containerizada"
+        - "BD01 — Modelo de dados e DDL"
+        - "BD02 — DML explícito e consultas parametrizadas"
+        - "BD03 — Integração e persistência"
+        - "BD04 — Consultas para análise"
+        - "TP01 — Modelagem orientada a objetos"
+        - "TP02 — Tipagem em TypeScript"
+        - "TP03 — Tratamento de exceções"
+        - "ES08 — Documentação e reprodutibilidade"
+  - type: textarea
+    id: aceite
+    attributes:
+      label: "Critérios de aceite"
+      description: "Pelo menos 2, verificáveis, no formato Dado / Quando / Então."
+      placeholder: |
+        - Dado que o agregador responde, quando o backend consulta GET /services, então cada serviço é gravado/atualizado em `services` com id externo, nome, localização e estado.
+        - Dado que o agregador está fora do ar, quando a descoberta roda, então a aplicação segue funcionando e registra a falha (sem derrubar o processo).
+    validations:
+      required: true
+  - type: textarea
+    id: verificar
+    attributes:
+      label: "Como verificar (avaliador)"
+      description: "Passos que uma pessoa externa executa em ≤5 min para confirmar: comandos, URLs, consulta SQL, o que deve aparecer."
+      placeholder: |
+        1. `docker compose up --build`
+        2. `curl http://localhost:3000/services` → lista JSON com ≥1 serviço e campos `id`, `name`, `status`, `location`
+        3. `psql ... -c "select count(*) from services"` → > 0
+    validations:
+      required: true
+  - type: dropdown
+    id: estimativa
+    attributes:
+      label: "Estimativa (pontos)"
+      options: ["1", "2", "3", "5", "8"]
+    validations:
+      required: true
+  - type: textarea
+    id: dependencias
+    attributes:
+      label: "Dependências"
+      description: "Issues que precisam estar prontas antes (#n) ou decisões pendentes."
+  - type: textarea
+    id: notas
+    attributes:
+      label: "Notas técnicas"
+      description: "Endpoints das APIs auxiliares, tabelas, módulos envolvidos, riscos."
+  - type: checkboxes
+    id: dor
+    attributes:
+      label: "Definition of Ready"
+      options:
+        - label: "Requisito e critério da rubrica informados"
+        - label: "≥2 critérios de aceite verificáveis (Dado/Quando/Então)"
+        - label: "\"Como verificar (avaliador)\" preenchido"
+        - label: "Estimativa ≤5 (se maior, quebrar em tarefas)"
+        - label: "Sem dependência bloqueante aberta"

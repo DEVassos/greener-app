@@ -1,0 +1,53 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/workflows/checks.yml)
+# Checks obrigatórios dos rulesets (contexts = nomes dos jobs): commits, pr, docs.
+name: checks
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commits:
+    name: commits
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mensagens de commit (padrão, #issue, co-autoria do time)
+        run: bash .github/scripts/check-commit-msg.sh --range "origin/${{ github.base_ref }}..${{ github.event.pull_request.head.sha }}"
+
+  pr:
+    name: pr
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Metadados do PR (título, branch, base, Closes #n, labels, DoD-PR)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/check-pr.sh "${{ github.event.pull_request.number }}"
+      - name: Padrões proibidos (ORM, .env, any, SQL interpolado, catch vazio)
+        run: bash .github/scripts/check-forbidden.sh
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Documentação da rubrica (plano, api.md, vazios, placeholders)
+        run: bash .github/scripts/check-docs.sh

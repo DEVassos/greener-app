@@ -1,0 +1,18 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/dependabot.yml)
+# Só GitHub Actions (semanal, agrupado). Dependências npm: alertas de segurança via Dependabot alerts,
+# sem PRs automáticos de versão (ruído em 8 semanas; PRs do bot não passam nos checks do time).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Sao_Paulo
+    groups:
+      actions:
+        patterns: ["*"]
+    labels: ["tipo:processo", "area:infra"]
+    commit-message:
+      prefix: "ci(infra)"

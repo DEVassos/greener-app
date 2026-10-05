@@ -1,0 +1,80 @@
+# Quadro do time — GitHub Project v2 "GreenER"
+
+<!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/quadro.md) -->
+
+O quadro é um **GitHub Project v2 da organização DEVassos**, público, ligado ao repositório `DEVassos/greener-app`. É a visão do Sprint Backlog para o time e para o avaliador; a fonte da verdade continua sendo as **issues** (o quadro só reflete o estado delas). O número do projeto fica na variável `PROJECT_NUMBER` do repositório; a URL é `https://github.com/orgs/DEVassos/projects/<PROJECT_NUMBER>`.
+
+## 1. Colunas (campo `Status`)
+
+| Coluna | Significado | Entra quando | Sai quando |
+|---|---|---|---|
+| **Backlog** | Item identificado e descrito, ainda sem sprint | Issue aberta sem milestone | Recebe a milestone `Sprint N` |
+| **Sprint Backlog** | Selecionado para a sprint corrente, com DoR completa e responsável | Milestone atribuída (planning) | 1º push na branch da issue |
+| **Em andamento** | Alguém está trabalhando: existe branch `tipo/<n>-slug` com commits | Push na branch (ou `/tarefa`) | PR aberto para `develop` |
+| **Em revisão** | PR aberto (não rascunho) aguardando revisão e execução do "Como verificar" | PR aberto ou marcado pronto para revisão | PR mergeado, fechado ou convertido em rascunho |
+| **Concluído** | PR mergeado em `develop`; issue fechada com o link do PR | Merge em `develop` ou issue fechada | Issue reaberta (volta para Em andamento com a label `regressao`) |
+
+Ordem lógica: `Backlog < Sprint Backlog < Em andamento < Em revisão < Concluído`. A automação nunca move um cartão para trás, exceto nos casos explícitos (PR convertido em rascunho, PR fechado sem merge, issue reaberta).
+
+## 2. Campos
+
+| Campo | Tipo | Uso |
+|---|---|---|
+| `Status` | single select (nativo, opções renomeadas pelo bootstrap) | As cinco colunas acima |
+| `Milestone` | nativo da issue | Faz o papel de **Sprint**: `Sprint 1`, `Sprint 2`, `Sprint 3`. Filtra a view "Sprint atual" |
+| `Critério` | texto (criado pelo bootstrap) | Código(s) da rubrica que a issue comprova (`DW02`, `BD01`…), copiado do formulário de história; alimenta a coluna Código do plano de entregas |
+| `Assignees` | nativo | Responsável pela issue; agrupa a view "Por pessoa" (ES09) |
+| `Labels` | nativo | `RFxx`/`RNFxx`, `tipo:*`, `area:*`, `prioridade:*`, `bloqueado`, `feedback-cliente`, `regressao` |
+
+## 3. Quem move o quê
+
+| Movimento | Automático (workflow `board`) | Manual |
+|---|---|---|
+| Entrar no quadro em Backlog | sim, ao abrir a issue | — |
+| Backlog ↔ Sprint Backlog | sim, ao atribuir ou remover a milestone | PO atribui a milestone na planning (`gh issue edit n --milestone "Sprint N"`) |
+| → Em andamento | sim, no 1º push da branch `tipo/<n>-slug` | dev via `/tarefa n` (feedback imediato, com o próprio token) |
+| → Em revisão | sim, ao abrir PR para `develop` com `Closes #n` | dev via `/pr` |
+| → Concluído | sim: o merge em `develop` fecha a issue e comenta o link do PR | **ninguém** (ver seção 7) |
+| Reaberta → Em andamento + `regressao` | sim | — |
+
+Só **issues** entram no quadro; PRs não são adicionados (o vínculo é o `Closes #n` do PR). A tabela completa evento → ação está no cabeçalho de [`.github/scripts/board-route.sh`](../../.github/scripts/board-route.sh).
+
+## 4. Workflows nativos do Project (ligar na interface, uma vez)
+
+Em `Project → ⋯ → Workflows`, o SM habilita os workflows abaixo como rede de segurança (funcionam mesmo sem o PAT da seção 5):
+
+| Workflow nativo | Configuração |
+|---|---|
+| Auto-add to project | repositório `DEVassos/greener-app`, filtro `is:issue` |
+| Item closed | Status → **Concluído** |
+| Item reopened | Status → **Em andamento** |
+| Auto-archive items | desligado (o avaliador precisa ver o histórico completo) |
+
+## 5. Variáveis e segredo da automação
+
+| Nome | Tipo | Valor / regra |
+|---|---|---|
+| `PROJECT_OWNER` | variável do repositório (`gh variable set`) | `DEVassos` |
+| `PROJECT_NUMBER` | variável do repositório | número do Project (`gh project list --owner DEVassos`) |
+| `PROJECTS_TOKEN` | **secret** do repositório (`gh secret set`) | PAT **fine-grained** da organização DEVassos: Resource owner `DEVassos`; Organization permissions → **Projects: Read and write**; Repository permissions (apenas `greener-app`) → **Issues: Read and write**, Pull requests: Read, Metadata: Read. Validade **2026-12-31**. Titular: SM (`@travensolli`) |
+
+O token padrão das Actions (`GITHUB_TOKEN`) **não acessa Projects v2**; por isso o PAT. Sem ele, o workflow `board` emite um aviso e termina com sucesso: issues, labels e comentários continuam funcionando e o quadro fica apenas com os workflows nativos da seção 4.
+
+**Rotação:** se o titular mudar, o token expirar ou vazar, o SM revoga em `Settings → Developer settings → Personal access tokens`, cria outro com as mesmas permissões e roda `gh secret set PROJECTS_TOKEN -R DEVassos/greener-app`. A troca é registrada na ata da daily do dia. Se a política da organização bloquear PATs fine-grained, pedir liberação ao owner (`devassosfatec`) ou usar um PAT classic com escopos `repo` e `project`.
+
+## 6. Views sugeridas
+
+| View | Layout | Filtro / agrupamento | Para quê |
+|---|---|---|---|
+| **Sprint atual** | Board | `milestone:"Sprint N"` | Daily e checkpoint: o que está em cada coluna |
+| **Por pessoa** | Table | agrupar por `Assignees`, filtro `milestone:"Sprint N"` | ES09 e WIP (máximo 2 em Em andamento por pessoa) |
+| **Backlog priorizado** | Table | `no:milestone`, ordenar pela label `prioridade:*` | Refinamento e planning |
+| **Bloqueados** | Table | `label:bloqueado` | Impedimentos da daily |
+
+## 7. Se a automação falhar
+
+1. Confira a execução em `Actions → board`: o aviso `PROJECTS_TOKEN/PROJECT_NUMBER ausentes` significa PAT expirado ou variável faltando (seção 5).
+2. Mova o cartão **manualmente** no quadro para o status correto e registre na ata da daily que a automação falhou (vira issue `tipo:processo` se repetir).
+3. Lembre: o `Closes #n` nativo do GitHub **só fecha a issue em merge na branch padrão (`main`)**. Como o trabalho entra em `develop`, quem fecha a issue é o workflow `board`. Se ele falhou, feche a issue à mão com o link do PR — `gh issue close n --reason completed --comment "Entregue em #<pr>"` — e o workflow nativo "Item closed" move o cartão para Concluído.
+4. Nunca mova para Concluído um item cujo PR não foi mergeado em `develop`.
+5. Mudanças no workflow `board` ou nos scripts precisam chegar a `main` (os eventos de issues e push rodam a partir da branch padrão): PR para `develop` e PR para `main`, conforme o [CONTRIBUTING](../../.github/CONTRIBUTING.md).

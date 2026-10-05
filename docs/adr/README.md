@@ -1,0 +1,28 @@
+# Registros de decisão de arquitetura (ADR)
+
+<!-- Arquivo gerenciado pelo time (o agilekit não sobrescreve). Índice mantido por `/adr <título>`. -->
+
+Decisões técnicas e de processo que afetam o repositório inteiro são registradas aqui no formato **MADR** (Markdown Architectural Decision Records), numeradas em sequência. Cada ADR aponta para a issue, o requisito e o critério da rubrica que motivaram a decisão — isso faz parte da rastreabilidade (ES04) e explica ao avaliador por que o código está como está.
+
+## Índice
+
+| ADR | Título | Status | Data | Rastreabilidade |
+|---|---|---|---|---|
+| [0001](0001-gitflow-commits-coautoria.md) | Git Flow, Conventional Commits em pt-BR e co-autoria restrita ao time | aceito | 2026-10-05 | RP07 · ES04, ES05, ES09 |
+| [0002](0002-postgresql-pg-sem-orm.md) | PostgreSQL com driver `pg` e SQL explícito, sem ORM | aceito | 2026-10-05 | RP03 · BD01, BD02 |
+| [0003](0003-docker-compose-unico-caminho.md) | Docker Compose como único caminho de execução | aceito | 2026-10-05 | RP04 · DW07, BD03 |
+
+## Como criar um ADR
+
+1. Rode `/adr <título>` no Claude Code, ou copie [`docs/templates/adr.md`](../templates/adr.md) para `docs/adr/NNNN-slug.md` (próximo número com 4 dígitos, slug em minúsculas com hifens).
+2. Preencha status (`proposto` até a aprovação do PR, depois `aceito`), data, decisores, rastreabilidade (issue `#n`, requisito, critério), contexto, opções, decisão e consequências.
+3. Adicione a linha no índice acima e abra o PR na branch da issue que motivou a decisão (`docs/<n>-adr-slug`), com label `tipo:tarefa` ou a label RF correspondente. Revisão por alguém de outra área.
+4. Um ADR aceito não é editado: para mudar a decisão, crie um novo ADR com "substitui NNNN" e marque o antigo como "substituído por MMMM".
+
+## ADRs previstos
+
+| Tema | Quando | Quem propõe | Requisito / critério |
+|---|---|---|---|
+| Atualização do dashboard: polling HTTP vs Server-Sent Events | Sprint 2, antes de implementar RF11 | Andrea (`@DeaTuribio`) com Lucas | RF11, RNF02 · DW05 |
+| Modelo de potência e fatores de emissão (P_idle/P_max, intensidade por região, fator padrão) | Sprint 2, junto com RF07 e `docs/calculos.md` | Henrique (`@henriqueptbd-cell`) com Lucas | RF07, RF08 · TP01, BD04 |
+| Autenticação JWT: biblioteca, expiração, armazenamento do token no frontend, hash de senha | Sprint 2, antes de implementar RP06 | Lucas (`@LUCASAMR23`) com Vinicius | RP06 · DW06 |

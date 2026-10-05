@@ -1,0 +1,49 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/ISSUE_TEMPLATE/bug.yml)
+name: "Bug"
+description: "Comportamento incorreto em algo já entregue (regressões contam contra a rubrica cumulativa)."
+title: "[bug] "
+labels: ["tipo:bug"]
+body:
+  - type: textarea
+    id: passos
+    attributes:
+      label: "Passos para reproduzir"
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: "Resultado esperado"
+    validations:
+      required: true
+  - type: textarea
+    id: obtido
+    attributes:
+      label: "Resultado obtido"
+      description: "Inclua logs, prints ou resposta da API."
+    validations:
+      required: true
+  - type: dropdown
+    id: requisito
+    attributes:
+      label: "Requisito relacionado"
+      multiple: true
+      options: ["RF01", "RF02", "RF03", "RF04", "RF05", "RF06", "RF07", "RF08", "RF09", "RF10", "RF11", "RF12", "RF13", "RF14", "RF15", "RNF01", "RNF02", "RNF03", "RNF04", "RNF05"]
+  - type: dropdown
+    id: origem
+    attributes:
+      label: "Sprint em que o item foi aceito"
+      options: ["Sprint 1", "Sprint 2", "Sprint 3", "não aceito ainda"]
+  - type: dropdown
+    id: severidade
+    attributes:
+      label: "Severidade"
+      options: ["alta — bloqueia uso ou derruba a aplicação", "média — funcionalidade incorreta", "baixa — cosmético"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: regressao
+    attributes:
+      label: "Regressão"
+      options:
+        - label: "É regressão de item já aceito em sprint anterior (adicionar label `regressao`)"

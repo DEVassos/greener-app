@@ -1,0 +1,52 @@
+{
+  "_comentario": "Calendario do ABP 2DSM 2026-2. Gerenciado pelo time: edite via PR. Datas de review ainda NAO confirmadas pelo cliente (a_confirmar=true). Horarios em America/Sao_Paulo.",
+  "fuso": "America/Sao_Paulo",
+  "kickoff": "2026-09-28T20:00",
+  "apresentacao_final": { "data": null, "a_confirmar": true, "observacao": "final do semestre, a definir" },
+  "feriados": [
+    { "data": "2026-10-12", "nome": "Nossa Senhora Aparecida" },
+    { "data": "2026-10-15", "nome": "Dia do Professor (sem aula)" },
+    { "data": "2026-11-02", "nome": "Finados" },
+    { "data": "2026-11-20", "nome": "Consciencia Negra" }
+  ],
+  "dias_de_aula": ["seg", "ter", "qua", "qui", "sex"],
+  "daily": { "duracao_min": 15, "horario_sugerido": "19:00", "forma": "presencial em sala nos dias de aula; assincrona por mensagem de texto quando nao houver aula", "ata_obrigatoria": true },
+  "sprints": [
+    {
+      "numero": 1,
+      "milestone": "Sprint 1",
+      "inicio": "2026-09-29",
+      "fim": "2026-10-19",
+      "checkpoint": "2026-10-09",
+      "congelamento": "2026-10-18T20:00",
+      "review": "2026-10-19T19:30",
+      "pos_review_limite": "2026-10-20T23:59",
+      "a_confirmar": true,
+      "objetivo": "Pipeline de coleta persistido em Docker e primeira tela do dashboard (lista de servicos com estado e localizacao, atualizando sem recarregar)"
+    },
+    {
+      "numero": 2,
+      "milestone": "Sprint 2",
+      "inicio": "2026-10-20",
+      "fim": "2026-11-09",
+      "checkpoint": "2026-10-30",
+      "congelamento": "2026-11-08T20:00",
+      "review": "2026-11-09T19:30",
+      "pos_review_limite": "2026-11-10T23:59",
+      "a_confirmar": true,
+      "objetivo": "Dashboard completo com energia, CO2e, tolerancia a falhas e area de configuracao protegida por JWT"
+    },
+    {
+      "numero": 3,
+      "milestone": "Sprint 3",
+      "inicio": "2026-11-10",
+      "fim": "2026-11-23",
+      "checkpoint": "2026-11-17",
+      "congelamento": "2026-11-22T20:00",
+      "review": "2026-11-23T19:30",
+      "pos_review_limite": "2026-11-24T23:59",
+      "a_confirmar": true,
+      "objetivo": "Ranking de impacto, comparacao entre servicos, mapa (could) e repositorio pronto como portfolio"
+    }
+  ]
+}

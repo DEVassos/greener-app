@@ -1,0 +1,12 @@
+# gerado pelo agilekit na 1ª instalação; depois é do time (edite via PR).
+# Só pede revisão automaticamente (require_code_owner_review = false nos rulesets): sempre 2 donos,
+# porque dono não aprova o próprio PR e a revisão deve circular (ES09).
+/docs/plano-de-entregas.md   @henriqueptbd-cell @travensolli
+/docs/backlog/               @henriqueptbd-cell @travensolli
+/docs/sprints/               @travensolli @henriqueptbd-cell
+/docs/processo/              @travensolli @henriqueptbd-cell
+/.github/                    @travensolli @LUCASAMR23
+/database/                   @viniciusaugusto1997 @LUCASAMR23
+/backend/                    @LUCASAMR23 @viniciusaugusto1997
+/frontend/                   @DeaTuribio @LUCASAMR23
+/compose.yaml                @travensolli @viniciusaugusto1997
