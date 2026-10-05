@@ -1,0 +1,64 @@
+{
+  "_comentario": "Equipe GreenER (ABP 2DSM 2026-2). Arquivo gerenciado pelo time: edite via PR. 'emails' sao os enderecos aceitos no trailer Co-authored-by e na checagem de autoria (noreply do GitHub + e-mails verificados na conta). 'backup' cobre as responsabilidades do papel em ausencia.",
+  "projeto": "GreenER",
+  "org": "DEVassos",
+  "repo": "DEVassos/greener-app",
+  "kit": "DEVassos/agilekit",
+  "integrantes": [
+    {
+      "login": "henriqueptbd-cell",
+      "id": 233653222,
+      "nome": "Henrique Camargo",
+      "papel": "po",
+      "backup": "travensolli",
+      "area_primaria": "produto",
+      "par_de_revisao": "travensolli",
+      "emails": ["233653222+henriqueptbd-cell@users.noreply.github.com"]
+    },
+    {
+      "login": "travensolli",
+      "id": 55038859,
+      "nome": "Gabriel Travensolli",
+      "papel": "sm",
+      "backup": "henriqueptbd-cell",
+      "area_primaria": "infra",
+      "par_de_revisao": "henriqueptbd-cell",
+      "emails": ["55038859+travensolli@users.noreply.github.com", "gabriel_t_silva@hotmail.com"]
+    },
+    {
+      "login": "DeaTuribio",
+      "id": 139165742,
+      "nome": "Andrea Turibio",
+      "papel": "dev",
+      "backup": "LUCASAMR23",
+      "area_primaria": "frontend",
+      "par_de_revisao": "LUCASAMR23",
+      "emails": ["139165742+DeaTuribio@users.noreply.github.com"]
+    },
+    {
+      "login": "LUCASAMR23",
+      "id": 177771290,
+      "nome": "Lucas Amorim",
+      "papel": "dev",
+      "backup": "viniciusaugusto1997",
+      "area_primaria": "backend",
+      "par_de_revisao": "viniciusaugusto1997",
+      "emails": ["177771290+LUCASAMR23@users.noreply.github.com", "lucasrodriguessptvv@gmail.com"]
+    },
+    {
+      "login": "viniciusaugusto1997",
+      "id": 261281418,
+      "nome": "Vinicius Augusto",
+      "papel": "dev",
+      "backup": "DeaTuribio",
+      "area_primaria": "db",
+      "par_de_revisao": "DeaTuribio",
+      "emails": ["261281418+viniciusaugusto1997@users.noreply.github.com"]
+    }
+  ],
+  "papeis": {
+    "po": "Product Owner: backlog, historias, criterios de aceite, plano de entregas, aceite das entregas, registro do feedback do cliente",
+    "sm": "Scrum Master: cerimonias, atas, quadro, DoR/DoD, evidencias ES09, release/tag, manutencao do agilekit",
+    "dev": "Desenvolvedor(a): codigo, SQL, testes, interface, documentacao do proprio PR, revisao tecnica"
+  }
+}

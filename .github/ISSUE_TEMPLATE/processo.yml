@@ -1,0 +1,31 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/ISSUE_TEMPLATE/processo.yml)
+name: "Ação de processo"
+description: "Melhoria vinda da retrospectiva, daily ou review (processo, documentação, kit)."
+title: "[processo] "
+labels: ["tipo:processo"]
+body:
+  - type: textarea
+    id: acao
+    attributes:
+      label: "Ação de processo"
+      description: "O que vamos mudar/fazer e por quê."
+    validations:
+      required: true
+  - type: dropdown
+    id: origem
+    attributes:
+      label: "Origem"
+      options: ["Retrospectiva", "Daily", "Sprint Review (feedback do cliente)", "Auditoria da rubrica", "Outra"]
+    validations:
+      required: true
+  - type: textarea
+    id: resultado
+    attributes:
+      label: "Resultado esperado / como saber que deu certo"
+    validations:
+      required: true
+  - type: input
+    id: prazo
+    attributes:
+      label: "Prazo"
+      placeholder: "AAAA-MM-DD"

@@ -1,0 +1,9 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/ISSUE_TEMPLATE/config.yml)
+blank_issues_enabled: false
+contact_links:
+  - name: "Como trabalhamos (processo, papéis, DoR/DoD)"
+    url: https://github.com/DEVassos/greener-app/blob/main/docs/processo/README.md
+    about: "Leia antes de abrir issues: cerimônias, Git Flow, Definition of Done."
+  - name: "Padrões de branch, commit e PR"
+    url: https://github.com/DEVassos/greener-app/blob/main/.github/CONTRIBUTING.md
+    about: "Convenções validadas automaticamente pelos checks."

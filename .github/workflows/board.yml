@@ -1,0 +1,52 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/workflows/board.yml)
+# Automação do quadro (GitHub Project v2) e das issues:
+#   issue aberta → Backlog/Sprint Backlog (+ labels RF do formulário) · milestone → Sprint Backlog
+#   push em branch de trabalho → Em andamento · PR aberto → Em revisão · draft → Em andamento
+#   PR mergeado em develop → fecha a issue + Concluído (o "Closes #n" nativo só fecha na branch padrão)
+# Precisa do secret PROJECTS_TOKEN (PAT com Projects RW) e das variáveis PROJECT_OWNER / PROJECT_NUMBER.
+# Sem o PAT, as ações em issues continuam e o quadro fica com os workflows nativos do Project.
+# Eventos issues/push usam o workflow da branch padrão (main) — por isso .github/ precisa estar em main.
+name: board
+on:
+  issues:
+    types: [opened, edited, milestoned, demilestoned, closed, reopened]
+  push:
+    branches-ignore: [main, develop]
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft, closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: board-${{ github.event.issue.number || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  route:
+    name: route
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github
+      - name: Rotear evento para o quadro
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_OWNER: ${{ vars.PROJECT_OWNER }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
+          BOARD_COMMENT_ON_PUSH: ${{ vars.BOARD_COMMENT_ON_PUSH || 'true' }}
+        run: |
+          if [ ! -f .github/scripts/board-route.sh ]; then echo "::notice::.github/scripts ainda não está na branch padrão (bootstrap) — nada a fazer"; exit 0; fi
+          if [ -z "$PROJECTS_TOKEN" ] || [ -z "$PROJECT_NUMBER" ]; then
+            echo "::warning::PROJECTS_TOKEN/PROJECT_NUMBER ausentes — o quadro não será atualizado por este workflow (issues e labels continuam). Veja docs/processo/quadro.md."
+            unset PROJECT_NUMBER
+          fi
+          bash .github/scripts/board-route.sh "$GITHUB_EVENT_PATH" "$GITHUB_EVENT_NAME"

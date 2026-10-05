@@ -1,0 +1,97 @@
+# gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/workflows/ci.yml)
+# Build/teste da aplicação. Inerte enquanto os módulos não existirem (cada job verifica os arquivos).
+# Quando backend/frontend existirem, o SM adiciona os contexts (backend, frontend, compose, schema) aos rulesets.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - id: has
+        run: if [ -f backend/package.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "backend/ ainda não existe — nada a testar"; fi
+      - if: steps.has.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - if: steps.has.outputs.ok == 'true'
+        working-directory: backend
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm test --if-present
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - id: has
+        run: if [ -f frontend/package.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "frontend/ ainda não existe — nada a testar"; fi
+      - if: steps.has.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - if: steps.has.outputs.ok == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build --if-present
+          npm test --if-present
+
+  compose:
+    name: compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker compose build (DW07)
+        run: |
+          if [ ! -f compose.yaml ] && [ ! -f docker-compose.yml ]; then echo "sem compose.yaml ainda"; exit 0; fi
+          [ -f .env ] || { [ -f .env.example ] && cp .env.example .env; }
+          docker compose config -q
+          docker compose build
+
+  schema:
+    name: schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: greener
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: schema.sql em um PostgreSQL vazio (BD01)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          if [ ! -f database/schema.sql ]; then echo "sem database/schema.sql ainda"; exit 0; fi
+          psql -h localhost -U postgres -d greener -v ON_ERROR_STOP=1 -f database/schema.sql
+          for f in database/migrations/*.sql; do [ -f "$f" ] && psql -h localhost -U postgres -d greener -v ON_ERROR_STOP=1 -f "$f"; done
+          n=$(psql -h localhost -U postgres -d greener -Atc "select count(*) from information_schema.tables where table_schema='public'")
+          echo "tabelas criadas: $n"; [ "$n" -gt 0 ]
