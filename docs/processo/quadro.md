@@ -104,3 +104,7 @@ O backlog segue o modelo do Jira usando **sub-issues** nativas do GitHub:
 | Por pessoa | Board por Assignees | Filtro `milestone:"Sprint N"` |
 
 Scripts: `bash .agilekit/scripts/gh-seed-backlog.sh` (cria épicos/histórias/tarefas do seed) e `bash .agilekit/scripts/gh-link-subissues.sh` (monta/repara os vínculos, idempotente).
+
+### Story Points (campo numérico)
+
+O Project tem o campo **Story Points** (número). Ele é preenchido automaticamente pelo workflow `board` a partir da seção "Estimativa (pontos)" do formulário (histórias e tarefas) ou de "Story Points: N" no corpo, ao abrir ou editar a issue; o seed também grava. Nas views em Table, agrupar por *Parent issue*, *Assignees* ou *Milestone* mostra a **soma** por grupo (clique no cabeçalho do grupo › *Sum*): é a capacidade da sprint por pessoa e o tamanho de cada história/épico. Para ajustar à mão: `bash .github/scripts/project-set-status.sh <n> - --number "Story Points=5"`.
