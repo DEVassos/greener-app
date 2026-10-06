@@ -8,7 +8,7 @@
 #
 # Uso:
 #   check-commit-msg.sh [--local] <arquivo>      # hook commit-msg (arquivo com a mensagem)
-#   check-commit-msg.sh [--local] -               # mensagem pelo stdin (hook do Claude)
+#   check-commit-msg.sh [--local] -               # mensagem pelo stdin (guard dos assistentes de IA)
 #   check-commit-msg.sh --range <A..B>            # todos os commits do intervalo (CI); ignora merges
 # --local aceita prefixos fixup!/squash! (serão esmagados antes do PR).
 
@@ -79,7 +79,7 @@ valida_mensagem() {
       done <<< "$trailers"
     fi
   fi
-  if printf '%s\n' "$msg" | grep -iEq '^(co-authored-by|signed-off-by|authored-by):.*(claude|anthropic|copilot|chatgpt|openai|gemini|\[bot\])'; then
+  if printf '%s\n' "$msg" | grep -iEq '^(co-authored-by|signed-off-by|authored-by):.*(claude|anthropic|copilot|chatgpt|openai|codex|gemini|antigravity|cursor|\[bot\])'; then
     err "$rotulo: trailer de autoria atribuído a IA/bot. Remova-o (regra do time: co-autor só humano e do time)."
   fi
 }

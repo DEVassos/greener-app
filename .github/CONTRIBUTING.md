@@ -2,7 +2,7 @@
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/CONTRIBUTING.md) -->
 
-Regras de branch, commit e Pull Request. Todas são **validadas automaticamente**: pelos hooks git locais (instalados pelo agilekit), pelo hook do Claude Code e pelos checks do GitHub (`commits`, `pr`, `docs`). O processo Scrum (papéis, cerimônias, DoR/DoD) está em [docs/processo/README.md](../docs/processo/README.md).
+Regras de branch, commit e Pull Request. Todas são **validadas automaticamente**: pelos hooks git locais (instalados pelo agilekit), pelo guard dos assistentes de IA (Claude Code, Copilot, Codex ou Antigravity) e pelos checks do GitHub (`commits`, `pr`, `docs`). O processo Scrum (papéis, cerimônias, DoR/DoD) está em [docs/processo/README.md](../docs/processo/README.md).
 
 ## 1. Git Flow
 
@@ -17,7 +17,7 @@ release/sprint-1 (develop → main, pelo SM no congelamento)   hotfix/55-crash-c
 - **Nunca** commit ou push direto em `main` ou `develop` (bloqueado por hook e por ruleset).
 - 1 issue = 1 branch = 1 PR (≤400 linhas alteradas). A branch é **apagada automaticamente** no merge.
 - Nome da branch: `tipo/<nº-da-issue>-slug-curto` — tipos `feature fix docs chore test sql`; `slug` em minúsculas, `a-z0-9.-`.
-- Comece sempre de `origin/develop` atualizada: `git fetch && git switch -c feature/12-slug origin/develop` (ou `/tarefa 12` no Claude).
+- Comece sempre de `origin/develop` atualizada: `git fetch && git switch -c feature/12-slug origin/develop` (ou a skill `tarefa` no seu assistente de IA: `/tarefa 12`; no Codex, `$tarefa 12`).
 - `hotfix/<n>-slug` nasce de `main`, vai por PR para `main` **e** por outro PR para `develop`.
 - Mudanças em `.github/workflows` precisam chegar a `main` (os eventos de issues/push usam o workflow da branch padrão): PR para `develop` e PR para `main`.
 
@@ -46,7 +46,7 @@ fix(frontend): mostra estado indisponível no card do serviço (#31) [RF05]
 chore(processo): registra ata da daily de 07/10 (#3)
 ```
 
-Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.gitmessage` com estas regras; `/commitar` no Claude Code monta a mensagem.
+Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.gitmessage` com estas regras; a skill `commitar` do assistente de IA monta a mensagem.
 
 ### Co-autoria
 

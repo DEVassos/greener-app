@@ -14,7 +14,7 @@ Decisões técnicas e de processo que afetam o repositório inteiro são registr
 
 ## Como criar um ADR
 
-1. Rode `/adr <título>` no Claude Code, ou copie [`docs/templates/adr.md`](../templates/adr.md) para `docs/adr/NNNN-slug.md` (próximo número com 4 dígitos, slug em minúsculas com hifens).
+1. Rode a skill `adr` no seu assistente de IA (`/adr <título>`; no Codex, `$adr <título>`), ou copie [`docs/templates/adr.md`](../templates/adr.md) para `docs/adr/NNNN-slug.md` (próximo número com 4 dígitos, slug em minúsculas com hifens).
 2. Preencha status (`proposto` até a aprovação do PR, depois `aceito`), data, decisores, rastreabilidade (issue `#n`, requisito, critério), contexto, opções, decisão e consequências.
 3. Adicione a linha no índice acima e abra o PR na branch da issue que motivou a decisão (`docs/<n>-adr-slug`), com label `tipo:tarefa` ou a label RF correspondente. Revisão por alguém de outra área.
 4. Um ADR aceito não é editado: para mudar a decisão, crie um novo ADR com "substitui NNNN" e marque o antigo como "substituído por MMMM".

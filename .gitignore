@@ -1,11 +1,24 @@
 # --- agilekit (local em cada clone; instalado por `bash agilekit/install.sh .`) ---
 agilekit/
-.claude/
-CLAUDE.md
-CLAUDE.local.md
 .githooks/
 .gitmessage
 .agilekit/
+
+# --- assistentes de IA (só na máquina de cada integrante; o agilekit instala os escolhidos) ---
+AGENTS.md
+CLAUDE.md
+CLAUDE.local.md
+GEMINI.md
+.claude/
+.agents/
+.codex/
+.gemini/
+.github/agents/
+.github/hooks/
+.github/instructions/
+.github/prompts/
+.github/skills/
+.github/copilot-instructions.md
 
 # --- ambiente e segredos ---
 .env
