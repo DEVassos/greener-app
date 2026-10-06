@@ -2,7 +2,7 @@
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/onboarding.md) -->
 
-Checklist para cada integrante sair do zero até o primeiro PR mergeado. Tempo estimado: 60–90 min. Em caso de dúvida, procure o SM (`@travensolli`); o backup é o PO (`@henriqueptbd-cell`). A skill `/onboarding` do Claude Code percorre esta lista automaticamente.
+Checklist para cada integrante sair do zero até o primeiro PR mergeado. Tempo estimado: 60–90 min. Em caso de dúvida, procure o SM (`@travensolli`); o backup é o PO (`@henriqueptbd-cell`). A skill `onboarding` do seu assistente de IA (seção 6) percorre esta lista automaticamente.
 
 ## 1. Pré-requisitos
 
@@ -37,7 +37,7 @@ cd /c/dev                                    # ou: cd "/g/FATEC/ABPs/ABP - 2DSM"
 git clone https://github.com/DEVassos/greener-app.git
 cd greener-app
 git clone https://github.com/DEVassos/agilekit.git agilekit   # fica dentro do clone, já no .gitignore
-bash agilekit/install.sh .                   # instala .claude/, hooks, .gitmessage, .agilekit/, jq
+bash agilekit/install.sh .                   # instala hooks, .gitmessage, .agilekit/, jq e pergunta o assistente de IA (seção 6)
 bash .agilekit/scripts/setup-dev.sh          # git config local + verificação do ambiente
 ```
 
@@ -57,7 +57,7 @@ bash .agilekit/scripts/setup-dev.sh --check
 
 | Tema | O que fazer |
 |---|---|
-| Terminal | Use **Git Bash** para scripts do kit, hooks e Claude Code. PowerShell serve para `docker`, `gh` e `npm`. |
+| Terminal | Use **Git Bash** para os scripts do kit e os hooks. PowerShell serve para `docker`, `gh` e `npm`. Os assistentes de IA chamam o kit por `git agilekit-*`, que funciona em qualquer um dos dois. |
 | Fim de linha | Não mude `core.autocrlf`: o `.gitattributes` do repositório força LF em `*.sh`, hooks e código, e CRLF só em `*.bat`, `*.cmd` e `*.ps1`. Se um hook falhar com `\r: command not found`, rode `git add --renormalize .` na sua branch e commite. |
 | Caminhos com espaço | `ABP - 2DSM` tem espaços: sempre `cd "/g/FATEC/ABPs/ABP - 2DSM/greener-app"` entre aspas. Prefira `C:\dev\greener-app` se puder. |
 | Caminhos longos | `core.longpaths=true` (feito pelo `setup-dev.sh`) evita erro em `node_modules`. |
@@ -78,9 +78,23 @@ Pegue uma issue pequena (estimativa 1–2) do Sprint Backlog com o seu nome, ou 
 
 Leitura obrigatória antes do primeiro PR: [CONTRIBUTING.md](../../.github/CONTRIBUTING.md), [Como trabalhamos](README.md), [DoR/DoD](definition-of-done.md), [Quadro](quadro.md).
 
-## 6. Claude Code (opcional, recomendado)
+## 6. Assistente de IA (opcional, recomendado)
 
-`install.sh` coloca `CLAUDE.md`, `.claude/` (skills `/onboarding`, `/historia`, `/tarefa`, `/commitar`, `/pr`, `/revisar`, `/daily`, `/status`, `/adr`, `/auditar`, `/sprint`) e hooks que bloqueiam commit fora do padrão, push em branch protegida e co-autor fora do time. Abra o terminal na raiz do clone e rode `claude`; o `SessionStart` mostra a sprint atual, prazos, suas issues e PRs para revisar. Para atualizar o kit: `bash .agilekit/scripts/kit-update.sh`.
+Na instalação você escolhe um ou mais assistentes. Cada um recebe as mesmas 11 skills (`onboarding`, `historia`, `tarefa`, `commitar`, `pr`, `revisar`, `daily`, `painel`, `adr`, `auditar`, `sprint`), os 5 agentes, as regras do projeto e o guard que bloqueia commit fora do padrão, push em branch protegida e co-autor fora do time. Esses arquivos ficam só na sua máquina: o git os ignora.
+
+```bash
+bash agilekit/install.sh . --llm claude          # um assistente
+bash agilekit/install.sh . --llm copilot,codex   # vários; também aceita todos ou nenhum
+```
+
+| Assistente | Como abrir | Chamar uma skill | Passo extra na primeira vez |
+|---|---|---|---|
+| Claude Code | `claude` na raiz do clone | `/tarefa 12` | nenhum |
+| GitHub Copilot | chat do VS Code em modo agente, ou `copilot` | `/tarefa 12` | confiar na pasta; no Copilot CLI, `/settings includeCoAuthoredBy off` |
+| OpenAI Codex | `codex` ou extensão do VS Code | `$tarefa 12` | confiar no projeto e aprovar os hooks em `/hooks` |
+| Google Antigravity | `agy` | `/tarefa 12` | confiar na pasta |
+
+Ao abrir, o assistente recebe o contexto do dia: sprint, prazos, suas issues e PRs para revisar. No Antigravity, peça para rodar `git agilekit-context`. Para atualizar o kit, rode `bash .agilekit/scripts/kit-update.sh`; ele mantém a sua escolha. Para trocar de assistente, rode o `install.sh` de novo com outro `--llm`.
 
 ## 7. Quem procurar
 
