@@ -78,3 +78,29 @@ O token padrão das Actions (`GITHUB_TOKEN`) **não acessa Projects v2**; por is
 3. Lembre: o `Closes #n` nativo do GitHub **só fecha a issue em merge na branch padrão (`main`)**. Como o trabalho entra em `develop`, quem fecha a issue é o workflow `board`. Se ele falhou, feche a issue à mão com o link do PR — `gh issue close n --reason completed --comment "Entregue em #<pr>"` — e o workflow nativo "Item closed" move o cartão para Concluído.
 4. Nunca mova para Concluído um item cujo PR não foi mergeado em `develop`.
 5. Mudanças no workflow `board` ou nos scripts precisam chegar a `main` (os eventos de issues e push rodam a partir da branch padrão): PR para `develop` e PR para `main`, conforme o [CONTRIBUTING](../../.github/CONTRIBUTING.md).
+
+## Hierarquia do backlog (Épico → História → Tarefa)
+
+O backlog segue o modelo do Jira usando **sub-issues** nativas do GitHub:
+
+| Nível | O que é | Como se identifica | Quem cria |
+|---|---|---|---|
+| **Épico** | Tema de requisitos do edital (ex.: EP1 — Descoberta e monitoramento dinâmico, RF01/RF02/RF05/RF06) | label `tipo:epico` (tipo *Epic* da org, quando existir); sem milestone, atravessa as sprints | PO (uma vez, pelo seed) |
+| **História** | Valor para o usuário, com critérios de aceite e "Como verificar" | label `tipo:historia`, tipo *Feature*; milestone da sprint; sub-issue do épico | PO (formulário "História de usuário" ou `/historia`) |
+| **Tarefa** | Fatia técnica de uma história (ou enabler) | label `tipo:tarefa`, tipo *Task*; sub-issue da história; é o que vira branch e PR | Dev/SM (formulário "Tarefa técnica" ou `/tarefa --criar`) |
+
+- O campo **Épico (pai)** do formulário de história e **História pai** do formulário de tarefa (`#N`) fazem a vinculação automaticamente (workflow `board` ao abrir/editar a issue). O vínculo também pode ser feito na UI: *Sub-issues › Add existing issue*.
+- No quadro, use **Group by: Parent issue** para ver cada história com suas tarefas e **Sub-issues progress** para o andamento; a view **Hierarquia** (abaixo) é a visão "épico → história → tarefa".
+- Uma **tarefa** fecha pelo merge do PR em `develop` (automático). Uma **história** é fechada pelo PO depois de executar o "Como verificar" (aceite). Um **épico** fecha quando todas as histórias fecham (o PO fecha na review da última sprint em que ele aparece).
+- Requisito individual (RFxx) continua como **label** em épicos, histórias e tarefas: é o que o avaliador procura para ES04.
+
+### Views sugeridas do Project
+
+| View | Layout | Configuração |
+|---|---|---|
+| Sprint atual | Board por Status | Filtro `milestone:"Sprint N" -label:tipo:epico` |
+| Hierarquia | Table | Group by **Parent issue**; colunas Title, Status, Assignees, Milestone, Sub-issues progress, Critério |
+| Épicos | Table | Filtro `label:tipo:epico`; colunas Title, Sub-issues progress, Labels (RFs) |
+| Por pessoa | Board por Assignees | Filtro `milestone:"Sprint N"` |
+
+Scripts: `bash .agilekit/scripts/gh-seed-backlog.sh` (cria épicos/histórias/tarefas do seed) e `bash .agilekit/scripts/gh-link-subissues.sh` (monta/repara os vínculos, idempotente).
