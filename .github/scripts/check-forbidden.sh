@@ -2,7 +2,8 @@
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/scripts/check-forbidden.sh)
 #
 # Procura padrões proibidos/arriscados pelas restrições do desafio e pela rubrica:
-#   ERRO : ORM em package.json (RP03/BD02); arquivo .env versionado (segredos)
+#   ERRO : ORM em package.json (RP03/BD02); arquivo .env versionado (segredos);
+#          arquivo de assistente de IA versionado (AGENTS.md, CLAUDE.md, .claude/, .agents/, .codex/…)
 #   AVISO: `any` sem "// any-justificado:" (TP02); SQL com ${} ou concatenação em texto SQL
 #          sem "// sql-seguro:" (BD02); catch vazio (TP03); knex (query builder)
 # Uso: check-forbidden.sh [raiz]
@@ -35,6 +36,13 @@ while IFS= read -r f; do
   case "$f" in *.env.example|*.env.sample|*.env.template) continue ;; esac
   err "arquivo de ambiente versionado: $f — remova do índice (git rm --cached) e mantenha só .env.example" "file=$f"
 done < <(listar | grep -E '(^|/)\.env(\.[A-Za-z0-9_.-]+)?$' || true)
+
+# 3. arquivos dos assistentes de IA versionados (ficam só na máquina de cada integrante)
+IA_PATHS_RE='(^|/)(AGENTS|CLAUDE|GEMINI|CLAUDE\.local)\.md$|^\.(claude|agents|codex|gemini)/|^\.github/(agents|hooks|instructions|prompts|skills)/|^\.github/copilot-instructions\.md$'
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  err "arquivo de assistente de IA versionado: $f — remova do índice (git rm --cached) e deixe só na sua máquina (o agilekit instala)" "file=$f"
+done < <(listar | grep -E "$IA_PATHS_RE" || true)
 
 TS_FILES="$(listar '*.ts' '*.tsx' | grep -v '\.d\.ts$' || true)"
 
