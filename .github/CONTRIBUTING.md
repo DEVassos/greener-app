@@ -71,7 +71,7 @@ Use o `.gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. 
 - Checklist: nenhum `- [ ]` pode ficar pendente; se não se aplica, escreva `N/A — motivo`.
 - Revisão: 1 aprovação de alguém **≠ autor**, com ≥1 comentário substantivo; o revisor **executa** o "Como verificar" e marca os critérios de aceite. Revise em ≤24h.
 - Merge: **merge commit** (preserva a autoria de cada integrante). Squash e rebase estão desabilitados.
-- Sem rodapé de ferramenta ("Generated with …") no PR e sem trailer de IA nos commits: quem usou IA explica isso em texto no corpo do PR. O check `pr` recusa o rodapé e o `.claude/settings.json` do kit já desliga essa atribuição no Claude Code.
+- Sem rodapé de ferramenta ("Generated with …") no PR e sem trailer de IA nos commits: quem usou IA explica isso em texto no corpo do PR. O check `pr` recusa o rodapé, o hook `commit-msg` recusa o trailer e o kit desliga a atribuição automática do Claude Code e do Copilot no VS Code; no Copilot CLI, rode uma vez `/settings includeCoAuthoredBy off`.
 - Rascunho (`--draft`) enquanto não estiver pronto: os checks viram avisos.
 
 ## 4. Release e tags
