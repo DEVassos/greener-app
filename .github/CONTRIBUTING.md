@@ -87,6 +87,10 @@ No congelamento (domingo 20h antes da review) o SM roda `/sprint N congelar`: cr
 
 Rode localmente antes de abrir o PR: `bash .github/scripts/check-forbidden.sh && bash .github/scripts/check-docs.sh`.
 
+### Histórico importado
+
+Commits trazidos de outro repositório do time (por exemplo, o antigo `Projeto-GreenER`) entram por **merge** de um PR dedicado, o que preserva SHA, autor, data e mensagem originais — e, portanto, a autoria de cada integrante no GitHub. Como essas mensagens são anteriores ao padrão, os SHAs completos ficam listados em `.github/commits-importados.txt` (com a origem) e o check `commits` não os valida. Todo commit novo, inclusive os de organização feitos no próprio PR de importação, segue o padrão normalmente.
+
 ## 6. Dúvidas frequentes
 
 - **Esqueci o `#n` no commit.** `git commit --amend` (antes do push) e corrija o assunto.
