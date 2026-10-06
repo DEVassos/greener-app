@@ -4,7 +4,7 @@
 # Valida metadados de um Pull Request do GreenER (Git Flow + rastreabilidade ES04 + DoD ES07):
 #   título no padrão de commit; branch de origem no padrão; base correta (develop p/ trabalho,
 #   main só p/ release/hotfix); corpo com "Closes #n"; ≥1 label RF/RNF (ou tipo:processo|bug);
-#   checklist sem "- [ ]" pendente (aceita "N/A — motivo"); sem placeholders; aviso >400 linhas.
+#   checklist sem "- [ ]" pendente (aceita "N/A — motivo"); sem placeholders nem rodapé "Generated with …"; aviso >400 linhas.
 # PR em rascunho: erros viram avisos.
 # Uso: check-pr.sh <número>            (usa gh pr view)
 #      check-pr.sh --json <arquivo>     (JSON já exportado — testes)
@@ -98,6 +98,7 @@ if [ -n "$PENDENTES" ]; then
   while IFS= read -r l; do fail "item da DoD-PR não marcado nem justificado com 'N/A — motivo': ${l#*:}"; done <<< "$PENDENTES"
 else ok "DoD-PR sem pendências"; fi
 if printf '%s' "$BODY" | grep -Fq '_(preencha)_'; then fail "o corpo ainda contém '_(preencha)_'"; fi
+if printf '%s' "$BODY" | grep -iq 'generated with'; then fail "o corpo contém 'Generated with …' (rodapé de ferramenta de IA): remova. Quem usou IA explica isso em texto no PR; atribuição de ferramenta não entra"; fi
 if printf '%s\n' "$BODY" | grep -Eq '^## Co-autoria'; then
   COAUT="$(printf '%s\n' "$BODY" | awk '/^## Co-autoria/{f=1; next} /^## /{f=0} f' | grep -oE '@[A-Za-z0-9-]+' || true)"
   if [ -n "$COAUT" ] && equipe_disponivel; then
