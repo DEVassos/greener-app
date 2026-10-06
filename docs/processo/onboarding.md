@@ -61,7 +61,7 @@ bash .agilekit/scripts/setup-dev.sh --check
 | Fim de linha | Não mude `core.autocrlf`: o `.gitattributes` do repositório força LF em `*.sh`, hooks e código, e CRLF só em `*.bat`, `*.cmd` e `*.ps1`. Se um hook falhar com `\r: command not found`, rode `git add --renormalize .` na sua branch e commite. |
 | Caminhos com espaço | `ABP - 2DSM` tem espaços: sempre `cd "/g/FATEC/ABPs/ABP - 2DSM/greener-app"` entre aspas. Prefira `C:\dev\greener-app` se puder. |
 | Caminhos longos | `core.longpaths=true` (feito pelo `setup-dev.sh`) evita erro em `node_modules`. |
-| Conversão de caminho do MSYS | Os scripts exportam `MSYS_NO_PATHCONV=1`; se chamar `gh api` à mão no Git Bash, **não** use barra inicial (`gh api repos/...`). |
+| Conversão de caminho do MSYS | Os scripts **não** desativam a conversão de caminhos (ela é necessária para `git`, `gh` e `docker`); a única regra é nunca chamar `gh api` com barra inicial no Git Bash (`gh api repos/...`, não `gh api /repos/...`). O `jq.exe` do Windows emite CRLF; a biblioteca do kit normaliza isso. |
 | Docker Desktop | Backend WSL 2 ativo; compartilhe a unidade (`G:`) em Settings → Resources → File sharing se o compose não enxergar os arquivos. |
 | `jq` ausente | `install.sh` tenta `winget`; sem winget, baixa o binário para `.agilekit/bin/`, que os scripts já incluem no `PATH`. |
 | Pasta sincronizada | Nunca clone dentro de OneDrive/Google Drive: hooks e `.git` quebram. |
