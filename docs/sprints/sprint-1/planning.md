@@ -3,7 +3,7 @@
 - **Projeto:** GreenER — Plataforma de Estimativa do Impacto Ambiental de Software
 - **Semestre/Curso:** 2º DSM — Fatec Jacareí
 - **Data da Sprint Review 1:** 19/10/2026 às 19h30
-- **Arquivo de Origem:** `docs/sprints/sprint-1.md`
+- **Arquivo:** `docs/sprints/sprint-1/planning.md` (planejamento do PO; o registro oficial da sprint fica em `docs/sprints/sprint-1.md`, a Definition of Done oficial em `docs/processo/definition-of-done.md` e o padrão de commit em `.github/CONTRIBUTING.md`)
 
 ---
 

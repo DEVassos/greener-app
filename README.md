@@ -40,7 +40,7 @@ Nenhuma ainda. O desenvolvimento acontece na branch `develop`; cada funcionalida
 - **Motor de cálculo socioambiental:** potência (W), energia (kWh) e emissões (gCO₂e) pela fórmula oficial do desafio, com o fator regional da API de intensidade de carbono.
 - **Dashboard em três níveis:** visão executiva (kWh total, gCO₂e, serviços ativos e indisponíveis, com atualização sem recarregar), análise comparativa (ranking e distribuição geográfica) e investigação detalhada (histórico por serviço).
 - **Área de configuração autenticada:** JWT no backend e senhas com bcrypt.
-- **Diferenciais em estudo:** simulação de migração para regiões com matriz mais limpa e exportação de relatórios em PDF/CSV ([proposta](docs/GreenER%20%E2%80%94%20Diferenciais%20do%20DEVassos.pdf)).
+- **Diferenciais em estudo:** simulação de migração para regiões com matriz mais limpa e exportação de relatórios em PDF/CSV ([proposta](docs/produto/diferenciais-devassos.pdf)).
 
 ## 5. Tecnologias
 
@@ -103,8 +103,9 @@ Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose
 | [docs/arquitetura/modelagem-uml.md](docs/arquitetura/modelagem-uml.md) | Modelagem UML (casos de uso, classes, sequências) |
 | [docs/backlog/historias-de-usuario.md](docs/backlog/historias-de-usuario.md) | Histórias de usuário US01–US14 com critérios de aceite |
 | [docs/plano-de-entregas.md](docs/plano-de-entregas.md) | Plano das sprints, critérios da rubrica, responsáveis e evidências |
-| [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento, dailies, review, retrospectiva, participação |
+| [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento ([Sprint 1](docs/sprints/sprint-1/planning.md)), dailies, review, retrospectiva, participação |
 | [docs/pontos-para-discutir.md](docs/pontos-para-discutir.md) | Decisões em aberto e dúvidas para o parceiro |
+| [docs/produto/](docs/produto/) | Proposta de diferenciais e protótipo HTML do dashboard |
 | [docs/adr/](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [docs/processo/](docs/processo/) | Como o time trabalha |
 | [docs/contexto/](docs/contexto/) | Documentos do desafio (edital, documentação estendida, apresentação do kickoff, rubrica) |
