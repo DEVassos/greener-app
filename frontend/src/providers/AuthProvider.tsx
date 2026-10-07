@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
-import { configureAuth } from '../services/api';
+import { setAuthToken, setSessionExpiredHandler } from '../services/api';
 import * as authService from '../services/auth.service';
 import { AuthContext } from '../contexts/AuthContext';
 import type { AuthContextValue, AuthUser } from '../contexts/AuthContext';
@@ -34,17 +34,17 @@ function writeSession(session: Session | null): void {
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(readSession);
-
-  // O cliente HTTP lê o token por esta referência, sempre com o valor atual
-  const tokenRef = useRef<string | null>(session?.token ?? null);
-  useEffect(() => {
-    tokenRef.current = session?.token ?? null;
-  }, [session]);
+  // O token vai para o cliente HTTP já na primeira renderização: as telas filhas fazem
+  // requisições nos seus efeitos, que rodam antes dos efeitos deste provider
+  const [session, setSession] = useState<Session | null>(() => {
+    const saved = readSession();
+    setAuthToken(saved?.token ?? null);
+    return saved;
+  });
 
   const logout = useCallback(() => {
     writeSession(null);
-    tokenRef.current = null;
+    setAuthToken(null);
     setSession(null);
   }, []);
 
@@ -52,18 +52,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const { token } = await authService.login({ email, password });
     const next: Session = { token, user: { email, name: email.split('@')[0] } };
     writeSession(next);
-    tokenRef.current = token;
+    setAuthToken(token);
     setSession(next);
   }, []);
 
   useEffect(() => {
-    configureAuth(
-      () => tokenRef.current,
-      () => {
-        logout();
-        navigate('/login', { replace: true });
-      },
-    );
+    setSessionExpiredHandler(() => {
+      logout();
+      navigate('/login', { replace: true });
+    });
   }, [logout, navigate]);
 
   const value = useMemo<AuthContextValue>(
