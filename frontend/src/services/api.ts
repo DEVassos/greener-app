@@ -19,13 +19,20 @@ const DEFAULT_MESSAGES: Record<number, string> = {
   404: 'O recurso pedido não foi encontrado.',
 };
 
-let readToken: () => string | null = () => null;
+let authToken: string | null = null;
 let onSessionExpired: () => void = () => {};
 
-/** Ligado pelo AuthProvider: de onde vem o token e o que fazer quando a API responde 401. */
-export function configureAuth(tokenReader: () => string | null, onExpired: () => void): void {
-  readToken = tokenReader;
-  onSessionExpired = onExpired;
+/**
+ * Token enviado em Authorization: Bearer. O AuthProvider atualiza na hora (ao abrir a página,
+ * no login e no logout), antes de qualquer tela fazer requisição.
+ */
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+/** O que fazer quando a API recusa o token (401): o AuthProvider encerra a sessão. */
+export function setSessionExpiredHandler(handler: () => void): void {
+  onSessionExpired = handler;
 }
 
 interface RequestOptions {
@@ -50,7 +57,7 @@ export async function apiRequest<T>(path: string, { method = 'GET', body, signal
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-  const token = readToken();
+  const token = authToken;
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let response: Response;

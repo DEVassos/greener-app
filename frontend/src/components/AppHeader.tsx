@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, NavLink } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import Brand from './Brand';
 import './AppHeader.css';
@@ -7,7 +7,6 @@ import './AppHeader.css';
 /** Visitante vê "Entrar"; quem tem sessão vê o nome e o botão de sair. */
 function UserMenu() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   if (!user) {
     return (
@@ -22,14 +21,8 @@ function UserMenu() {
       <span title={user.email}>
         Olá, <strong>{user.name}</strong>
       </span>
-      <button
-        type="button"
-        className="btn-outline"
-        onClick={() => {
-          logout();
-          navigate('/');
-        }}
-      >
+      {/* No dashboard a pessoa continua onde está; na área restrita o ProtectedRoute leva ao login */}
+      <button type="button" className="btn-outline" onClick={logout}>
         Sair
       </button>
     </div>
