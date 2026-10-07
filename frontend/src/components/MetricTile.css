@@ -1,0 +1,72 @@
+.metric {
+  --tone: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.metric--success {
+  --tone: var(--accent);
+}
+
+.metric--danger {
+  --tone: var(--error);
+}
+
+.metric--warning {
+  --tone: var(--warning);
+}
+
+/* Estados de serviço: a cor vem acompanhada de texto (rótulo do card), nunca sozinha */
+.metric--success,
+.metric--danger,
+.metric--warning {
+  border-left: 3px solid var(--tone);
+}
+
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.metric-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--tone);
+}
+
+.metric-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.metric-value {
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.metric-unit {
+  font-size: 16px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.metric-note {
+  font-size: 13px;
+  color: var(--sky);
+  margin-top: 4px;
+}

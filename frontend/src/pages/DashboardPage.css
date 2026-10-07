@@ -25,3 +25,19 @@
   text-align: center;
   padding: 8px 0 16px;
 }
+
+/* Faixa do modo demonstração (sem VITE_API_URL) */
+.demo-banner {
+  padding: 8px 24px;
+  background: rgba(250, 204, 21, 0.08);
+  border-bottom: 1px solid rgba(250, 204, 21, 0.35);
+  color: var(--text-2);
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .content {
+    padding: 16px;
+  }
+}
