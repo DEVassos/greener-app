@@ -9,11 +9,11 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/main.tsx` | ponto de entrada: monta o React com o `BrowserRouter` |
 | `src/App.tsx` | rotas: `/` (dashboard, público), `/login` e `/configuracao` (área restrita, com `ProtectedRoute`); envolve tudo no `AuthProvider` |
 | `src/pages/` | telas (`DashboardPage`, `LoginPage`, `SettingsPage`), cada uma com o seu `.css` |
-| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `FormField`, `AuthLayout`, `ProtectedRoute`), cada um com o seu `.css` |
-| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, `Authorization: Bearer`, erros → `ApiError`), `auth.service.ts` |
+| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `FormField`, `AuthLayout`, `ProtectedRoute`, `MetricTile`, `KpiPanel`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
+| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, `Authorization: Bearer`, erros → `ApiError`), `auth.service.ts`, `services.service.ts` (`GET /services`); `demo-data.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `AuthContext` e `AuthProvider`: sessão (JWT no `sessionStorage`), login e logout |
-| `src/hooks/` | `useAuth` |
-| `src/utils/` | funções puras (validação de formulário) |
+| `src/hooks/` | `useAuth`, `useServices` (busca, estados de carregando/erro e tentar novamente) |
+| `src/utils/` | funções puras: validação de formulário, formatação pt-BR (`format.ts`) e totais dos KPIs (`summary.ts`) |
 | `src/styles/global.css` | tokens de cor e fonte do design system, Tailwind e reset |
 
 ## Variáveis de ambiente
@@ -22,7 +22,7 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 | Variável | Obrigatória | Padrão (`.env.example`) | Descrição |
 |---|---|---|---|
-| `VITE_API_URL` | sim | `http://localhost:3000` | base da API do backend |
+| `VITE_API_URL` | não | `http://localhost:3000` | base da API do backend. **Sem ela o frontend roda em modo demonstração** (dados ilustrativos e faixa de aviso no topo) |
 
 ## Autenticação
 
