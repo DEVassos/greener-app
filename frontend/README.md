@@ -41,9 +41,11 @@ Enquanto a API real não existe, `mock/server.mjs` (Node puro, sem dependências
 |---|---|---|
 | `POST /auth/login` | `{ "email", "password" }` | `200 { "token" }` · `401 { "message" }` credencial errada · `400` corpo inválido |
 | `GET /monitoring-settings` | `Authorization: Bearer <token>` | `200 { "collectIntervalSeconds", "carbonApiUrl" }` · `401` sem token ou token inválido |
+| `GET /services` | — | `200 { "services": [...], "period" }` (campos em `src/services/services.types.ts`); CPU e energia variam a cada chamada |
 
 - Login do mock: `admin@greener.dev` / `greener123` (no backend real o usuário vem do seed, DB-03).
 - Reiniciar o mock invalida os tokens emitidos — serve para testar o 401.
+- `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /services` devolver lista vazia ou HTTP 500 (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
 - O terminal do mock mostra cada requisição e se ela chegou "(com Bearer)".
 
 ## Estilos
@@ -74,3 +76,6 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 7. Reiniciar o mock (Ctrl+C e `npm run mock`) e recarregar `/configuracao` → o token antigo recebe 401, a sessão é encerrada e a tela volta para `/login`.
 8. Logar de novo e clicar em **Sair** na Configuração → a sessão some e a tela vai para `/login`; no dashboard, **Sair** mantém a página e o botão **Entrar** volta.
 9. Parar o mock e tentar logar → aviso "Não foi possível conectar ao servidor".
+10. Com o mock no ar, o dashboard mostra os cards de KPI calculados a partir de `GET /services` (sem a faixa de demonstração).
+11. `MOCK_SERVICES=vazio npm run mock` e recarregar → "Nenhum serviço monitorado ainda".
+12. `MOCK_SERVICES=erro npm run mock` e recarregar → aviso de erro com **Tentar novamente**.
