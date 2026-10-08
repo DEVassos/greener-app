@@ -1,7 +1,8 @@
 @layer components {
   .page-footer {
     font-size: 12px;
-    color: var(--faint);
+    /* --muted: 4,5:1 ou mais sobre o fundo; --faint (3,9:1) não serve para texto de 12px */
+    color: var(--muted);
     text-align: center;
     padding: 8px 0 16px;
   }

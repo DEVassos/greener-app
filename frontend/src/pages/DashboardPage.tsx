@@ -8,9 +8,9 @@ export default function DashboardPage() {
 
       <main className="content">
         <h1 className="sr-only">Dashboard de energia e emissões</h1>
-
-        <footer className="page-footer">EcoPulse · DEVassos · Fatec Jacareí 2DSM 2026-2</footer>
       </main>
+
+      <footer className="page-footer">EcoPulse · DEVassos · Fatec Jacareí 2DSM 2026-2</footer>
     </div>
   );
 }
