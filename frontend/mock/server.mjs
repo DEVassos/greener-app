@@ -49,7 +49,7 @@ function send(res, status, body) {
 const routes = {
   // US01 / US04 — serviços monitorados (rota pública do dashboard)
   'GET /services': async (_req, res) => {
-    if (SERVICES_SCENARIO === 'erro') return send(res, 500, { message: 'Falha simulada no backend falso.' });
+    if (SERVICES_SCENARIO === 'erro') return send(res, 500, { error: { code: 'INTERNAL_ERROR', message: 'Falha simulada no backend falso.' } });
     const services = SERVICES_SCENARIO === 'vazio' ? [] : SERVICES.map(readService);
     return send(res, 200, { services, period: 'última 1 hora' });
   },
@@ -67,7 +67,7 @@ createServer(async (req, res) => {
   const route = routes[`${req.method} ${path}`];
   console.log(`${new Date().toLocaleTimeString('pt-BR')}  ${req.method} ${path}`);
 
-  if (!route) return send(res, 404, { message: 'Rota não existe no backend falso.' });
+  if (!route) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Rota não existe no backend falso.' } });
   return route(req, res);
 }).listen(PORT, () => {
   console.log(`Backend falso em http://localhost:${PORT}`);
