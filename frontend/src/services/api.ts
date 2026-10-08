@@ -25,10 +25,12 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+/** Mensagem do corpo de erro do backend: `{ "error": { "code", "message" } }` (padrão do error-handler). */
 async function readErrorMessage(response: Response): Promise<string> {
   try {
-    const body = (await response.json()) as { message?: unknown };
-    if (typeof body.message === 'string' && body.message !== '') return body.message;
+    const body = (await response.json()) as { error?: { message?: unknown } } | null;
+    const message = body?.error?.message;
+    if (typeof message === 'string' && message !== '') return message;
   } catch {
     // corpo vazio ou fora do formato JSON: usa a mensagem padrão abaixo
   }
