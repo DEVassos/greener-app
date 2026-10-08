@@ -47,7 +47,7 @@ Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem depend�
 |---|---|---|
 | `GET /api/services` | — | `200 { "services": [...], "period" }` (campos em `src/services/services.types.ts`); CPU e energia variam a cada chamada |
 
-- `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /api/services` devolver lista vazia ou HTTP 500 (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
+- `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /api/services` devolver lista vazia ou HTTP 500 com `{ "error": { "code", "message" } }`, o formato de erro do backend (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
 - O terminal do mock mostra cada requisição recebida.
 
 ## Estilos (Tailwind CSS)
@@ -88,7 +88,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 6. Digitar "check" na busca → só **Checkout Worker**; buscar algo inexistente → "Nenhum serviço com … no nome".
 7. Clicar nos títulos das colunas (Serviço, CPU, Energia, Emissão, Última leitura) → ordena; clicar de novo inverte; serviços sem métrica ficam sempre no fim.
 8. `MOCK_SERVICES=vazio npm run mock` e recarregar → "Nenhum serviço monitorado ainda".
-9. `MOCK_SERVICES=erro npm run mock` e recarregar → aviso de erro com **Tentar novamente**.
+9. `MOCK_SERVICES=erro npm run mock` e recarregar → aviso "Falha simulada no backend falso." (a mensagem vem do corpo do erro) com **Tentar novamente**.
 10. Com dados carregados, o cabeçalho mostra o selo **"Última atualização: dd/mm HH:MM:SS"** com um ponto verde pulsando (sistema ativo); com "reduzir movimento" ligado no sistema, o ponto fica parado.
 11. Com o mock no ar, carregar o dashboard e depois subir o mock com `MOCK_SERVICES=erro` e clicar em **Tentar novamente** → os dados continuam na tela e o selo fica laranja: **"Desatualizado desde …"**.
 12. Com `VITE_REFRESH_INTERVAL_MS=5000` no `.env` e o mock no ar: a cada 5 s o horário do selo muda e o terminal do mock registra um novo `GET /api/services`; os valores de CPU e energia mudam na tabela **sem recarregar a página**. O selo mostra "intervalo: 5 s".
