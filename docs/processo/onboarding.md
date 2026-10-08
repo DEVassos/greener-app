@@ -10,7 +10,7 @@ Checklist para cada integrante sair do zero até o primeiro PR mergeado. Tempo e
 |---|---|---|---|
 | Git (no Windows inclui o **Git Bash**) | ≥2.40 | `git --version` | https://git-scm.com |
 | GitHub CLI | ≥2.60 | `gh --version` | https://cli.github.com |
-| Docker Desktop (com `docker compose`) | atual | `docker compose version` | https://www.docker.com — habilitar o backend WSL 2 no Windows |
+| Docker com Compose v2 | atual | `docker compose version` (Docker só no WSL: `bash .agilekit/scripts/setup-dev.sh --check`) | Docker Desktop (https://www.docker.com, backend WSL 2 no Windows) **ou**, sem Docker Desktop, Docker Engine numa distribuição WSL (seção 4) |
 | Node.js | **≥20 LTS** | `node -v` | https://nodejs.org (ou `nvm`) |
 | `jq` | qualquer | `jq --version` | **instalado pelo kit** (`install.sh`); manual: `winget install jqlang.jq` |
 | VS Code (opcional) | atual | — | extensões sugeridas: ESLint, Prettier, Docker, GitLens |
@@ -51,7 +51,7 @@ bash .agilekit/scripts/setup-dev.sh --check
 
 - [ ] `setup-dev.sh --check` termina sem erros.
 - [ ] `git switch develop && git pull` funciona.
-- [ ] `docker compose up --build` sobe os containers (assim que existir `compose.yaml` no repositório).
+- [ ] `docker compose up --build` sobe os containers (assim que existir `compose.yaml` no repositório; Docker só no WSL: seção 4).
 
 ## 4. Windows — detalhes que evitam dor de cabeça
 
@@ -63,6 +63,7 @@ bash .agilekit/scripts/setup-dev.sh --check
 | Caminhos longos | `core.longpaths=true` (feito pelo `setup-dev.sh`) evita erro em `node_modules`. |
 | Conversão de caminho do MSYS | Os scripts **não** desativam a conversão de caminhos (ela é necessária para `git`, `gh` e `docker`); a única regra é nunca chamar `gh api` com barra inicial no Git Bash (`gh api repos/...`, não `gh api /repos/...`). O `jq.exe` do Windows emite CRLF; a biblioteca do kit normaliza isso. |
 | Docker Desktop | Backend WSL 2 ativo; compartilhe a unidade (`G:`) em Settings → Resources → File sharing se o compose não enxergar os arquivos. |
+| Docker só no WSL (sem Docker Desktop) | Git, `gh`, Node, VS Code e os scripts do kit continuam no Windows (Git Bash); Docker Engine e Compose ficam numa distribuição WSL 2, como a Ubuntu. Rode `bash .agilekit/scripts/setup-dev.sh --docker-wsl Ubuntu` (troque pelo nome que aparece em `wsl -l -v`). Se o docker não estiver no Windows, o `setup-dev.sh` detecta a distribuição padrão sozinho. Ele grava a escolha em `.agilekit/docker.conf` e cria `.agilekit/bin/docker`, que leva os comandos do kit ao WSL a partir da mesma pasta. O `--check` confere cliente, daemon e Compose dentro da distribuição. Para subir a aplicação: no terminal da Ubuntu, `cd "/mnt/g/FATEC/ABPs/ABP - 2DSM/greener-app" && docker compose up --build`; no Git Bash, `.agilekit/bin/docker compose up --build`; no PowerShell, `wsl -d Ubuntu docker compose up --build`. Para voltar ao Docker Desktop: `setup-dev.sh --docker-nativo`. |
 | `jq` ausente | `install.sh` tenta `winget`; sem winget, baixa o binário para `.agilekit/bin/`, que os scripts já incluem no `PATH`. |
 | Pasta sincronizada | Nunca clone dentro de OneDrive/Google Drive: hooks e `.git` quebram. |
 
