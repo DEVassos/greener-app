@@ -9,7 +9,7 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/main.tsx` | ponto de entrada: monta o React com o `BrowserRouter` |
 | `src/App.tsx` | rotas: `/` (dashboard, público) e `/configuracao` (área restrita) |
 | `src/pages/` | telas (`DashboardPage`, `SettingsPage`), cada uma com o seu `.css` |
-| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `ServicesTable`, `StatusBadge`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
+| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `ServicesTable`, `StatusBadge`, `LastUpdated`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
 | `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`); `demo-data.ts` com os dados ilustrativos do modo demonstração |
 | `src/hooks/` | `useServices` (busca, estados de carregando/erro e tentar novamente) |
 | `src/utils/` | funções puras: formatação pt-BR (`format.ts`) |
@@ -63,3 +63,5 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 7. Largura de celular → a tabela rola na horizontal sem quebrar a página.
 8. `MOCK_SERVICES=vazio npm run mock` e recarregar → "Nenhum serviço monitorado ainda".
 9. `MOCK_SERVICES=erro npm run mock` e recarregar → aviso de erro com **Tentar novamente**.
+10. Com dados carregados, o cabeçalho mostra o selo **"Última atualização: dd/mm HH:MM:SS"** com um ponto verde pulsando (sistema ativo); com "reduzir movimento" ligado no sistema, o ponto fica parado.
+11. Com o mock no ar, carregar o dashboard e depois subir o mock com `MOCK_SERVICES=erro` e clicar em **Tentar novamente** → os dados continuam na tela e o selo fica laranja: **"Desatualizado desde …"**.
