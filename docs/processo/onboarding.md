@@ -35,13 +35,13 @@ Clone em uma pasta local **fora de pastas sincronizadas** (OneDrive, Google Driv
 ```bash
 cd /c/dev                                    # ou: cd "/g/FATEC/ABPs/ABP - 2DSM"
 git clone https://github.com/DEVassos/greener-app.git
+git clone https://github.com/DEVassos/agilekit.git   # ao lado do greener-app: a raiz do projeto fica só com o projeto
 cd greener-app
-git clone https://github.com/DEVassos/agilekit.git agilekit   # fica dentro do clone, já no .gitignore
-bash agilekit/install.sh .                   # instala hooks, .gitmessage, .agilekit/, jq e pergunta o assistente de IA (seção 6)
+bash ../agilekit/install.sh .                # instala .agilekit/ (scripts, hooks, template de commit), o jq e pergunta o assistente de IA (seção 6)
 bash .agilekit/scripts/setup-dev.sh          # git config local + verificação do ambiente
 ```
 
-O `setup-dev.sh` configura `core.hooksPath=.githooks`, `commit.template=.gitmessage`, `pull.rebase=true`, `rebase.autoStash=true`, `push.autoSetupRemote=true`, `fetch.prune=true` e, no Windows, `core.longpaths=true`. Ele **falha** se `git config user.email` não for um e-mail da sua entrada em `equipe.json` verificado no GitHub. Corrija com:
+O `setup-dev.sh` configura `core.hooksPath=.agilekit/githooks`, `commit.template=.agilekit/gitmessage`, `pull.rebase=true`, `rebase.autoStash=true`, `push.autoSetupRemote=true`, `fetch.prune=true` e, no Windows, `core.longpaths=true`. Ele **falha** se `git config user.email` não for um e-mail da sua entrada em `equipe.json` verificado no GitHub. Corrija com:
 
 ```bash
 git config user.name "Seu Nome"
@@ -72,7 +72,7 @@ bash .agilekit/scripts/setup-dev.sh --check
 Pegue uma issue pequena (estimativa 1–2) do Sprint Backlog com o seu nome, ou peça uma ao PO. Percorra o ciclo completo uma vez:
 
 1. `/tarefa <n>` (ou `git fetch && git switch -c feature/<n>-slug origin/develop`) — o cartão vai para "Em andamento".
-2. Faça a alteração; `git commit` abre o `.gitmessage` com as regras (`type(scope): descrição (#n) [RFxx]`). Ou use `/commitar`.
+2. Faça a alteração; `git commit` abre o `.agilekit/gitmessage` com as regras (`type(scope): descrição (#n) [RFxx]`). Ou use `/commitar`.
 3. `git push` (a branch é rastreada automaticamente); o hook recusa push em `main`/`develop`.
 4. `/pr` (ou `gh pr create --base develop --fill`), preenchendo o template: `Closes #n`, "Como verificar", DoD-PR. O cartão vai para "Em revisão".
 5. Peça revisão ao seu par de revisão (`equipe.json`); responda aos comentários; quando aprovado, faça o **merge commit** pela interface. A branch é apagada e a issue fechada pelo workflow `board`.
@@ -84,8 +84,8 @@ Leitura obrigatória antes do primeiro PR: [CONTRIBUTING.md](../../.github/CONTR
 Na instalação você escolhe um ou mais assistentes. Cada um recebe as mesmas 11 skills (`onboarding`, `historia`, `tarefa`, `commitar`, `pr`, `revisar`, `daily`, `painel`, `adr`, `auditar`, `sprint`), os 5 agentes, as regras do projeto e o guard que bloqueia commit fora do padrão, push em branch protegida e co-autor fora do time. Esses arquivos ficam só na sua máquina: o git os ignora.
 
 ```bash
-bash agilekit/install.sh . --llm claude          # um assistente
-bash agilekit/install.sh . --llm copilot,codex   # vários; também aceita todos ou nenhum
+bash ../agilekit/install.sh . --llm claude          # um assistente
+bash ../agilekit/install.sh . --llm copilot,codex   # vários; também aceita todos ou nenhum
 ```
 
 | Assistente | Como abrir | Chamar uma skill | Passo extra na primeira vez |
