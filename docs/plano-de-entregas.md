@@ -67,6 +67,8 @@ Feriados sem aula: 12/10, 15/10, 02/11 e 20/11 (daily assíncrona). Fonte: [`.gi
 
 Entregas de apoio sem critério próprio na Sprint 1: ADRs 0001–0003 em `docs/adr/`, processo em `docs/processo/`, templates em `docs/templates/`, `docs/requisitos.md`.
 
+**Sprint Backlog (issues da milestone `Sprint 1`, 19 itens, 05/10):** #3, #4 (gestão — Henrique); #5, #8, #14, #15, #16 (Lucas); #17, #19 (Vinicius); #28 (Lucas e Vinicius); #9, #10, #11, #12, #26 (Gabriel); #22, #23 (Andrea); #7, #27 (Henrique). Movidas para a Sprint 2: #6, #18, #20, #21, #25 (motor de cálculo, KPIs e autenticação JWT); para a Sprint 3: #13, #24 (exportação CSV/PDF). Cada issue movida tem um comentário com o motivo; a distribuição por pessoa (Andrea com 2 itens, Lucas com 6) é revista na planning.
+
 ## Sprint 2
 
 **Período:** 20/10 → 09/11/2026 (checkpoint 30/10, congelamento 08/11 20h, review 09/11 19h30 — a confirmar). **Milestone:** `Sprint 2`. **Registro:** `docs/sprints/sprint-2.md`.
@@ -154,3 +156,4 @@ A participação é registrada por sprint em `docs/sprints/sprint-N/contribuicao
 | Data | Alteração | Motivo | Quem |
 |---|---|---|---|
 | 05/10/2026 | Plano inicial publicado: distribuição dos critérios nas três sprints (denominadores 79 / 61 / 46), DW04 na Sprint 1 e DW06 na Sprint 2, gatilhos de 11/10 (DW02) e 14/10 (DW04) | Primeira versão, a validar com o time e o professor na aula seguinte | Henrique (PO), Gabriel (SM) |
+| 05/10/2026 | Backlog do PO importado de `Projeto-GreenER` (26 tarefas, agora issues #3–#28, autoria preservada) e Sprint 1 replanejada: BE-05 (#18), FE-02 (#21), BE-07 (#20), FE-06 (#25) e DB-03 (#6) movidas para a Sprint 2; FE-05 (#24) e UI-04 (#13) para a Sprint 3. Sprint 1 fica com 19 tarefas e os 79 pontos previstos | A versão anterior declarava 100 pontos e 82 story points para 14 dias sem código; critérios não atendidos zeram e parciais valem metade. Motor de cálculo (TP01) e JWT (DW06) são fatias verticais completas na Sprint 2; exportação é diferencial fora do edital (RP05 pede MVP) | Gabriel (SM); confirmação do PO na planning |
