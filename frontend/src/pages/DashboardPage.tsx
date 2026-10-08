@@ -1,6 +1,7 @@
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
 import ServicesTable from '../components/ServicesTable';
 import { useServices } from '../hooks/useServices';
@@ -8,7 +9,7 @@ import { isDemoMode } from '../services/services.service';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
-  const { data, loading, error, reload } = useServices();
+  const { data, loading, error, updatedAt, reload } = useServices();
 
   return (
     <div className="dashboard">
@@ -18,7 +19,9 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <AppHeader />
+      <AppHeader>
+        <LastUpdated updatedAt={updatedAt} stale={error !== ''} />
+      </AppHeader>
 
       <main className="content">
         <h1 className="sr-only">Dashboard de energia e emissões</h1>
