@@ -4,12 +4,14 @@ import ErrorState from '../components/ErrorState';
 import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
 import ServicesTable from '../components/ServicesTable';
+import { useMonitoring } from '../hooks/useMonitoring';
 import { useServices } from '../hooks/useServices';
 import { isDemoMode } from '../services/services.service';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
-  const { data, loading, error, updatedAt, reload } = useServices();
+  const { data, loading, error, updatedAt, refresh } = useServices();
+  const { refreshIntervalMs } = useMonitoring();
 
   return (
     <div className="dashboard">
@@ -20,14 +22,37 @@ export default function DashboardPage() {
       )}
 
       <AppHeader>
-        <LastUpdated updatedAt={updatedAt} stale={error !== ''} />
+        <LastUpdated updatedAt={updatedAt} intervalSeconds={refreshIntervalMs / 1000} stale={error !== ''}>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading}
+            aria-label="Atualizar agora"
+            title="Atualizar agora"
+            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text disabled:cursor-wait disabled:opacity-60"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className={loading ? 'size-4 motion-safe:animate-spin' : 'size-4'}
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
+              <path d="M21 3v5h-5" />
+            </svg>
+          </button>
+        </LastUpdated>
       </AppHeader>
 
       <main className="content">
         <h1 className="sr-only">Dashboard de energia e emissões</h1>
 
         {/* Falha não apaga o que já estava na tela: o erro aparece junto com o último dado */}
-        {error && <ErrorState message={error} onRetry={reload} />}
+        {error && <ErrorState message={error} onRetry={refresh} />}
 
         {loading && !data && <LoadingState message="Carregando serviços…" />}
 
