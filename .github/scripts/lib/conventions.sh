@@ -13,6 +13,8 @@ set -euo pipefail
 # Windows (Git Bash): NÃO desative a conversão de caminhos do MSYS (git, gh e docker dependem dela).
 # Regra: nunca chame "gh api /caminho" com barra inicial (o MSYS reescreveria); use "gh api repos/...".
 ROOT="${ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+# No Git Bash o git devolve "G:/..." e o ":" quebraria o PATH; normaliza para a forma POSIX (/g/...)
+ROOT="$(cd "$ROOT" 2>/dev/null && pwd || printf "%s" "$ROOT")"
 export PATH="$ROOT/.agilekit/bin:$PATH"
 EQUIPE_JSON="${EQUIPE_JSON:-$ROOT/.github/equipe.json}"
 CALENDARIO_JSON="${CALENDARIO_JSON:-$ROOT/.github/calendario.json}"

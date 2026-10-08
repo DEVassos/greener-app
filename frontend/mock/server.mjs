@@ -62,7 +62,8 @@ createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return send(res, 204);
 
-  const path = new URL(req.url ?? '/', `http://localhost:${PORT}`).pathname;
+  // Aceita as rotas com ou sem o prefixo /api (o .env.example usa VITE_API_URL=http://localhost:3000/api)
+  const path = new URL(req.url ?? '/', `http://localhost:${PORT}`).pathname.replace(/^\/api(?=\/)/, '');
   const route = routes[`${req.method} ${path}`];
   console.log(`${new Date().toLocaleTimeString('pt-BR')}  ${req.method} ${path}`);
 

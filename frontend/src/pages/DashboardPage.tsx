@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const { refreshIntervalMs } = useMonitoring();
 
   return (
-    <div className="dashboard">
+    <div className="page">
       {isDemoMode && (
         <div className="demo-banner" role="note">
           Você está vendo uma demonstração com dados ilustrativos: o frontend ainda não está ligado ao backend.
@@ -64,9 +64,9 @@ export default function DashboardPage() {
         )}
 
         {data && data.services.length > 0 && <ServicesTable services={data.services} period={data.period} />}
-
-        <footer className="page-footer">EcoPulse · DEVassos · Fatec Jacareí 2DSM 2026-2</footer>
       </main>
+
+      <footer className="page-footer">EcoPulse · DEVassos · Fatec Jacareí 2DSM 2026-2</footer>
     </div>
   );
 }

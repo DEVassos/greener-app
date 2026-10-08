@@ -10,7 +10,7 @@ export default function App() {
         {/* Área pública: o dashboard abre direto, sem login */}
         <Route path="/" element={<DashboardPage />} />
 
-        {/* Área restrita: configuração do monitoramento */}
+        {/* Configuração do monitoramento: rota reservada; a proteção por login (JWT) é escopo da #25 */}
         <Route path="/configuracao" element={<SettingsPage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
