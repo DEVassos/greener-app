@@ -75,7 +75,7 @@ need_cmd() {
 }
 # jq.exe no Windows emite CRLF; o wrapper normaliza para LF (pipefail preserva o exit code do jq)
 jq() { command jq "$@" | tr -d '\r'; }
-need_jq() { type -P jq >/dev/null 2>&1 && return 0; err "comando 'jq' não encontrado. Rode 'bash agilekit/install.sh .' (instala o jq) ou instale: winget install jqlang.jq | brew install jq | sudo apt-get install -y jq"; exit 1; }
+need_jq() { type -P jq >/dev/null 2>&1 && return 0; err "comando 'jq' não encontrado. Rode 'bash ../agilekit/install.sh .' (instala o jq) ou instale: winget install jqlang.jq | brew install jq | sudo apt-get install -y jq"; exit 1; }
 need_gh() { need_cmd gh "Instale o GitHub CLI: https://cli.github.com e rode 'gh auth login'"; }
 lower() { tr '[:upper:]' '[:lower:]'; }
 trim()  { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
