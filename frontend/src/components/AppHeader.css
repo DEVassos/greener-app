@@ -1,3 +1,4 @@
+/* Mobile-first: em tela estreita o menu ocupa a segunda linha e rola na horizontal, sem sumir */
 .topbar {
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
@@ -6,10 +7,11 @@
 .topbar-inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 14px 24px;
+  padding: 12px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 32px;
+  gap: 12px 24px;
 }
 
 .topbar-brand,
@@ -21,7 +23,9 @@
 .nav {
   display: flex;
   gap: 4px;
-  flex-grow: 1;
+  order: 3;
+  flex-basis: 100%;
+  overflow-x: auto;
 }
 
 .nav a {
@@ -29,6 +33,7 @@
   border-radius: 8px;
   color: var(--muted);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav a:hover {
@@ -48,8 +53,18 @@
   margin-left: auto;
 }
 
-@media (max-width: 960px) {
+/* Tela larga: marca, menu e ações na mesma linha */
+@media (min-width: 961px) {
+  .topbar-inner {
+    flex-wrap: nowrap;
+    padding: 14px 24px;
+    gap: 32px;
+  }
+
   .nav {
-    display: none;
+    order: 0;
+    flex-basis: auto;
+    flex-grow: 1;
+    overflow-x: visible;
   }
 }
