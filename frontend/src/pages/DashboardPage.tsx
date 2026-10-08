@@ -3,7 +3,7 @@ import './DashboardPage.css';
 
 export default function DashboardPage() {
   return (
-    <div className="dashboard">
+    <div className="page">
       <AppHeader />
 
       <main className="content">

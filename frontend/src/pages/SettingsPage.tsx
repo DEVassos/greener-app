@@ -1,10 +1,9 @@
 import AppHeader from '../components/AppHeader';
-import './DashboardPage.css';
 
 /** Área restrita: parâmetros do monitoramento (intervalos de coleta, serviços, fatores). */
 export default function SettingsPage() {
   return (
-    <div className="dashboard">
+    <div className="page">
       <AppHeader />
 
       <main className="content">
