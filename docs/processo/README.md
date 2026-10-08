@@ -118,3 +118,7 @@ Ninguém move manualmente para Concluído: a única porta é o merge em `develop
 4. **Congelamento (domingo 20h):** SM congela `develop`, roda `teste-avaliador.sh`, `check-docs.sh` e `/auditar`, abre `release/sprint-N` → `main`.
 5. **Review:** demonstração por RF com o cliente; SM registra o feedback.
 6. **Pós-review (≤24h) e retro:** feedback vira issues; plano, `sprint-N.md` e README atualizados; merge do release, tag `sprint-N`; retro gera ações `tipo:processo`.
+
+## Hierarquia do backlog
+
+Épico (tema de requisitos do edital) → História (valor para o usuário, com critérios de aceite) → Tarefa (fatia técnica que vira branch e PR). A relação é feita com sub-issues do GitHub e aparece no quadro em *Parent issue* e *Sub-issues progress*. Detalhes e views em [quadro.md](quadro.md#hierarquia-do-backlog-épico--história--tarefa).
