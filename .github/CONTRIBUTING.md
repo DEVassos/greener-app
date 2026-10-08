@@ -71,6 +71,7 @@ Use o `.gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. 
 - Checklist: nenhum `- [ ]` pode ficar pendente; se não se aplica, escreva `N/A — motivo`.
 - Revisão: 1 aprovação de alguém **≠ autor**, com ≥1 comentário substantivo; o revisor **executa** o "Como verificar" e marca os critérios de aceite. Revise em ≤24h.
 - Merge: **merge commit** (preserva a autoria de cada integrante). Squash e rebase estão desabilitados.
+- Sem rodapé de ferramenta ("Generated with …") no PR e sem trailer de IA nos commits: quem usou IA explica isso em texto no corpo do PR. O check `pr` recusa o rodapé, o hook `commit-msg` recusa o trailer e o kit desliga a atribuição automática do Claude Code e do Copilot no VS Code; no Copilot CLI, rode uma vez `/settings includeCoAuthoredBy off`.
 - Rascunho (`--draft`) enquanto não estiver pronto: os checks viram avisos.
 
 ## 4. Release e tags
@@ -86,6 +87,10 @@ No congelamento (domingo 20h antes da review) o SM roda `/sprint N congelar`: cr
 | `docs` | plano de entregas (Concluído com link e responsável), `api.md` quando há rotas, docs vazios/placeholders | `check-docs.sh` |
 
 Rode localmente antes de abrir o PR: `bash .github/scripts/check-forbidden.sh && bash .github/scripts/check-docs.sh`.
+
+### Histórico importado
+
+Commits trazidos de outro repositório do time (por exemplo, o antigo `Projeto-GreenER`) entram por **merge** de um PR dedicado, o que preserva SHA, autor, data e mensagem originais — e, portanto, a autoria de cada integrante no GitHub. Como essas mensagens são anteriores ao padrão, os SHAs completos ficam listados em `.github/commits-importados.txt` (com a origem) e o check `commits` não os valida. Todo commit novo, inclusive os de organização feitos no próprio PR de importação, segue o padrão normalmente.
 
 ## 6. Dúvidas frequentes
 
