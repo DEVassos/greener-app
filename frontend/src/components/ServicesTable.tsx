@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import type { MonitoredService } from '../services/services.types';
+import type { MonitoredService, ServiceStatus } from '../services/services.types';
 import { formatNumber, formatTime } from '../utils/format';
 import StatusBadge from './StatusBadge';
 
-type SortKey = 'name' | 'cpuPercent' | 'energyKwh' | 'emissionsG' | 'lastReadingAt';
+type SortKey = 'name' | 'cpuPercent' | 'energyKwh' | 'emissionsG' | 'lastReadingAt' | 'location' | 'status';
 
 interface Column {
   key: SortKey;
@@ -17,7 +17,17 @@ const COLUMNS: Column[] = [
   { key: 'energyKwh', label: 'Energia (kWh)', numeric: true },
   { key: 'emissionsG', label: 'Emissão (g CO₂e)', numeric: true },
   { key: 'lastReadingAt', label: 'Última leitura', numeric: true },
+  { key: 'location', label: 'Localização' },
+  { key: 'status', label: 'Status' },
 ];
+
+/** Ordem crescente do status: o que precisa de atenção vem primeiro. */
+const STATUS_ORDER: Record<ServiceStatus, number> = {
+  indisponivel: 0,
+  sem_metricas: 1,
+  ativo: 2,
+  removido: 3,
+};
 
 interface Props {
   services: MonitoredService[];
@@ -25,10 +35,17 @@ interface Props {
   period: string;
 }
 
+/** Valor de ordenação da coluna: localização por região, país e cidade; status pela gravidade. */
+function sortValue(service: MonitoredService, key: SortKey): string | number | null {
+  if (key === 'location') return [service.region, service.country, service.city ?? ''].join(' ');
+  if (key === 'status') return STATUS_ORDER[service.status];
+  return service[key];
+}
+
 /** Compara dois serviços pela coluna; valores ausentes (sem métrica) vão sempre para o fim. */
 function compare(a: MonitoredService, b: MonitoredService, key: SortKey, direction: 1 | -1): number {
-  const left = a[key];
-  const right = b[key];
+  const left = sortValue(a, key);
+  const right = sortValue(b, key);
   if (left === null && right === null) return 0;
   if (left === null) return 1;
   if (right === null) return -1;
@@ -57,13 +74,13 @@ export default function ServicesTable({ services, period }: Props) {
       .sort((a, b) => compare(a, b, sortKey, direction));
   }, [services, search, sortKey, direction]);
 
-  function sortBy(key: SortKey) {
-    if (key === sortKey) {
+  function sortBy(column: Column) {
+    if (column.key === sortKey) {
       setDirection((current) => (current === 1 ? -1 : 1));
     } else {
-      setSortKey(key);
-      // Nome começa em A→Z; números começam do maior para o menor
-      setDirection(key === 'name' ? 1 : -1);
+      setSortKey(column.key);
+      // Texto começa em A→Z (status: mais grave primeiro); números começam do maior para o menor
+      setDirection(column.numeric ? -1 : 1);
     }
   }
 
@@ -99,7 +116,7 @@ export default function ServicesTable({ services, period }: Props) {
                 >
                   <button
                     type="button"
-                    onClick={() => sortBy(column.key)}
+                    onClick={() => sortBy(column)}
                     className={`cursor-pointer border-0 bg-transparent p-0 font-sans text-xs font-medium hover:text-text ${sortKey === column.key ? 'text-text' : 'text-muted'}`}
                   >
                     {column.label}
@@ -107,12 +124,6 @@ export default function ServicesTable({ services, period }: Props) {
                   </button>
                 </th>
               ))}
-              <th scope="col" className="px-5 py-3 font-medium">
-                Localização
-              </th>
-              <th scope="col" className="px-5 py-3 font-medium">
-                Status
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -146,7 +157,7 @@ export default function ServicesTable({ services, period }: Props) {
             ))}
             {rows.length === 0 && (
               <tr className="border-t border-border">
-                <td colSpan={COLUMNS.length + 2} className="px-5 py-8 text-center text-muted">
+                <td colSpan={COLUMNS.length} className="px-5 py-8 text-center text-muted">
                   Nenhum serviço com “{search.trim()}” no nome.
                 </td>
               </tr>
