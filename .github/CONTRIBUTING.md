@@ -46,7 +46,7 @@ fix(frontend): mostra estado indisponível no card do serviço (#31) [RF05]
 chore(processo): registra ata da daily de 07/10 (#3)
 ```
 
-Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.gitmessage` com estas regras; a skill `commitar` do assistente de IA monta a mensagem.
+Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.agilekit/gitmessage` com estas regras; a skill `commitar` do assistente de IA monta a mensagem.
 
 ### Co-autoria
 
@@ -56,7 +56,7 @@ O trailer `Co-authored-by:` é **opcional** e, quando existir, só pode apontar 
 Co-authored-by: Andrea Turibio <139165742+DeaTuribio@users.noreply.github.com>
 ```
 
-Use o `.gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. Quem gera código com apoio de IA explica isso no PR, não no commit.
+Use o `.agilekit/gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. Quem gera código com apoio de IA explica isso no PR, não no commit.
 
 ### E-mail do git
 

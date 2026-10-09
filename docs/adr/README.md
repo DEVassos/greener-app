@@ -11,6 +11,7 @@ Decisões técnicas e de processo que afetam o repositório inteiro são registr
 | [0001](0001-gitflow-commits-coautoria.md) | Git Flow, Conventional Commits em pt-BR e co-autoria restrita ao time | aceito | 2026-10-05 | RP07 · ES04, ES05, ES09 |
 | [0002](0002-postgresql-pg-sem-orm.md) | PostgreSQL com driver `pg` e SQL explícito, sem ORM | aceito | 2026-10-05 | RP03 · BD01, BD02 |
 | [0003](0003-docker-compose-unico-caminho.md) | Docker Compose como único caminho de execução | aceito | 2026-10-05 | RP04 · DW07, BD03 |
+| [0004](0004-vite-tailwind-frontend.md) | Vite e Tailwind CSS no frontend | aceito | 2026-10-08 | #67 · RP01, RNF01, RNF05 · DW01, DW04, ES08 |
 
 ## Como criar um ADR
 

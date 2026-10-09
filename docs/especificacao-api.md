@@ -53,8 +53,11 @@ Este documento especifica o contrato e comportamento dos microsserviços externo
         }
       }
       ```
-    * **`404 Not Found`:** Serviço removido do registro ou sem métricas (`metrics_missing`).
-    * **`500 Internal Server Error`:** Serviço ou exportador indisponível (`unavailable`).
+    * **`404 Not Found`:** A descrição da resposta menciona serviço removido ou métricas inexistentes.
+    * **`500 Internal Server Error`:** Serviço ou exportador indisponível.
+
+  * **Ambiguidade verificada no OpenAPI em 08/10/2026:** a descrição do endpoint afirma que serviço listado sem métricas retorna `500`, enquanto a descrição de `404` também menciona métricas inexistentes. Confirmar com o parceiro; não inferir remoção apenas por HTTP `404`. Falha de `GET /services` não equivale a uma descoberta válida vazia.
+  * **Unidades:** `memory_gb`, `disk_gb` e `network_gb` são rotulados GB, sem definição explícita de GB decimal versus GiB. Persistir os valores declarados, sem conversão presumida para bytes. `collection_interval_seconds` é o intervalo daquela coleta; o consumidor deve exigir valor positivo dentro da faixa suportada.
 
 ---
 
@@ -69,7 +72,7 @@ Este documento especifica o contrato e comportamento dos microsserviços externo
 
 * **`GET /regions`**
   * **Descrição:** Lista todas as regiões cadastradas e seus fatores regionais.
-  * **Retorno (200 OK):** Lista com `code`, `country`, `region`, `city`, `latitude`, `longitude`, `carbon_intensity_gco2e_per_kwh` e `renewable_share_percent`.
+  * **Retorno (200 OK):** Objeto com `regions` (array com `code`, `country`, `region`, `city`, `latitude`, `longitude`, `carbon_intensity_gco2e_per_kwh` e `renewable_share_percent`) e `total` (inteiro), conforme OpenAPI consultado em 08/10/2026.
 
 * **`GET /regions/{code}/carbon-intensity`** (Alias: `GET /carbon-intensity/{code}`)
   * **Descrição:** Retorna a intensidade de carbono referente ao `region_code` informado.
