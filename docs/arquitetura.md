@@ -1,41 +1,38 @@
-# Arquitetura — modelo de dados
+# Arquitetura — modelo de dados integrado
 
-Este documento registra o modelo persistente já definido em `database/schema.sql` para a Sprint 1. Ele descreve somente o DDL entregue nesta tarefa; backend, frontend e containers ainda não existem na branch de desenvolvimento.
+Esta branch integra localmente UML e DDL para revisão; não entrega backend, worker, JWT ou auditoria em execução. Base SQL de Lucas (#5/#44), modelagem #28; a exceção autorizada de trabalhar na branch dele está no [registro de integração](arquitetura/integracao-modelagem-banco.md). Nome EcoPulse e transição #68 respeitados, sem renomeação geral.
 
-## Fonte do modelo
+## Responsabilidades e fluxo projetado
 
-`database/schema.sql` é a fonte única do esquema PostgreSQL. Ele usa DDL explícito e idempotente, sem ORM, e deve ser aplicado em banco vazio com `psql -v ON_ERROR_STOP=1 -f database/schema.sql`.
+Metrics API → worker futuro → validação de métricas → repositories pg → PostgreSQL → API REST futura → dashboard. Carbon API alimenta cálculo na Sprint 2. React/TS e Node/TS são obrigatórios, mas não implementados por esta tarefa. SQL de dados ficará exclusivamente nos repositories com parâmetros; sem ORM/query builder.
 
-## Entidades e relações
+Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela será configuração independente.
 
-```text
-services (1) ────< (N) collections
+## Modelo de dados
 
-users
-```
+Fonte física: [schema.sql](../database/schema.sql). Modelos persistente/OO e sequências: [UML](arquitetura/modelagem-uml.md).
 
-| Tabela | Responsabilidade | Campos principais | Relações |
-|---|---|---|---|
-| `services` | Representa um serviço descoberto e seu último estado conhecido. | `external_id`, `name`, `status`, localização e timestamps de descoberta. | Possui zero ou muitas `collections`. |
-| `collections` | Preserva cada leitura de métricas e dos valores ambientais associados. | `service_id`, `collected_at`, CPU, memória, disco, rede, potência, energia, CO₂e, `metrics` e `error_message`. | Pertence a um `service`. |
-| `users` | Armazena credenciais para a área de configuração prevista. | `email`, `password_hash`, `created_at`, `updated_at`. | Não possui relação no DDL atual. |
+| Tabela | Responsabilidade | Relações |
+|---|---|---|
+| services | ID interno BIGINT, external_id textual único, cadastro, region_code e estado atual. | 1 serviço para 0..N coletas. |
+| collections | Métricas normalizadas em GB, intervalo, snapshot regional, intensidade usada e resultados disponíveis. | service_id obrigatório, FK RESTRICT. |
+| users | Email e hash bcrypt para o acesso administrativo futuro. | Sem propriedade de serviços/coletas. |
+| access_entries | Somente ID técnico, IP e instante de entrada. | Sem FK de usuário. |
 
-## Regras de integridade
+CPU, GB e intervalo positivo são obrigatórios quando status=ok. Status de métricas (ok/erro/sem_metricas) é independente de calculation_status (nao_calculado/disponivel/indisponivel). Sem cálculo, campos ambientais ficam nulos; falha de carbono preserva métricas e não usa emissão zero. Quando disponível, cálculo exige região histórica, intensidade e resultados completos. JSONB preserva a resposta bruta, sem duplicação manual de todo o modelo.
 
-- `services.external_id` identifica cada serviço externo de forma única.
-- Os estados de serviço permitidos são `ativo`, `indisponivel`, `sem_metricas` e `removido`.
-- Latitude e longitude são opcionais, mas, quando presentes, respeitam seus limites geográficos.
-- `collections.service_id` referencia `services.id` com `ON DELETE RESTRICT`: apagar um serviço não pode apagar seu histórico.
-- Uma coleta registra métricas numéricas não negativas e seu estado é `ok`, `erro` ou `sem_metricas`.
-- O índice `collections_service_collected_at_idx` atende consultas de histórico por serviço ordenadas da coleta mais recente para a mais antiga.
-- E-mails de `users` são únicos sem diferenciar maiúsculas de minúsculas e a senha é armazenada apenas como hash bcrypt.
+## Histórico e falhas
 
-## Rastreabilidade
+Energia usa numeric(20,12) e emissão numeric(24,12), mantendo 0,00000015 kWh por coleta e resolução de 10⁻¹² em ambas. Intensidade/potência permanecem numeric(14,6). Quatro índices explícitos somam-se aos cinco automáticos das quatro PKs e UNIQUE externo: nove no total. Casos de uso atuais constam na UML, com dashboard público e consulta/configuração autenticadas, sem ampliar a auditoria.
 
-| Item | Evidência |
-|---|---|
-| Histórico de coletas | RF10 e tabela `collections`. |
-| DDL explícito sem ORM | RP03 e `database/schema.sql`. |
-| Modelo de dados, chaves e constraints | BD01 e `database/schema.sql`. |
+Cada coleta futura é nova linha. FK impede excluir serviço referenciado, mas somente inserção de coletas é regra dos repositories/permissões, não trigger implementado. updated_at precisa ser atribuído nos UPDATEs. Região e intensidade de cada coleta não são consultadas retrospectivamente no cadastro atual.
 
-Para instruções de aplicação e inspeção do banco, consulte [database/README.md](../database/README.md).
+Falha de descoberta não autoriza remover todos os serviços. Semântica externa de 404/500 permanece ambígua; o contrato documentado foi corrigido para explicitar essa pendência. Ausência de coordenadas não invalida o serviço/métricas.
+
+## Entrada simples e autorização
+
+Primeira abertura por sessão de navegação em uma aba; reload e navegação interna não geram nova entrada. Sem polling ou worker. Backend observa IP considerando só proxies confiáveis e define horário; IP não equivale à identidade de pessoa. Consulta por responsáveis autorizados usa JWT administrativo, período/paginação e não cria outro evento de entrada. Sem perfis adicionais, tenants, logs HTTP ou tentativas de login. Tabela e fluxos modelados por solicitação de Vinicius; issue/sprint/retencão e mecanismo continuam pendentes, sem aprovação presumida do PO.
+
+## Inicialização e evolução
+
+Schema inicial em transação, reaplicável ao mesmo modelo. Banco anterior com bytes é recusado pelo guard; precisa de migração numerada conforme ADR 0002, sem conversão presumida nem remoção de dados. Não há seed ou compose nesta branch; execução oficial futura Docker e volume persistente precisam ser entregues pela infraestrutura. Comandos de validação isolada: [README do banco](../database/README.md). Precisão e fontes: [cálculos](calculos.md).
