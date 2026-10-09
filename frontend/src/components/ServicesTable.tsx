@@ -38,7 +38,7 @@ function compare(a: MonitoredService, b: MonitoredService, key: SortKey, directi
 
 function Missing() {
   return (
-    <span className="text-faint" title="Sem métrica nesta leitura">
+    <span className="text-muted" title="Sem métrica nesta leitura">
       —<span className="sr-only">sem métrica</span>
     </span>
   );
@@ -80,7 +80,7 @@ export default function ServicesTable({ services, period }: Props) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por nome…"
-            className="h-10 w-60 max-w-full rounded-lg border border-border bg-surface-2 px-3 font-sans text-sm text-text outline-none placeholder:text-faint focus:border-primary"
+            className="h-10 w-60 max-w-full rounded-lg border border-border bg-surface-2 px-3 font-sans text-sm text-text outline-none placeholder:text-muted focus:border-primary"
           />
         </label>
       </div>
