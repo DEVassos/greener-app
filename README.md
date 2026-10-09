@@ -78,7 +78,7 @@ Critérios previstos, responsáveis e evidências de cada sprint: [docs/plano-de
 
 ## 8. Como executar
 
-A aplicação ainda não é executável: o `compose.yaml`, os Dockerfiles e o `.env.example` completo fazem parte das primeiras entregas da Sprint 1. Quando existirem, os passos serão:
+O `compose.yaml` e os Dockerfiles fazem parte das primeiras entregas da Sprint 1 ([#26](https://github.com/DEVassos/greener-app/issues/26), [#27](https://github.com/DEVassos/greener-app/issues/27) e [#80](https://github.com/DEVassos/greener-app/issues/80)). Quando existirem, os passos serão:
 
 ```bash
 git clone https://github.com/DEVassos/greener-app.git
@@ -88,6 +88,21 @@ docker compose up --build
 ```
 
 Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/). As URLs de acesso (frontend, API e `/health`) serão documentadas aqui junto com o primeiro `compose.yaml`.
+
+### Variáveis de ambiente
+
+O modelo está em [`.env.example`](.env.example), versionado com valores de desenvolvimento que funcionam sem ajuste: na raiz do repositório, `cp .env.example .env`. O `.env` é ignorado pelo Git ([`.gitignore`](.gitignore)) e é o arquivo que o compose injeta nos containers.
+
+| Variável | Valor de desenvolvimento | Para que serve |
+|---|---|---|
+| `PORT` | `3000` | porta HTTP em que a API do backend atende |
+| `DATABASE_URL` | `postgresql://usuario:senha@localhost:5432/greener_db` | conexão do PostgreSQL usada pelo driver `pg` |
+| `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
+| `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
+| `POLLING_INTERVAL_MS` | `60000` | intervalo do polling do backend às APIs do parceiro (60 s) |
+| `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
+
+Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
 
 ## 9. Como trabalhamos
 
