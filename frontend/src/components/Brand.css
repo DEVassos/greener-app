@@ -1,0 +1,23 @@
+@layer components {
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand svg {
+    color: var(--accent);
+  }
+
+  .brand-name {
+    font-family: var(--display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  /* Amarelo: exclusivo da marca (docs/identidade-visual.md) */
+  .brand-name span {
+    color: var(--yellow);
+  }
+}
