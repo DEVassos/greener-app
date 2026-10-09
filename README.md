@@ -30,7 +30,11 @@ Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos
 
 ## 3. Funcionalidades implementadas
 
-Nenhuma ainda. O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR (ex.: "RF01 — Descoberta de serviços (#12)"). A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
+O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
+
+- **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas), com busca por nome e ordenação por coluna. Enquanto o backend não expõe `GET /services`, o frontend roda com dados ilustrativos ou com o backend falso (`npm run mock`); como executar em [frontend/README.md](frontend/README.md).
+
+  ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
 ## 4. Escopo planejado
 
