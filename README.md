@@ -28,6 +28,8 @@ O **GreenER** é uma plataforma web de observabilidade socioambiental (**GreenOp
 
 Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos.md](docs/requisitos.md).
 
+Setup backend da #8 em revisão local: [organização e validação](backend/README.md) e [contrato de saúde](docs/api.md). A integração Docker/Compose depende das #26/#27; não representa uma funcionalidade mergeada.
+
 ## 3. Funcionalidades implementadas
 
 O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
@@ -35,6 +37,10 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 - **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas), com busca por nome e ordenação por coluna. Enquanto o backend não expõe `GET /services`, o frontend roda com dados ilustrativos ou com o backend falso (`npm run mock`); como executar em [frontend/README.md](frontend/README.md).
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
+
+- **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
+
+  ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
 
 ## 4. Escopo planejado
 
