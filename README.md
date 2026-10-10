@@ -28,6 +28,8 @@ O **GreenER** é uma plataforma web de observabilidade socioambiental (**GreenOp
 
 Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos.md](docs/requisitos.md).
 
+Setup backend da #8 em revisão local: [organização e validação](backend/README.md) e [contrato de saúde](docs/api.md). A integração Docker/Compose depende das #26/#27; não representa uma funcionalidade mergeada.
+
 ## 3. Funcionalidades implementadas
 
 O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
