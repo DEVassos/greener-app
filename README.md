@@ -91,11 +91,15 @@ docker compose up --build
 
 Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/). As URLs de acesso (frontend, API e `/health`) serão documentadas aqui junto com o primeiro `compose.yaml`.
 
-### Variáveis de ambiente
+### Modelo de configuração (variáveis de ambiente)
 
-O modelo está em [`.env.example`](.env.example), versionado com valores de desenvolvimento que funcionam sem ajuste: na raiz do repositório, `cp .env.example .env`. O `.env` é ignorado pelo Git ([`.gitignore`](.gitignore)) e é o arquivo que o compose injeta nos containers.
+Os valores de configuração vivem em um `.env` na raiz do repositório, que **não** é versionado ([`.gitignore`](.gitignore)). O que vai para o Git é o **modelo** em [`.env.example`](.env.example), com valores de **exemplo** para desenvolvimento: na raiz do repositório, `cp .env.example .env`.
 
-| Variável | Valor de desenvolvimento | Para que serve |
+São exemplos, não um preset universal: `DATABASE_URL` depende do banco, das credenciais e do host de cada ambiente — dentro de um container, `localhost` aponta para o próprio container, não para a máquina nem para o serviço do PostgreSQL. Revise os valores em cada instalação.
+
+**O fornecimento dessas variáveis aos containers pelo `compose.yaml` é a [#27](https://github.com/DEVassos/greener-app/issues/27) e ainda não está implementado**: hoje não existe `compose.yaml` no repositório, e o backend lê as variáveis do ambiente do processo, sem leitura automática de `.env`.
+
+| Variável | Exemplo em `.env.example` | Para que serve |
 |---|---|---|
 | `PORT` | `3000` | porta HTTP em que a API do backend atende |
 | `DATABASE_URL` | `postgresql://usuario:senha@localhost:5432/greener_db` | conexão do PostgreSQL usada pelo driver `pg` |
