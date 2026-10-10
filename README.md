@@ -80,7 +80,7 @@ Critérios previstos, responsáveis e evidências de cada sprint: [docs/plano-de
 
 ## 8. Como executar
 
-A aplicação ainda não é executável: o `compose.yaml`, os Dockerfiles e o `.env.example` completo fazem parte das primeiras entregas da Sprint 1. Quando existirem, os passos serão:
+Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/).
 
 ```bash
 git clone https://github.com/DEVassos/greener-app.git
@@ -89,7 +89,14 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/). As URLs de acesso (frontend, API e `/health`) serão documentadas aqui junto com o primeiro `compose.yaml`.
+| Serviço | URL | Situação |
+|---|---|---|
+| Frontend (dashboard) | http://localhost:5173 | no `compose.yaml` |
+| Backend (API e `/health`) e PostgreSQL | — | entram no `compose.yaml` com as tarefas #26 e #27 |
+
+Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+
+`docker compose down` para os containers; `docker compose down -v` também apaga os volumes.
 
 ## 9. Como trabalhamos
 
