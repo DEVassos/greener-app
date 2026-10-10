@@ -29,6 +29,8 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 |---|---|---|---|
 | `VITE_API_URL` | não | `http://localhost:3000/api` | base da API do backend. **Sem ela o frontend roda em modo demonstração** (dados ilustrativos e faixa de aviso no topo) |
 
+`VITE_API_URL` é **incorporada ao bundle pelo Vite durante o build**: `import.meta.env.VITE_API_URL` (lida em `src/services/api.ts` e `src/services/services.service.ts`) é substituída pelo valor literal no JavaScript gerado, e a variável **não é consultada em tempo de execução**. Consequência prática: alterar a variável no ambiente do container ou do Nginx **depois** do build não muda nada no que está publicado — é preciso **reconstruir** o frontend (`npm run build`, ou o `docker build` da tarefa [#80](https://github.com/DEVassos/greener-app/issues/80)) para o novo valor valer. Sem `VITE_API_URL` no momento do build, o bundle sai em modo demonstração.
+
 ## Backend falso (`npm run mock`)
 
 Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do GreenER.)

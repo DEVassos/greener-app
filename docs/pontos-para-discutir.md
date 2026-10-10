@@ -14,14 +14,13 @@
 - **Contexto:** RP06 exige autenticação JWT na área de configuração. Em ambiente Docker, cada instalação sobe um banco **vazio**, então o usuário inicial precisa nascer junto com o schema.
 - _Endpoints de registro (`/auth/register`) ficaram fora do MVP; a gestão de usuários é evolução pós-MVP._
 
-### 1.2 🟡 Padrão de variáveis de ambiente
+### 1.2 🟢 Padrão de variáveis de ambiente
 
-- **Contexto:** Segredos (como `JWT_SECRET`) **não vão para a imagem Docker nem para o Git**. O `.env.example` vai pro Git **com valores de desenvolvimento que funcionam**.
-- **Perguntas:**
-  - Qual o `JWT_SECRET` de exemplo? (ex: `dev-secret-change-me`)
-  - Tempo de expiração do token (`JWT_EXPIRES_IN`)?
-  - Vamos documentar todas as variáveis no `.env.example`?
-- **Decisão a tomar:** fechar a lista de variáveis e os defaults.
+- **Contexto:** Segredos (como `JWT_SECRET`) **não vão para a imagem Docker nem para o Git**. O `.env.example` vai pro Git **com valores de exemplo** de desenvolvimento — eles não substituem a configuração de cada ambiente.
+- **Decisão tomada ([#7](https://github.com/DEVassos/greener-app/issues/7), Sprint 1):** lista de variáveis fechada no [`.env.example`](../.env.example), com um comentário por variável e **valores de exemplo** para desenvolvimento — são ponto de partida, não um preset que sobe em qualquer ambiente: `DATABASE_URL` depende do banco, das credenciais e do host, e dentro de um container `localhost` aponta para o próprio container. O `.env` real fica no [`.gitignore`](../.gitignore).
+  - `PORT=3000` (porta da API) · `DATABASE_URL` (conexão do driver `pg`) · `JWT_SECRET=dev-secret-change-me` (segredo de fábrica, trocado em cada instalação) · `JWT_EXPIRES_IN=8h` (sem *refresh token* no MVP: expirado, faz-se login de novo) · `POLLING_INTERVAL_MS=60000` (polling do backend às APIs do parceiro) · `VITE_API_URL` (base da API no frontend).
+  - O polling da tela é configuração independente e tem variável própria (`VITE_REFRESH_INTERVAL_MS`, tarefa [#23](https://github.com/DEVassos/greener-app/issues/23)). O template do agilekit cita `COLLECT_INTERVAL_MS` para a coleta: esse nome **não** foi adotado.
+- **Pendente (não implementado na #7):** injeção das variáveis nos containers pelo `compose.yaml` — terceiro critério de aceite da [#7](https://github.com/DEVassos/greener-app/issues/7), dependente da [DEVOPS-02](https://github.com/DEVassos/greener-app/issues/27). Até lá o `.env.example` documenta apenas o modelo: nenhum serviço recebe essas variáveis automaticamente.
 
 ### 1.3 🟢 Esclarecimento conceitual (já alinhado)
 
