@@ -9,3 +9,9 @@ export function formatNumber(value: number, decimals: number): string {
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
+
+/** ISO 8601 → "07/10 08:52:14". */
+export function formatDayTime(iso: string): string {
+  const day = new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return `${day} ${formatTime(iso)}`;
+}

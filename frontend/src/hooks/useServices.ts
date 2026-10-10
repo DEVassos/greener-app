@@ -8,6 +8,8 @@ export interface ServicesState {
   loading: boolean;
   /** Mensagem pronta para a tela; vazia quando a última busca deu certo. */
   error: string;
+  /** Horário da última busca bem-sucedida (ISO 8601); null antes da primeira. */
+  updatedAt: string | null;
   /** Busca de novo (botão "Tentar novamente"). */
   reload: () => void;
 }
@@ -17,6 +19,7 @@ export function useServices(): ServicesState {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -26,6 +29,7 @@ export function useServices(): ServicesState {
     fetchServices(controller.signal)
       .then((response) => {
         setData(response);
+        setUpdatedAt(new Date().toISOString());
         setError('');
       })
       .catch((reason: unknown) => {
@@ -42,5 +46,5 @@ export function useServices(): ServicesState {
 
   const reload = useCallback(() => setAttempt((current) => current + 1), []);
 
-  return { data, loading, error, reload };
+  return { data, loading, error, updatedAt, reload };
 }
