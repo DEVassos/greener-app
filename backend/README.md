@@ -1,6 +1,6 @@
 # Backend EcoPulse — setup da API (#8)
 
-Node 20, Express 5, TypeScript estrito e PostgreSQL pelo driver pg. Esta entrega local implementa somente inicialização e saúde da API; depende de revisão e publicação. Não há CRUD, ingestão, worker, cálculos, JWT ou auditoria.
+Express 5, TypeScript estrito, PostgreSQL pelo driver pg e imagem Docker em `node:24-alpine` ([Docker](#docker)). Esta entrega local implementa somente inicialização e saúde da API. Não há CRUD, ingestão, worker, cálculos, JWT ou auditoria.
 
 ## Organização
 
@@ -17,9 +17,9 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
-Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. Dockerfile backend (#26) e serviços backend/PostgreSQL (#27) ainda são dependências; esta branch não cria infraestrutura concorrente à #81. O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
+Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. A #26 entrega `backend/Dockerfile` e `backend/.dockerignore`; falta a #27 acrescentar os serviços `backend` e `postgres` (volume nomeado e healthcheck) ao `compose.yaml` — até lá o build local é o `docker build` descrito em [Docker](#docker). O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
 
-Comandos do módulo, com Node 20 e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
+Comandos do módulo, com Node 20 ou superior e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
 
 ```bash
 cd backend
@@ -32,7 +32,32 @@ npm start
 npm run dev
 ```
 
-Node 20 segue a regra atual do Agilekit. O CI compartilhado usa Node 22 e o modelo do professor usa Node 24. O alinhamento deve ser encaminhado à equipe/SM: esta entrega não modifica regra, workflow ou Dockerfile. Testar em Node 22/24 não substitui validar Node 20; Node 20 está fora do suporte oficial.
+A imagem fixa `node:24-alpine`, alinhada ao frontend (ADR 0005) e ao modelo do professor; diverge da regra atual do Agilekit, que indica Node 20 — versão fora do suporte oficial. O CI compartilhado usa Node 22. A regra de área precisa ser atualizada pela equipe/SM; a #26 fixa a versão na imagem sem alterar regra ou workflow.
+
+## Docker
+
+`backend/Dockerfile` é multi-stage sobre `node:24-alpine`:
+
+- **build** — `npm ci` pelo `package-lock.json`, cópia de `tsconfig.json` e `src/`, `npm run build` (tsc) e `npm prune --omit=dev`.
+- **runtime** — recebe apenas `dist/`, `node_modules` de produção e `package.json`, executa `node dist/server.js` como usuário `node` (não-root) e expõe a porta 3000.
+
+`backend/.dockerignore` mantém fora do contexto `node_modules/`, `dist/`, `coverage/`, `.env*`, `tests/` e os metadados do repositório.
+
+Enquanto a #27 não completa o `compose.yaml`, o build e a execução são feitos diretamente:
+
+```bash
+docker build -t greener-backend ./backend
+
+# Banco descartável apenas para validar a saúde da API
+docker network create greener-check
+docker run -d --name pg-check --network greener-check \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=greener postgres:16-alpine
+docker run -d --name api-check --network greener-check -p 3000:3000 \
+  -e DATABASE_URL=postgres://postgres:postgres@pg-check:5432/greener greener-backend
+curl -i http://localhost:3000/health
+```
+
+Esperado: `200` e `{"status":"ok","db":"ok"}`. Encerrar com `docker rm -f api-check pg-check; docker network rm greener-check`.
 
 ## Boot, saúde e falhas
 
@@ -42,7 +67,7 @@ JSON inválido retorna 400; rota inexistente 404; erro inesperado 500. Envelope 
 
 ## Como verificar
 
-Após disponibilizar #26/#27, em ambiente descartável e com banco próprio:
+Após disponibilizar a #27 (`compose.yaml` com os serviços `backend` e `postgres`), em ambiente descartável e com banco próprio:
 
 1. Subir com `docker compose up --build`: backend só abre a porta após consulta real ao banco.
 2. `curl -i http://localhost:3000/health`: 200 e `{"status":"ok","db":"ok"}`.
