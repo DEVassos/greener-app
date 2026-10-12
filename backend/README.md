@@ -14,6 +14,7 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 |---|---|---|
 | PORT | 3000 | inteiro de 1 a 65535 |
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
+| METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
@@ -33,6 +34,21 @@ npm run dev
 ```
 
 Node 20 segue a regra atual do Agilekit. O CI compartilhado usa Node 22 e o modelo do professor usa Node 24. O alinhamento deve ser encaminhado à equipe/SM: esta entrega não modifica regra, workflow ou Dockerfile. Testar em Node 22/24 não substitui validar Node 20; Node 20 está fora do suporte oficial.
+
+## API auxiliar: agregador de métricas (#15)
+
+`src/integrations/metrics-api.ts` é o cliente da Greener Metrics Aggregator API (contrato em [`docs/especificacao-api.md`](../docs/especificacao-api.md), seção 1). Ainda não é chamado por nenhuma rota nem pelo coletor: quem o usa é o worker de coleta (#19) e o módulo de serviços (US01).
+
+```ts
+const api = createMetricsApi({ baseUrl: env.metricsApiUrl });
+const services = await api.listServices();             // ServiceSummary[]
+const result = await api.getServiceMetrics('billing-api'); // { status: 'ok', metrics } | { status: 'sem_metricas' } | { status: 'indisponivel' }
+```
+
+- **Tipos:** `metrics-api.types.ts` tem os tipos do JSON da API (`Raw*`, snake_case) e os tipos devolvidos ao sistema (camelCase). Toda resposta é validada antes da conversão; formato inesperado não passa adiante.
+- **Estados do serviço:** em `GET /metrics/{id}`, 404 vira `sem_metricas` (removido ou sem métricas) e 500 vira `indisponivel`, como prevê a especificação. Não são exceções: a coleta de um serviço não interrompe a dos outros.
+- **Falhas da API:** sem conexão, mais de 10 s sem resposta, outro HTTP de erro ou corpo fora do formato lançam `ExternalApiError` (`EXTERNAL_API_ERROR`, 502, mensagem em pt-BR, causa preservada em `cause`). Falha de rede e timeout ganham mais uma tentativa; respostas HTTP não são repetidas.
+- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede.
 
 ## Boot, saúde e falhas
 
