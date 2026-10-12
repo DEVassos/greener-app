@@ -18,3 +18,11 @@ export class DatabaseError extends AppError {
     super('DATABASE_ERROR', 500, 'Não foi possível verificar a conexão com o banco de dados.');
   }
 }
+
+/** Falha de uma API auxiliar; compartilhado pelas integrações. */
+export class ExternalApiError extends AppError {
+  constructor(message: string, cause?: unknown) {
+    super('EXTERNAL_API_ERROR', 502, message);
+    this.cause = cause;
+  }
+}

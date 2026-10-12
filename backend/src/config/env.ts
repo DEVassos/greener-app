@@ -1,6 +1,6 @@
 import { ValidationError } from '../shared/errors';
 
-export interface Environment { port: number; databaseUrl: string }
+export interface Environment { port: number; databaseUrl: string; carbonApiUrl: string }
 
 export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
   const portText = source.PORT ?? '3000';
@@ -17,5 +17,15 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   } catch {
     throw new ValidationError('DATABASE_URL deve informar uma URL PostgreSQL com host e banco.');
   }
-  return { port, databaseUrl: databaseUrl! };
+  let carbonApiUrl: URL;
+  try {
+    carbonApiUrl = new URL(source.CARBON_API_URL ?? 'https://carbon.unilaunch.org');
+    if (!['http:', 'https:'].includes(carbonApiUrl.protocol)
+      || carbonApiUrl.username || carbonApiUrl.password || carbonApiUrl.search || carbonApiUrl.hash) {
+      throw new Error('URL inválida');
+    }
+  } catch {
+    throw new ValidationError('CARBON_API_URL deve ser uma URL http(s), sem credenciais, query ou fragmento.');
+  }
+  return { port, databaseUrl: databaseUrl!, carbonApiUrl: carbonApiUrl.toString().replace(/\/+$/, '') };
 }

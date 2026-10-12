@@ -14,7 +14,7 @@ function fakeDatabase(connected: boolean): Database {
     close: vi.fn(async () => undefined),
   };
 }
-const env = { port: 0, databaseUrl: 'postgresql://localhost/test' };
+const env = { port: 0, databaseUrl: 'postgresql://localhost/test', carbonApiUrl: 'https://carbon.unilaunch.org' };
 it('não inicia HTTP se o banco falhar e fecha pool', async () => {
   const database = fakeDatabase(false);
   await expect(startServer(env, database)).rejects.toBeInstanceOf(DatabaseError);
