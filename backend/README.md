@@ -14,6 +14,7 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 |---|---|---|
 | PORT | 3000 | inteiro de 1 a 65535 |
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
+| CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
@@ -53,3 +54,22 @@ Após disponibilizar #26/#27, em ambiente descartável e com banco próprio:
 7. Encerrar backend por SIGTERM: HTTP e pool fechados. Não executar down -v sobre volumes existentes.
 
 `npm test` cobre configuração, espera da verificação, falha/recuperação HTTP, parsing, erros e boot/encerramento com banco falso. É necessário complementar com PostgreSQL real descartável e registrar resultados; testes falsos não comprovam conexão real. Erro inesperado e parsing válido usam aplicações exclusivas dos testes, sem endpoints demonstrativos publicados.
+
+## Cliente de carbono — trabalho local da #17
+
+`src/integrations/carbon-api.ts` oferece `createCarbonApi({ baseUrl })` e `getIntensity(regionCode)` para `GET /regions/{code}/carbon-intensity`. A base vem de `readEnvironment().carbonApiUrl`; o cliente ainda não é chamado por rota, worker ou cálculo. Tipos ficam em `carbon-api.types.ts`; erros externos usam a única `ExternalApiError` em `shared/errors.ts`, derivada de `AppError` (502).
+
+**Decisão autorizada por Vinicius (@viniciusaugusto1997), em 11/10/2026, para a #17:** cache em memória por região e instância por 1 hora; uma tentativa; timeout de 10 segundos abrangendo requisição e corpo. Leitura do cache não renova prazo. Entrada vencida é descartada; falha nunca retorna fator antigo ou zero substituto. Esta decisão não é atribuída à equipe.
+
+Resposta válida retorna `status: 'ok'`, `factor` (região, intensidade em gCO₂e/kWh, renováveis), `source: 'api' | 'cache'`, `fetchedAt` e `expiresAt` (epoch em ms). Intensidade deve ser finita e não negativa, incluindo zero, com região correspondente; metadados obrigatórios seguem o OpenAPI. Não há arredondamento ou limite superior externo presumido. O SQL limita faixa/precisão na persistência futura.
+
+404 retorna `{ status: 'region_not_found', regionCode }`, sem fator. Rede, timeout, HTTP inesperado ou resposta inválida lançam erro tipado com causa; não são armazenados no cache. O consumidor futuro deve preservar métricas e mapear falha de carbono para cálculo indisponível, intensidade/emissão `NULL` e mensagem própria, conforme UML/SQL. Antes de implementar cálculo, permanece `nao_calculado`; zero conhecido não significa ausência. A #17 não altera SQL nem implementa esse consumidor.
+
+Como verificar esta entrega isolada (não exige banco): `cd backend && npm ci && npm run typecheck && npm test && npm run build`. Os testes determinísticos usam HTTP e relógio controlados, incluindo expiração exata, fator zero, 404, falhas e timeout durante leitura do corpo. Consulta real complementar:
+
+```bash
+cd backend
+npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const {createCarbonApi} = await import('./src/integrations/carbon-api'); const {carbonApiUrl} = readEnvironment({DATABASE_URL:'postgresql://localhost/greener'}); console.log(await createCarbonApi({baseUrl: carbonApiUrl}).getIntensity('br-sudeste')); })"
+```
+
+O comando fornece uma URL PostgreSQL sintática apenas à validação de configuração, sem abrir conexão. Esperado: fator válido com `source: 'api'`; repetir na mesma instância antes de uma hora retorna `source: 'cache'`. Falha da API real não substitui nem invalida a verificação determinística; registre o resultado observado.
