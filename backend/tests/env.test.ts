@@ -3,11 +3,19 @@ import { readEnvironment } from '../src/config/env';
 
 describe('ambiente', () => {
   const databaseUrl = 'postgresql://user:pass@localhost/test';
+  it.each(['0', '-1', '1.5', '2147483648', 'NaN', ''])('recusa polling inválido %s', POLLING_INTERVAL_MS => {
+    expect(() => readEnvironment({ DATABASE_URL: databaseUrl, POLLING_INTERVAL_MS })).toThrow('POLLING_INTERVAL_MS');
+  });
+  it('aceita limites do dispatcher', () => {
+    for (const value of [1, 2147483647])
+      expect(readEnvironment({ DATABASE_URL: databaseUrl, POLLING_INTERVAL_MS: String(value) }).pollingIntervalMs).toBe(value);
+  });
   it('aceita configuração válida e porta padrão', () => {
     expect(readEnvironment({ DATABASE_URL: databaseUrl })).toEqual({
       port: 3000,
       databaseUrl,
       metricsApiUrl: 'https://metrics.unilaunch.org',
+      pollingIntervalMs: 30000,
     });
     expect(readEnvironment({ PORT: '4321', DATABASE_URL: databaseUrl }).port).toBe(4321);
   });

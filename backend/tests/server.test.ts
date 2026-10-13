@@ -31,3 +31,13 @@ it('inicia com banco válido e encerra servidor e pool', async () => {
   expect(server.listening).toBe(false);
   expect(database.close).toHaveBeenCalledOnce();
 });
+it('shutdown aguarda worker antes de fechar o pool', async () => {
+  const database = fakeDatabase(true); let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const collector = { start: vi.fn(), stop: vi.fn(() => gate) };
+  const server = await startServer(env, database, collector);
+  const stopping = stopServer(server, database, collector);
+  await Promise.resolve(); expect(database.close).not.toHaveBeenCalled();
+  release(); await stopping; expect(collector.start).toHaveBeenCalledOnce();
+  expect(database.close).toHaveBeenCalledOnce();
+});
