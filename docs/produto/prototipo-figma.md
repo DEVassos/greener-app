@@ -2,7 +2,7 @@
 
 Protótipo de alta fidelidade do EcoPulse (UI-01, [#10](https://github.com/DEVassos/greener-app/issues/10)): dashboard, login e cadastro, em desktop e celular, com a paleta verde de [identidade-visual.md](../identidade-visual.md).
 
-- **Apresentação navegável:** [abrir o protótipo](https://www.figma.com/proto/qRkgY2CNlMpvs1BWpHlETr/EcoPulse-%C2%B7-Prot%C3%B3tipo-naveg%C3%A1vel?node-id=15-2&p=f&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=15%3A2&show-proto-sidebar=1) (começa no dashboard do visitante; a barra lateral lista as telas)
+- **Apresentação navegável:** [abrir o protótipo](https://www.figma.com/proto/qRkgY2CNlMpvs1BWpHlETr/EcoPulse-%C2%B7-Prot%C3%B3tipo-naveg%C3%A1vel?node-id=15-2&p=f&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=15%3A2&show-proto-sidebar=1) (começa no dashboard do visitante; a barra lateral lista as telas)
 - **Arquivo de design:** [abrir no Figma](https://www.figma.com/design/qRkgY2CNlMpvs1BWpHlETr/EcoPulse-%C2%B7-Prot%C3%B3tipo-naveg%C3%A1vel)
 
 O acesso é de leitura para qualquer pessoa com o link; não precisa de conta no Figma para ver a apresentação.
