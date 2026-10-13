@@ -14,6 +14,8 @@ COPY . .
 # VITE_API_URL é embutida no bundle durante o build: o navegador não lê variáveis do container.
 # Vazia = modo demonstração. O compose.yaml repassa o valor do .env da raiz.
 ARG VITE_API_URL=""
+# Intervalo do polling do dashboard (#23), também embutido no build. Vazio = padrão de 30 s.
+ARG VITE_REFRESH_INTERVAL_MS=""
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
