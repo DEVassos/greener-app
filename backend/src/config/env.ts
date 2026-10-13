@@ -1,6 +1,6 @@
 import { ValidationError } from '../shared/errors';
 
-export interface Environment { port: number; databaseUrl: string; metricsApiUrl: string }
+export interface Environment { port: number; databaseUrl: string; metricsApiUrl: string; pollingIntervalMs: number }
 
 const DEFAULT_METRICS_API_URL = 'https://metrics.unilaunch.org';
 
@@ -27,5 +27,11 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   } catch {
     throw new ValidationError('METRICS_API_URL deve ser uma URL http(s) da API agregadora de métricas.');
   }
-  return { port, databaseUrl: databaseUrl!, metricsApiUrl: metricsApiText.replace(/\/+$/, '') };
+  const pollingText = source.POLLING_INTERVAL_MS ?? '30000';
+  const pollingIntervalMs = Number(pollingText);
+  if (!/^\d+$/.test(pollingText) || !Number.isInteger(pollingIntervalMs)
+    || pollingIntervalMs < 1 || pollingIntervalMs > 2147483647) {
+    throw new ValidationError('POLLING_INTERVAL_MS deve ser inteiro de 1 a 2147483647 ms.');
+  }
+  return { port, databaseUrl: databaseUrl!, metricsApiUrl: metricsApiText.replace(/\/+$/, ''), pollingIntervalMs };
 }
