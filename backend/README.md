@@ -52,6 +52,10 @@ const result = await api.getServiceMetrics('billing-api'); // { status: 'ok', me
 
 ## Boot, saúde e falhas
 
+Contrato adicional em revisão (#97, precursor da #19): `getServiceMetrics(id, signal?)` retorna também `raw` no caso `ok`, com o objeto JSON original já parseado e campos adicionais preservados. `listServices(signal?)` também aceita AbortSignal. Cancelamento do consumidor conserva a razão e impede retries; timeout abrange headers/corpo por tentativa, com no máximo duas tentativas de transporte. Estados e métricas normalizadas existentes permanecem compatíveis. Restrições exclusivas do SQL ficam no consumidor, não no cliente.
+
+Verificação isolada em 13/10/2026, Ubuntu WSL/Docker, Node 24 e PostgreSQL 16 descartável: typecheck, 61/61 testes (seis PostgreSQL, nenhum pulado) e build aprovados. Testes adicionais em `tests/metrics-cancellation.test.ts`. Compose completo e volume não foram verificados; pertencem à #27.
+
 Antes de abrir HTTP, o backend valida ambiente e consulta PostgreSQL. Falha encerra com código não zero e fecha o pool. Cada GET /health executa nova consulta, sem cache de sucesso. Falha em runtime retorna DATABASE_ERROR/500 e mantém HTTP ativo; a chamada seguinte pode recuperar. Timeouts: conexão e statement 3 s; query 4 s. Health verifica conectividade, não valida schema nem ingestão.
 
 JSON inválido retorna 400; rota inexistente 404; erro inesperado 500. Envelope e exemplos em [API](../docs/api.md). SIGINT/SIGTERM fecham HTTP e pool; há limite de 10 s para encerramento do processo.
