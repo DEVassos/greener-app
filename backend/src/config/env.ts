@@ -1,6 +1,8 @@
 import { ValidationError } from '../shared/errors';
 
-export interface Environment { port: number; databaseUrl: string }
+export interface Environment { port: number; databaseUrl: string; metricsApiUrl: string }
+
+const DEFAULT_METRICS_API_URL = 'https://metrics.unilaunch.org';
 
 export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
   const portText = source.PORT ?? '3000';
@@ -17,5 +19,13 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   } catch {
     throw new ValidationError('DATABASE_URL deve informar uma URL PostgreSQL com host e banco.');
   }
-  return { port, databaseUrl: databaseUrl! };
+  const metricsApiText = source.METRICS_API_URL || DEFAULT_METRICS_API_URL;
+  let metricsApiUrl: URL;
+  try {
+    metricsApiUrl = new URL(metricsApiText);
+    if (!['http:', 'https:'].includes(metricsApiUrl.protocol)) throw new Error('Protocolo inválido');
+  } catch {
+    throw new ValidationError('METRICS_API_URL deve ser uma URL http(s) da API agregadora de métricas.');
+  }
+  return { port, databaseUrl: databaseUrl!, metricsApiUrl: metricsApiText.replace(/\/+$/, '') };
 }
