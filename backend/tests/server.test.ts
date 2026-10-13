@@ -12,9 +12,10 @@ function fakeDatabase(connected: boolean): Database {
       return { rows: [{ connected: 1 }] as unknown as T[], rowCount: 1, command: 'SELECT', oid: 0, fields: [] };
     },
     close: vi.fn(async () => undefined),
+    withClient: async work => work(fakeDatabase(connected)),
   };
 }
-const env = { port: 0, databaseUrl: 'postgresql://localhost/test', carbonApiUrl: 'https://carbon.unilaunch.org' };
+const env = { port: 0, databaseUrl: 'postgresql://localhost/test', carbonApiUrl: 'https://carbon.unilaunch.org', metricsApiUrl: 'https://metrics.unilaunch.org' };
 it('não inicia HTTP se o banco falhar e fecha pool', async () => {
   const database = fakeDatabase(false);
   await expect(startServer(env, database)).rejects.toBeInstanceOf(DatabaseError);

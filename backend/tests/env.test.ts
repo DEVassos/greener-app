@@ -5,7 +5,10 @@ describe('ambiente', () => {
   const databaseUrl = 'postgresql://user:pass@localhost/test';
   it('aceita configuração válida e porta padrão', () => {
     expect(readEnvironment({ DATABASE_URL: databaseUrl })).toEqual({
-      port: 3000, databaseUrl, carbonApiUrl: 'https://carbon.unilaunch.org',
+      carbonApiUrl: 'https://carbon.unilaunch.org',
+      port: 3000,
+      databaseUrl,
+      metricsApiUrl: 'https://metrics.unilaunch.org',
     });
     expect(readEnvironment({ PORT: '4321', DATABASE_URL: databaseUrl }).port).toBe(4321);
   });
@@ -23,4 +26,11 @@ describe('ambiente', () => {
     ('recusa base de carbono inválida %s', CARBON_API_URL => {
       expect(() => readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL })).toThrow('CARBON_API_URL');
     });
+  it('aceita METRICS_API_URL própria e remove a barra final', () => {
+    const env = readEnvironment({ DATABASE_URL: databaseUrl, METRICS_API_URL: 'http://localhost:4000/' });
+    expect(env.metricsApiUrl).toBe('http://localhost:4000');
+  });
+  it.each(['metrics.unilaunch.org', 'ftp://metrics.unilaunch.org', 'não é url'])('recusa METRICS_API_URL %s', METRICS_API_URL => {
+    expect(() => readEnvironment({ DATABASE_URL: databaseUrl, METRICS_API_URL })).toThrow('METRICS_API_URL');
+  });
 });

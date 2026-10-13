@@ -6,6 +6,8 @@ O setup local da #8, em revisão, acrescenta Express/TypeScript e pool pg: ambie
 
 ## Responsabilidades e fluxo projetado
 
+Contribuição local da #14: repositories de services/collections e UserRepository no módulo usuarios existente recebem executor tipado do pg. `withTransaction` reserva a mesma conexão e faz commit/rollback; a #19 coordenará as operações somente após descoberta válida, mantendo a decisão de reconciliação e o mapeamento de falhas fora da persistência. IDs bigint e numeric permanecem strings. A entrega não altera UML/schema, não registra rotas e não inicia coleta; contratos e testes no [README backend](../backend/README.md#repositories--contribuição-local-da-14).
+
 Metrics API → worker futuro → validação de métricas → repositories pg → PostgreSQL → API REST futura → dashboard. Carbon API alimenta cálculo na Sprint 2. React/TS e Node/TS são obrigatórios, mas não implementados por esta tarefa. SQL de dados ficará exclusivamente nos repositories com parâmetros; sem ORM/query builder.
 
 Trabalho local da #17: `backend/src/integrations/carbon-api.ts` consulta o fator regional e mantém cache em memória, com configuração centralizada e tipos próprios. HTTP/relógio são injetáveis para testes; erros usam a hierarquia compartilhada `AppError`. O cliente ainda não participa do fluxo de coleta/cálculo/persistência. Política autorizada por Vinicius e roteiro de verificação em [README backend](../backend/README.md#cliente-de-carbono--trabalho-local-da-17); UML e schema permanecem inalterados.

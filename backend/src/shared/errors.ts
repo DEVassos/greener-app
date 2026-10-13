@@ -19,7 +19,7 @@ export class DatabaseError extends AppError {
   }
 }
 
-/** Falha de uma API auxiliar; compartilhado pelas integrações. */
+/** API auxiliar (agregador de métricas, intensidade de carbono) fora do ar, lenta demais ou com resposta inválida. */
 export class ExternalApiError extends AppError {
   constructor(message: string, cause?: unknown) {
     super('EXTERNAL_API_ERROR', 502, message);
