@@ -42,6 +42,10 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
 
+- **RF11, RNF02 — Atualização automática sem recarregar (#100):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
+
+  ![Dashboard depois de uma atualização com falha](docs/img/sprint-1-atualizacao-automatica.png)
+
 ## 4. Escopo planejado
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
