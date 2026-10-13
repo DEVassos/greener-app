@@ -1,0 +1,20 @@
+# GreenER — único caminho oficial de execução (ADR 0003).
+# Uso: cp .env.example .env && docker compose up --build
+# Os serviços backend e postgres (volume nomeado e healthcheck) entram com as tarefas #26 e #27.
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Embutida no bundle no build: depois de mudar no .env, suba de novo com --build
+        VITE_API_URL: ${VITE_API_URL:-}
+    ports:
+      - "5173:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

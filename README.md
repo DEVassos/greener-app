@@ -38,6 +38,10 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
+- **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
+
+  ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
+
 ## 4. Escopo planejado
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
@@ -80,7 +84,7 @@ Critérios previstos, responsáveis e evidências de cada sprint: [docs/plano-de
 
 ## 8. Como executar
 
-O `compose.yaml` e os Dockerfiles fazem parte das primeiras entregas da Sprint 1 ([#26](https://github.com/DEVassos/greener-app/issues/26), [#27](https://github.com/DEVassos/greener-app/issues/27) e [#80](https://github.com/DEVassos/greener-app/issues/80)). Quando existirem, os passos serão:
+Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/).
 
 ```bash
 git clone https://github.com/DEVassos/greener-app.git
@@ -89,7 +93,14 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Pré-requisitos: [Docker](https://www.docker.com/get-started) com Docker Compose e [Git](https://git-scm.com/). As URLs de acesso (frontend, API e `/health`) serão documentadas aqui junto com o primeiro `compose.yaml`.
+| Serviço | URL | Situação |
+|---|---|---|
+| Frontend (dashboard) | http://localhost:5173 | no `compose.yaml` |
+| Backend (API e `/health`) e PostgreSQL | — | entram no `compose.yaml` com as tarefas #26 e #27 |
+
+Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+
+`docker compose down` para os containers; `docker compose down -v` também apaga os volumes.
 
 ### Modelo de configuração (variáveis de ambiente)
 

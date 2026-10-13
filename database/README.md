@@ -1,5 +1,7 @@
 # Banco de dados
 
+Contribuição local da #14: DML parametrizada em `backend/src/modules/services/services.repository.ts`, `collections/collections.repository.ts` e no módulo existente `usuarios/usuarios.repository.ts`. Transações em `backend/src/db/transaction.repository.ts`, sempre em uma conexão reservada do pool. Schema/UML inalterados; histórico somente por inserção, sem exclusão física ou sobrescrita de coletas. Contratos e fixture de verificação descartável no [README backend](../backend/README.md#repositories--contribuição-local-da-14). Nenhum worker, cálculo ou autenticação implementado nesta contribuição.
+
 SQL explícito PostgreSQL, sem ORM. O schema de Lucas (#5/#44) foi integrado localmente à UML; implementação e publicação permanecem em revisão. [Modelo](../docs/arquitetura/modelagem-uml.md), [decisões/fontes](../docs/arquitetura/integracao-modelagem-banco.md) e [cálculos](../docs/calculos.md).
 
 ## Arquivos e ordem
