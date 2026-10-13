@@ -1,0 +1,40 @@
+# Protótipo navegável no Figma
+
+Protótipo de alta fidelidade do EcoPulse (UI-01, [#10](https://github.com/DEVassos/greener-app/issues/10)): dashboard e login, em desktop e celular, com a paleta verde de [identidade-visual.md](../identidade-visual.md).
+
+- **Apresentação navegável:** [abrir o protótipo](https://www.figma.com/proto/NNaGtB7o906pKStC5asLFY/EcoPulse-%C2%B7-Prot%C3%B3tipo-naveg%C3%A1vel?node-id=15-2&p=f&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=15%3A2&show-proto-sidebar=1) (começa no dashboard do visitante; a barra lateral lista as telas)
+- **Arquivo de design:** [abrir no Figma](https://www.figma.com/design/NNaGtB7o906pKStC5asLFY/EcoPulse-%C2%B7-Prot%C3%B3tipo-naveg%C3%A1vel)
+
+O acesso é de leitura para qualquer pessoa com o link; não precisa de conta no Figma para ver a apresentação.
+
+## Telas
+
+Cada tela existe em **desktop** (1440 px) e **celular** (390 px).
+
+| # | Tela | O que mostra |
+|---|---|---|
+| 1 | Dashboard · visitante | faixa "dados ilustrativos", cards de KPI (energia total, emissão total, intensidade média, serviços monitorados, potencial de redução), ranking, mapa dos datacenters, tabela "Serviços monitorados" com **Exportar CSV** e **Exportar PDF**, recomendações de região e painel da região |
+| 2 | Dashboard · aviso de login | o mesmo dashboard com o aviso "Entre para continuar", ao tentar usar uma função da área logada |
+| 3 | Login | e-mail, senha, "Lembrar de mim" e "Esqueci minha senha" |
+| 4 | Dashboard · logado | o dashboard com a saudação ao usuário e o botão **Sair** |
+
+O **painel da região** tem as cinco abas descritas na seção 4 de [identidade-visual.md](../identidade-visual.md): Cards, Barras, Linha, Composição e Memória de cálculo, também em desktop e celular.
+
+## Fluxo navegável
+
+Visitante → clica em **Entrar** (ou numa função da área logada, que abre o aviso) → login → dashboard logado → **Sair** volta ao visitante.
+
+## Relação com o escopo
+
+O protótipo mostra a visão completa do produto; nem tudo entra na Sprint 1:
+
+- Ranking, mapa, recomendações e painel da região estão previstos para a Sprint 3 (US09–US12).
+- Os cards de KPI (#21) e o login (#25) estão na Sprint 2.
+- "Criar conta" aparece no login e no aviso, mas o cadastro ficou **fora do MVP** ([#63](https://github.com/DEVassos/greener-app/issues/63)): no MVP o usuário inicial nasce junto com o banco.
+
+## Prints
+
+| Desktop | Celular |
+|---|---|
+| ![Dashboard logado, desktop](../img/sprint-1-prototipo-dashboard-desktop.png) | ![Dashboard do visitante, celular](../img/sprint-1-prototipo-dashboard-celular.png) |
+| ![Login, desktop](../img/sprint-1-prototipo-login-desktop.png) | ![Login, celular](../img/sprint-1-prototipo-login-celular.png) |
