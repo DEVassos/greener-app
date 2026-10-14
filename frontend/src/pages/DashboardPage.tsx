@@ -25,11 +25,14 @@ export default function DashboardPage() {
         <LastUpdated updatedAt={updatedAt} intervalSeconds={refreshIntervalMs / 1000} stale={error !== ''}>
           <button
             type="button"
-            onClick={refresh}
-            disabled={loading}
+            // aria-disabled em vez de disabled: o botão não perde o foco do teclado a cada ciclo
+            onClick={() => {
+              if (!loading) refresh();
+            }}
+            aria-disabled={loading}
             aria-label="Atualizar agora"
             title="Atualizar agora"
-            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text disabled:cursor-wait disabled:opacity-60"
+            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text aria-disabled:cursor-wait aria-disabled:opacity-60"
           >
             <svg
               viewBox="0 0 24 24"
