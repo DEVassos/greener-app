@@ -4,6 +4,8 @@ Este documento detalha a identidade visual, a paleta de cores, os princípios de
 
 EcoPulse é o nome da aplicação, decidido pelo time em 08/10/2026 (PR #62) e já usado na interface. O repositório e os demais documentos ainda usam GreenER, o nome do projeto no ABP, até o renome previsto na #68.
 
+O protótipo navegável no Figma, com as telas de dashboard, login e cadastro em desktop e celular, está em [produto/prototipo-figma.md](produto/prototipo-figma.md).
+
 ---
 
 ## 1. Conceito e Tema
