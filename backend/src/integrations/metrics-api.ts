@@ -18,9 +18,9 @@ export interface MetricsApiOptions {
 
 export interface MetricsApi {
   /** Serviços ativos registrados no agregador agora. */
-  listServices(): Promise<ServiceSummary[]>;
+  listServices(signal?: AbortSignal): Promise<ServiceSummary[]>;
   /** Métricas instantâneas de um serviço; 404 e 500 viram estados, não exceções. */
-  getServiceMetrics(serviceId: string): Promise<ServiceMetricsResult>;
+  getServiceMetrics(serviceId: string, signal?: AbortSignal): Promise<ServiceMetricsResult>;
 }
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -60,7 +60,7 @@ function isServiceSummary(value: unknown): value is RawServiceSummary {
   );
 }
 
-function isMetricsResponse(value: unknown): value is RawMetricsResponse {
+function isMetricsResponse(value: unknown): value is RawMetricsResponse & Record<string, unknown> {
   if (!isRecord(value) || !isRecord(value.metrics)) return false;
   const { metrics } = value;
   return (
@@ -103,16 +103,32 @@ export function createMetricsApi({ baseUrl, timeoutMs = DEFAULT_TIMEOUT_MS, fetc
   const base = baseUrl.replace(/\/+$/, '');
 
   /** GET com timeout por tentativa; falha de rede ou timeout é repetida uma vez. */
-  async function get(path: string): Promise<Response> {
+  async function get<T>(path: string, signal: AbortSignal | undefined, read: (response: Response) => Promise<T>): Promise<T> {
     let lastError: unknown;
     for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+      signal?.throwIfAborted();
+      const timeout = AbortSignal.timeout(timeoutMs);
+      const attemptSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
+      let abort: () => void = () => undefined;
       try {
-        return await fetchFn(`${base}${path}`, {
-          headers: { Accept: 'application/json' },
-          signal: AbortSignal.timeout(timeoutMs),
+        const cancelled = new Promise<never>((_resolve, reject) => {
+          abort = () => reject(attemptSignal.reason);
+          attemptSignal.addEventListener('abort', abort, { once: true });
         });
+        const operation = (async () => {
+          const response = await fetchFn(`${base}${path}`, {
+            headers: { Accept: 'application/json' }, signal: attemptSignal,
+          });
+          attemptSignal.throwIfAborted();
+          return read(response);
+        })();
+        return await Promise.race([operation, cancelled]);
       } catch (error) {
+        signal?.throwIfAborted();
+        if (error instanceof ExternalApiError && !timeout.aborted) throw error;
         lastError = error;
+      } finally {
+        attemptSignal.removeEventListener('abort', abort);
       }
     }
     const timedOut = lastError instanceof Error && lastError.name === 'TimeoutError';
@@ -133,9 +149,9 @@ export function createMetricsApi({ baseUrl, timeoutMs = DEFAULT_TIMEOUT_MS, fetc
   }
 
   return {
-    async listServices() {
+    async listServices(signal) {
       const path = '/services';
-      const response = await get(path);
+      return get(path, signal, async response => {
       if (!response.ok) {
         throw new ExternalApiError(`A API de métricas respondeu HTTP ${response.status} em ${path}.`);
       }
@@ -148,11 +164,12 @@ export function createMetricsApi({ baseUrl, timeoutMs = DEFAULT_TIMEOUT_MS, fetc
         throw new ExternalApiError(`Resposta inesperada da API de métricas em ${path}: item ${invalid} fora do formato.`);
       }
       return (body as RawServiceSummary[]).map(toServiceSummary);
+      });
     },
 
-    async getServiceMetrics(serviceId) {
+    async getServiceMetrics(serviceId, signal) {
       const path = `/metrics/${encodeURIComponent(serviceId)}`;
-      const response = await get(path);
+      return get<ServiceMetricsResult>(path, signal, async response => {
       // Estados previstos pela especificação: 404 = removido ou sem métricas; 500 = serviço indisponível
       if (response.status === 404) return { status: 'sem_metricas' };
       if (response.status === 500) return { status: 'indisponivel' };
@@ -163,7 +180,8 @@ export function createMetricsApi({ baseUrl, timeoutMs = DEFAULT_TIMEOUT_MS, fetc
       if (!isMetricsResponse(body)) {
         throw new ExternalApiError(`Resposta inesperada da API de métricas em ${path}: métricas fora do formato.`);
       }
-      return { status: 'ok', metrics: toServiceMetrics(body) };
+      return { status: 'ok', metrics: toServiceMetrics(body), raw: body };
+      });
     },
   };
 }
