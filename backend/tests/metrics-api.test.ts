@@ -124,6 +124,7 @@ describe('getServiceMetrics', () => {
     const { fetchFn, calls } = fakeFetch(json(200, metricsBody));
     expect(await createMetricsApi({ baseUrl: BASE, fetchFn }).getServiceMetrics('billing-api')).toEqual({
       status: 'ok',
+      raw: metricsBody,
       metrics: { collectionIntervalSeconds: 27, cpuPercent: 62.67, memoryGb: 3.17, diskGb: 19.26, networkGb: 0.45 },
     });
     expect(calls).toEqual([`${BASE}/metrics/billing-api`]);

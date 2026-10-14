@@ -70,13 +70,15 @@ Esperado: `200` e `{"status":"ok","db":"ok"}`; no log, `API disponível na porta
 ```ts
 const api = createMetricsApi({ baseUrl: env.metricsApiUrl });
 const services = await api.listServices();             // ServiceSummary[]
-const result = await api.getServiceMetrics('billing-api'); // { status: 'ok', metrics } | { status: 'sem_metricas' } | { status: 'indisponivel' }
+const result = await api.getServiceMetrics('billing-api', signal); // { status: 'ok', metrics, raw } | { status: 'sem_metricas' } | { status: 'indisponivel' }
 ```
 
 - **Tipos:** `metrics-api.types.ts` tem os tipos do JSON da API (`Raw*`, snake_case) e os tipos devolvidos ao sistema (camelCase). Toda resposta é validada antes da conversão; formato inesperado não passa adiante.
 - **Estados do serviço:** em `GET /metrics/{id}`, 404 vira `sem_metricas` (removido ou sem métricas) e 500 vira `indisponivel`, como prevê a especificação. Não são exceções: a coleta de um serviço não interrompe a dos outros.
+- **JSON bruto:** no caso `ok`, `raw` devolve o corpo original já parseado, com os campos adicionais preservados, sem uma segunda chamada à API (contrato da #97, precursor da #19). Restrições de armazenamento, como o limite da coluna, ficam no consumidor, não no cliente.
+- **Cancelamento:** `listServices(signal?)` e `getServiceMetrics(id, signal?)` aceitam `AbortSignal`. O abort do consumidor conserva a razão original e não provoca retry; o timeout vale por tentativa e cobre a leitura de headers e corpo, com no máximo duas tentativas de transporte.
 - **Falhas da API:** sem conexão, mais de 10 s sem resposta, outro HTTP de erro ou corpo fora do formato lançam `ExternalApiError` (`EXTERNAL_API_ERROR`, 502, mensagem em pt-BR, causa preservada em `cause`). Falha de rede e timeout ganham mais uma tentativa; respostas HTTP não são repetidas.
-- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede.
+- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede; `tests/metrics-cancellation.test.ts` cobre o JSON bruto com campos adicionais, o cancelamento antes e durante headers/corpo, o abort entre tentativas e o timeout de corpo.
 
 ## Boot, saúde e falhas
 

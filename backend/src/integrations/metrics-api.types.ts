@@ -60,6 +60,6 @@ export interface ServiceMetrics {
  * (docs/especificacao-api.md), não falhas do cliente: o serviço fica `sem_metricas` ou `indisponivel`.
  */
 export type ServiceMetricsResult =
-  | { status: 'ok'; metrics: ServiceMetrics }
+  | { status: 'ok'; metrics: ServiceMetrics; raw: RawMetricsResponse & Record<string, unknown> }
   | { status: 'sem_metricas' }
   | { status: 'indisponivel' };
