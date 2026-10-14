@@ -141,7 +141,7 @@ Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, u
 | [docs/plano-de-entregas.md](docs/plano-de-entregas.md) | Plano das sprints, critérios da rubrica, responsáveis e evidências |
 | [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento ([Sprint 1](docs/sprints/sprint-1/planning.md)), dailies, review, retrospectiva, participação |
 | [docs/pontos-para-discutir.md](docs/pontos-para-discutir.md) | Decisões em aberto e dúvidas para o parceiro |
-| [docs/produto/](docs/produto/) | Proposta de diferenciais e protótipo HTML do dashboard |
+| [docs/produto/](docs/produto/) | Proposta de diferenciais, protótipo HTML do dashboard e [protótipo navegável no Figma](docs/produto/prototipo-figma.md) (dashboard, login e cadastro, desktop e celular) |
 | [docs/adr/](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [docs/processo/](docs/processo/) | Como o time trabalha |
 | [docs/contexto/](docs/contexto/) | Documentos do desafio (edital, documentação estendida, apresentação do kickoff, rubrica) |
