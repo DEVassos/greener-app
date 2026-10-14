@@ -9,6 +9,7 @@ services:
       args:
         # Embutida no bundle no build: depois de mudar no .env, suba de novo com --build
         VITE_API_URL: ${VITE_API_URL:-}
+        VITE_REFRESH_INTERVAL_MS: ${VITE_REFRESH_INTERVAL_MS:-}
     ports:
       - "5173:8080"
     restart: unless-stopped
