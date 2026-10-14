@@ -45,6 +45,8 @@ docker compose up --build      # frontend em http://localhost:5173
 - O container tem healthcheck (`wget` em `http://127.0.0.1:8080/`): `docker compose ps` mostra `healthy`.
 - Não há recarga automática dentro do container: para desenvolver com recarga continue usando `npm run dev` fora dele (atalho opcional, ver ADR 0005).
 
+`VITE_API_URL` é **incorporada ao bundle pelo Vite durante o build**: `import.meta.env.VITE_API_URL` (lida em `src/services/api.ts` e `src/services/services.service.ts`) é substituída pelo valor literal no JavaScript gerado, e a variável **não é consultada em tempo de execução**. Consequência prática: alterar a variável no ambiente do container ou do Nginx **depois** do build não muda nada no que está publicado — é preciso **reconstruir** o frontend (`npm run build`, ou o `docker build` da tarefa [#80](https://github.com/DEVassos/greener-app/issues/80)) para o novo valor valer. Sem `VITE_API_URL` no momento do build, o bundle sai em modo demonstração.
+
 ## Backend falso (`npm run mock`)
 
 Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do GreenER.)
