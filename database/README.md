@@ -6,11 +6,43 @@ SQL explícito PostgreSQL, sem ORM. O schema de Lucas (#5/#44) foi integrado loc
 
 ## Arquivos e ordem
 
-`database/schema.sql` é a fonte única de inicialização: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); validado com PostgreSQL 16. Não há seed, backend ou compose nesta branch.
+`database/schema.sql` é a fonte única de inicialização: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); o compose usa `postgres:16-alpine`. Ainda não há seeds.
 
-## Execução e preservação
+## Execução pelo compose (#27)
 
-A execução oficial da aplicação será exclusivamente Docker (RP04). O compose deve montar o schema em /docker-entrypoint-initdb.d/ na primeira inicialização e usar volume persistente; essa infraestrutura ainda não está entregue nesta branch. Não documentamos psql local como caminho oficial da aplicação.
+A execução oficial é exclusivamente Docker (RP04, ADR 0003). O serviço `postgres` do [`compose.yaml`](../compose.yaml):
+
+- monta esta pasta em `/docker-entrypoint-initdb.d/` (somente leitura). Na **primeira** criação do volume, o entrypoint do PostgreSQL executa os `.sql` daqui em ordem alfabética, hoje só `schema.sql`, e ignora o `README.md`;
+- guarda os dados no volume nomeado `pgdata` (`/var/lib/postgresql/data`). Eles sobrevivem a `docker compose restart`, `stop` e `down`; só `docker compose down -v` apaga o volume (BD03);
+- tem healthcheck `pg_isready`, e o backend só sobe depois dele (`depends_on: condition: service_healthy`);
+- atende em `postgres:5432` dentro da rede do compose (é o endereço que o backend usa) e fica exposto no host na porta `POSTGRES_HOST_PORT` (padrão e exemplo: 5433, para não conflitar com um PostgreSQL local na 5432). Se a 5433 estiver ocupada, troque no `.env`; a porta interna não muda.
+
+Para acessar do host (psql local, DBeaver): `psql -h localhost -p 5433 -U greener -d greener_db` (ou a porta definida em `POSTGRES_HOST_PORT`).
+
+Usuário, senha e banco vêm de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` no `.env` (padrão `greener` / `greener` / `greener_db`, os mesmos do [`.env.example`](../.env.example)). Eles só valem na criação do volume: para trocar, `docker compose down -v`.
+
+```bash
+cp .env.example .env
+docker compose up --build -d
+docker compose exec postgres psql -U greener -d greener_db -c '\dt'
+docker compose exec postgres psql -U greener -d greener_db -c 'SELECT count(*) FROM collections;'
+```
+
+Esperado: as quatro tabelas (`access_entries`, `collections`, `services`, `users`) e a contagem do histórico. No log (`docker compose logs postgres`) aparece `running /docker-entrypoint-initdb.d/schema.sql` só na primeira subida.
+
+Persistência (BD03): insira um registro, reinicie e conte de novo.
+
+```bash
+docker compose exec postgres psql -U greener -d greener_db -c "INSERT INTO services (external_id, name) VALUES ('svc-persist', 'Persistência');"
+docker compose restart
+docker compose exec postgres psql -U greener -d greener_db -c 'SELECT count(*) FROM services;'
+```
+
+Esperado: a contagem continua `1` depois de `restart` e de `down` seguido de `up`. Depois de `docker compose down -v` e nova subida, volta a `0`, porque o schema é reaplicado num volume novo.
+
+Mudar `schema.sql` não altera um volume que já existe (os scripts de init só rodam no volume vazio). Em desenvolvimento, recrie com `docker compose down -v`; em banco com dados, use migração numerada (ADR 0002).
+
+## Verificação isolada do DDL
 
 Para verificar somente o DDL em um container descartável, sem portas ou volumes e sem remover containers existentes, use Git Bash; neste ambiente o Docker fica no WSL. O nome abaixo deve estar livre e deve identificar somente o container criado por este procedimento.
 

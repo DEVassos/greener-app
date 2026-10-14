@@ -17,7 +17,7 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 | CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
 | METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
 
-Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
+Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e o `compose.yaml` (#27) injeta as variáveis no container, com a `DATABASE_URL` montada a partir de `POSTGRES_*` e do host `postgres`. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
 Na base atual `backend/src` consome as quatro variáveis da tabela acima. As três variáveis abaixo constam do modelo da raiz ([`.env.example`](../.env.example), [#7](https://github.com/DEVassos/greener-app/issues/7)) e estão previstas para as entregas seguintes; **ainda não têm consumidor em `backend/src`** e não são validadas no boot:
 
@@ -27,7 +27,7 @@ Na base atual `backend/src` consome as quatro variáveis da tabela acima. As tr�
 | JWT_EXPIRES_IN | `8h` | duração no formato do `jsonwebtoken` (`8h`, `7d`) | validade do token emitido no login; sem *refresh token* no MVP | [#20](https://github.com/DEVassos/greener-app/issues/20) |
 | POLLING_INTERVAL_MS | `30000` (30 s) | inteiro em milissegundos | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta | [#19](https://github.com/DEVassos/greener-app/issues/19) — worker de coleta |
 
-Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. A #26 entrega `backend/Dockerfile` e `backend/.dockerignore`; falta a #27 acrescentar os serviços `backend` e `postgres` (volume nomeado e healthcheck) ao `compose.yaml` — até lá o build local é o `docker build` descrito em [Docker](#docker). O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
+Caminho oficial: `docker compose up --build` na raiz. O serviço `backend` usa este Dockerfile (#26) e só sobe depois do healthcheck do `postgres` (#27); dentro do compose o host da `DATABASE_URL` é `postgres`, não localhost.
 
 Comandos do módulo, com Node 20 ou superior e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
 
@@ -53,21 +53,15 @@ A imagem fixa `node:24-alpine`, alinhada ao frontend (ADR 0005) e ao modelo do p
 
 `backend/.dockerignore` mantém fora do contexto `node_modules/`, `dist/`, `coverage/`, `.env*`, `tests/` e os metadados do repositório.
 
-Enquanto a #27 não completa o `compose.yaml`, o build e a execução são feitos diretamente:
+No `compose.yaml` (#27) a imagem é construída e executada junto com o PostgreSQL:
 
 ```bash
-docker build -t greener-backend ./backend
-
-# Banco descartável apenas para validar a saúde da API
-docker network create greener-check
-docker run -d --name pg-check --network greener-check \
-  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=greener postgres:16-alpine
-docker run -d --name api-check --network greener-check -p 3000:3000 \
-  -e DATABASE_URL=postgres://postgres:postgres@pg-check:5432/greener greener-backend
+docker compose up --build -d
 curl -i http://localhost:3000/health
+docker compose logs backend
 ```
 
-Esperado: `200` e `{"status":"ok","db":"ok"}`. Encerrar com `docker rm -f api-check pg-check; docker network rm greener-check`.
+Esperado: `200` e `{"status":"ok","db":"ok"}`; no log, `API disponível na porta 3000.`. O compose também verifica `/health` no healthcheck do container (`docker compose ps` mostra `healthy`).
 
 ## API auxiliar: agregador de métricas (#15)
 
@@ -92,7 +86,7 @@ JSON inválido retorna 400; rota inexistente 404; erro inesperado 500. Envelope 
 
 ## Como verificar
 
-Após disponibilizar a #27 (`compose.yaml` com os serviços `backend` e `postgres`), em ambiente descartável e com banco próprio:
+Com o `compose.yaml` (serviços `backend` e `postgres`, #27), em ambiente descartável e com banco próprio (no passo 5, `docker compose stop postgres` e depois `docker compose start postgres`):
 
 1. Subir com `docker compose up --build`: backend só abre a porta após consulta real ao banco.
 2. `curl -i http://localhost:3000/health`: 200 e `{"status":"ok","db":"ok"}`.

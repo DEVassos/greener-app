@@ -28,7 +28,7 @@ O **GreenER** é uma plataforma web de observabilidade socioambiental (**GreenOp
 
 Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos.md](docs/requisitos.md).
 
-Setup backend da #8 em revisão local: [organização e validação](backend/README.md) e [contrato de saúde](docs/api.md). A integração Docker/Compose depende das #26/#27; não representa uma funcionalidade mergeada.
+Setup do backend: [organização e validação](backend/README.md) e [contrato de saúde](docs/api.md). Frontend, backend e PostgreSQL sobem juntos pelo `compose.yaml` (#26, #27).
 
 ## 3. Funcionalidades implementadas
 
@@ -100,11 +100,12 @@ docker compose up --build
 | Serviço | URL | Situação |
 |---|---|---|
 | Frontend (dashboard) | http://localhost:5173 | no `compose.yaml` |
-| Backend (API e `/health`) e PostgreSQL | — | entram no `compose.yaml` com as tarefas #26 e #27 |
+| Backend (API e `/health`) | http://localhost:3000/health | no `compose.yaml`; sobe depois que o PostgreSQL fica saudável |
+| PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U greener -d greener_db` |
 
-Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). O backend ainda não expõe `/services`, então o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
-`docker compose down` para os containers; `docker compose down -v` também apaga os volumes.
+`docker compose down` para os containers e mantém os dados; `docker compose down -v` também apaga o volume `pgdata` (banco zerado na próxima subida).
 
 ### Modelo de configuração (variáveis de ambiente)
 
@@ -112,12 +113,14 @@ Os valores de configuração vivem em um `.env` na raiz do repositório, que **n
 
 São exemplos, não um preset universal: `DATABASE_URL` depende do banco, das credenciais e do host de cada ambiente — dentro de um container, `localhost` aponta para o próprio container, não para a máquina nem para o serviço do PostgreSQL. Revise os valores em cada instalação.
 
-Hoje o `compose.yaml` sobe só o frontend, que recebe a `VITE_API_URL` como argumento de build. **O backend e o PostgreSQL no compose, com a injeção das variáveis deles, são a [#27](https://github.com/DEVassos/greener-app/issues/27)**; até lá o backend lê as variáveis do ambiente do processo, sem leitura automática de `.env`.
+O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](https://github.com/DEVassos/greener-app/issues/27)). Dentro do compose, a `DATABASE_URL` do backend é montada a partir de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` com o host `postgres`; a `DATABASE_URL` do `.env` só vale para rodar o backend fora do Docker. Sem `.env`, o compose usa os mesmos valores de exemplo.
 
 | Variável | Exemplo em `.env.example` | Para que serve |
 |---|---|---|
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `greener` / `greener` / `greener_db` | usuário, senha e banco criados no PostgreSQL do compose na primeira subida do volume |
+| `POSTGRES_HOST_PORT` | `5433` | porta do host em que o banco do compose fica acessível; dentro do Docker é sempre `postgres:5432`. 5433 evita conflito com um PostgreSQL local; troque se ela estiver em uso |
 | `PORT` | `3000` | porta HTTP em que a API do backend atende |
-| `DATABASE_URL` | `postgresql://usuario:senha@localhost:5432/greener_db` | conexão do PostgreSQL usada pelo driver `pg` |
+| `DATABASE_URL` | `postgresql://greener:greener@localhost:5433/greener_db` | conexão do PostgreSQL usada pelo driver `pg` fora do Docker (no compose ela é montada com `POSTGRES_*`) |
 | `CARBON_API_URL` | `https://carbon.unilaunch.org` | base da API de intensidade de carbono do parceiro |
 | `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
 | `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
