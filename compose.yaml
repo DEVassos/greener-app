@@ -1,8 +1,52 @@
 # GreenER — único caminho oficial de execução (ADR 0003).
 # Uso: cp .env.example .env && docker compose up --build
-# Os serviços backend e postgres (volume nomeado e healthcheck) entram com as tarefas #26 e #27.
+# Zerar o banco (apaga o volume e reaplica database/schema.sql): docker compose down -v
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-greener}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-greener}
+      POSTGRES_DB: ${POSTGRES_DB:-greener_db}
+    volumes:
+      # Volume nomeado: os dados sobrevivem a restart, stop e down (BD03); só down -v apaga
+      - pgdata:/var/lib/postgresql/data
+      # Os .sql de database/ rodam só na primeira criação do volume, em ordem alfabética
+      - ./database:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Dentro da rede do compose o banco é sempre postgres:5432; no host, a porta vem do .env
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      PORT: 3000
+      # Dentro da rede do compose o banco é o serviço `postgres`, não localhost
+      DATABASE_URL: postgresql://${POSTGRES_USER:-greener}:${POSTGRES_PASSWORD:-greener}@postgres:5432/${POSTGRES_DB:-greener_db}
+      CARBON_API_URL: ${CARBON_API_URL:-https://carbon.unilaunch.org}
+      METRICS_API_URL: ${METRICS_API_URL:-https://metrics.unilaunch.org}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   frontend:
     build:
       context: ./frontend
@@ -18,3 +62,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  pgdata:
