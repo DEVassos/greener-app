@@ -8,8 +8,8 @@ export interface MonitoredService {
   id: string;
   name: string;
   /** Localização informada pelo agregador. */
-  country: string;
-  region: string;
+  country: string | null;
+  region: string | null;
   city: string | null;
   /** Uso de CPU na última leitura, em %; null quando não há métrica. */
   cpuPercent: number | null;
