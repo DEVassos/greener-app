@@ -1,6 +1,6 @@
 # Backend EcoPulse — setup da API (#8)
 
-Node 20, Express 5, TypeScript estrito e PostgreSQL pelo driver pg. O setup da #8 oferece inicialização e saúde da API; a contribuição local da #14 acrescenta repositories e transações, ainda sem revisão/publicação. Não há CRUD HTTP, ingestão, worker, cálculos, JWT ou auditoria.
+Node 20, Express 5, TypeScript estrito, PostgreSQL pelo driver pg e imagem Docker em `node:24-alpine` ([Docker](#docker)). O setup da #8 oferece inicialização e saúde da API; a contribuição local da #14 acrescenta repositories e transações, ainda sem revisão/publicação. Não há CRUD HTTP, ingestão, worker, cálculos, JWT ou auditoria.
 
 ## Organização
 
@@ -14,13 +14,22 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 |---|---|---|
 | PORT | 3000 | inteiro de 1 a 65535 |
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
+| CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
 | METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
+Na base atual `backend/src` consome **apenas `PORT` e `DATABASE_URL`**. As três variáveis abaixo constam do modelo da raiz ([`.env.example`](../.env.example), [#7](https://github.com/DEVassos/greener-app/issues/7)) e estão previstas para as entregas seguintes; **ainda não têm consumidor em `backend/src`** e não são validadas no boot:
+
+| Variável | Formato | Finalidade | Consumidor futuro |
+|---|---|---|---|
+| JWT_SECRET | string aleatória (sugestão: 32 bytes em hex) | chave que assina os tokens JWT da área de configuração (DW06/RP06) | [#20](https://github.com/DEVassos/greener-app/issues/20) — login JWT |
+| JWT_EXPIRES_IN | duração no formato do `jsonwebtoken` (`8h`, `7d`) | validade do token emitido no login; sem *refresh token* no MVP | [#20](https://github.com/DEVassos/greener-app/issues/20) |
+| POLLING_INTERVAL_MS | inteiro em milissegundos (`60000` = 60 s) | intervalo do polling do backend às APIs do parceiro | [#19](https://github.com/DEVassos/greener-app/issues/19) — worker de coleta |
+
 Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. Dockerfile backend (#26) e serviços backend/PostgreSQL (#27) ainda são dependências; esta branch não cria infraestrutura concorrente à #81. O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
 
-Comandos do módulo, com Node 20 e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
+Comandos do módulo, com Node 20 ou superior e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
 
 ```bash
 cd backend
@@ -33,7 +42,32 @@ npm start
 npm run dev
 ```
 
-Node 20 segue a regra atual do Agilekit. O CI compartilhado usa Node 22 e o modelo do professor usa Node 24. O alinhamento deve ser encaminhado à equipe/SM: esta entrega não modifica regra, workflow ou Dockerfile. Testar em Node 22/24 não substitui validar Node 20; Node 20 está fora do suporte oficial.
+A imagem fixa `node:24-alpine`, alinhada ao frontend (ADR 0005) e ao modelo do professor; diverge da regra atual do Agilekit, que indica Node 20 — versão fora do suporte oficial. O CI compartilhado usa Node 22. A regra de área precisa ser atualizada pela equipe/SM; a #26 fixa a versão na imagem sem alterar regra ou workflow.
+
+## Docker
+
+`backend/Dockerfile` é multi-stage sobre `node:24-alpine`:
+
+- **build** — `npm ci` pelo `package-lock.json`, cópia de `tsconfig.json` e `src/`, `npm run build` (tsc) e `npm prune --omit=dev`.
+- **runtime** — recebe apenas `dist/`, `node_modules` de produção e `package.json`, executa `node dist/server.js` como usuário `node` (não-root) e expõe a porta 3000.
+
+`backend/.dockerignore` mantém fora do contexto `node_modules/`, `dist/`, `coverage/`, `.env*`, `tests/` e os metadados do repositório.
+
+Enquanto a #27 não completa o `compose.yaml`, o build e a execução são feitos diretamente:
+
+```bash
+docker build -t greener-backend ./backend
+
+# Banco descartável apenas para validar a saúde da API
+docker network create greener-check
+docker run -d --name pg-check --network greener-check \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=greener postgres:16-alpine
+docker run -d --name api-check --network greener-check -p 3000:3000 \
+  -e DATABASE_URL=postgres://postgres:postgres@pg-check:5432/greener greener-backend
+curl -i http://localhost:3000/health
+```
+
+Esperado: `200` e `{"status":"ok","db":"ok"}`. Encerrar com `docker rm -f api-check pg-check; docker network rm greener-check`.
 
 ## API auxiliar: agregador de métricas (#15)
 
@@ -62,7 +96,7 @@ JSON inválido retorna 400; rota inexistente 404; erro inesperado 500. Envelope 
 
 ## Como verificar
 
-Após disponibilizar #26/#27, em ambiente descartável e com banco próprio:
+Após disponibilizar a #27 (`compose.yaml` com os serviços `backend` e `postgres`), em ambiente descartável e com banco próprio:
 
 1. Subir com `docker compose up --build`: backend só abre a porta após consulta real ao banco.
 2. `curl -i http://localhost:3000/health`: 200 e `{"status":"ok","db":"ok"}`.
@@ -74,6 +108,26 @@ Após disponibilizar #26/#27, em ambiente descartável e com banco próprio:
 
 `npm test` cobre configuração, espera da verificação, falha/recuperação HTTP, parsing, erros e boot/encerramento com banco falso. É necessário complementar com PostgreSQL real descartável e registrar resultados; testes falsos não comprovam conexão real. Erro inesperado e parsing válido usam aplicações exclusivas dos testes, sem endpoints demonstrativos publicados.
 
+## Cliente de carbono — entrega em revisão da #17
+
+`src/integrations/carbon-api.ts` oferece `createCarbonApi({ baseUrl })` e `getIntensity(regionCode)` para `GET /regions/{code}/carbon-intensity`. A base vem de `readEnvironment().carbonApiUrl`; o cliente ainda não é chamado por rota, worker ou cálculo. Tipos ficam em `carbon-api.types.ts`; erros externos usam a única `ExternalApiError` em `shared/errors.ts`, derivada de `AppError` (502).
+
+**Decisão autorizada por Vinicius (@viniciusaugusto1997), em 11/10/2026, para a #17:** cache em memória por região e instância por 1 hora; uma tentativa; timeout de 10 segundos abrangendo requisição e corpo. Leitura do cache não renova prazo. Entrada vencida é descartada; falha nunca retorna fator antigo ou zero substituto. Esta decisão não é atribuída à equipe.
+
+Resposta válida retorna `status: 'ok'`, `factor` (região, intensidade em gCO₂e/kWh, renováveis), `source: 'api' | 'cache'`, `fetchedAt` e `expiresAt` (epoch em ms). Intensidade deve ser finita e não negativa, incluindo zero, com região correspondente; metadados obrigatórios seguem o OpenAPI. Não há arredondamento ou limite superior externo presumido. O SQL limita faixa/precisão na persistência futura.
+
+404 retorna `{ status: 'region_not_found', regionCode }`, sem fator. Rede, timeout, HTTP inesperado ou resposta inválida lançam erro tipado com causa; não são armazenados no cache. O consumidor futuro deve preservar métricas e mapear falha de carbono para cálculo indisponível, intensidade/emissão `NULL` e mensagem própria, conforme UML/SQL. Antes de implementar cálculo, permanece `nao_calculado`; zero conhecido não significa ausência. A #17 não altera SQL nem implementa esse consumidor.
+
+Como verificar esta entrega isolada (não exige banco): `cd backend && npm ci && npm run typecheck && npm test && npm run build`. Os testes determinísticos usam HTTP e relógio controlados, incluindo expiração exata, fator zero, 404, falhas e timeout durante leitura do corpo. Consulta real complementar:
+
+```bash
+cd backend
+npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const {createCarbonApi} = await import('./src/integrations/carbon-api'); const {carbonApiUrl} = readEnvironment({DATABASE_URL:'postgresql://localhost/greener'}); console.log(await createCarbonApi({baseUrl: carbonApiUrl}).getIntensity('br-sudeste')); })"
+```
+
+O comando fornece uma URL PostgreSQL sintática apenas à validação de configuração, sem abrir conexão. Esperado: fator válido com `source: 'api'`; repetir na mesma instância antes de uma hora retorna `source: 'cache'`. Falha da API real não substitui nem invalida a verificação determinística; registre o resultado observado.
+
+Compatibilização com `develop` em 13/10/2026: configurações de métricas e carbono coexistem e usam uma única `ExternalApiError`. Regressão isolada no Ubuntu WSL/Docker, Node 24 e PostgreSQL 16 descartável: typecheck, 90/90 testes (incluindo seis integrações PostgreSQL, nenhum pulado) e build aprovados. Isso não comprova Compose completo, worker ou volume persistente. A #43 ainda menciona último fator conhecido em falha; a #17 conserva a política autorizada de não usar cache vencido. O PO/time deve conciliar essa divergência antes da integração do cálculo, sem mudança silenciosa nesta entrega.
 ## Repositories — contribuição local da #14
 
 Lucas permanece responsável e futuro revisor; Vinicius atua como apoio autorizado. `ServiceRepository` em `modules/services` lista, busca por ID, faz upsert por `external_id`, atualiza estado e marca ausentes como removidos. Preserva ID/first_seen_at; upsert conserva estados de métricas e reativa reaparecidos. `CollectionRepository` em `modules/collections` somente insere; `UserRepository` no arquivo existente `modules/usuarios/usuarios.repository.ts` busca email sem distinção de caixa. Hash é informação interna, nunca resposta HTTP/log.

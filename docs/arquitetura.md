@@ -10,6 +10,8 @@ Contribuição local da #14: repositories de services/collections e UserReposito
 
 Metrics API → worker futuro → validação de métricas → repositories pg → PostgreSQL → API REST futura → dashboard. Carbon API alimenta cálculo na Sprint 2. React/TS e Node/TS são obrigatórios, mas não implementados por esta tarefa. SQL de dados ficará exclusivamente nos repositories com parâmetros; sem ORM/query builder.
 
+Trabalho local da #17: `backend/src/integrations/carbon-api.ts` consulta o fator regional e mantém cache em memória, com configuração centralizada e tipos próprios. HTTP/relógio são injetáveis para testes; erros usam a hierarquia compartilhada `AppError`. O cliente ainda não participa do fluxo de coleta/cálculo/persistência. Política autorizada por Vinicius e roteiro de verificação em [README backend](../backend/README.md#cliente-de-carbono--trabalho-local-da-17); UML e schema permanecem inalterados.
+
 Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela será configuração independente.
 
 ## Modelo de dados

@@ -38,6 +38,10 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
+- **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
+
+  ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
+
 ## 4. Escopo planejado
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
@@ -97,6 +101,25 @@ docker compose up --build
 Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
 `docker compose down` para os containers; `docker compose down -v` também apaga os volumes.
+
+### Modelo de configuração (variáveis de ambiente)
+
+Os valores de configuração vivem em um `.env` na raiz do repositório, que **não** é versionado ([`.gitignore`](.gitignore)). O que vai para o Git é o **modelo** em [`.env.example`](.env.example), com valores de **exemplo** para desenvolvimento: na raiz do repositório, `cp .env.example .env`.
+
+São exemplos, não um preset universal: `DATABASE_URL` depende do banco, das credenciais e do host de cada ambiente — dentro de um container, `localhost` aponta para o próprio container, não para a máquina nem para o serviço do PostgreSQL. Revise os valores em cada instalação.
+
+**O fornecimento dessas variáveis aos containers pelo `compose.yaml` é a [#27](https://github.com/DEVassos/greener-app/issues/27) e ainda não está implementado**: hoje não existe `compose.yaml` no repositório, e o backend lê as variáveis do ambiente do processo, sem leitura automática de `.env`.
+
+| Variável | Exemplo em `.env.example` | Para que serve |
+|---|---|---|
+| `PORT` | `3000` | porta HTTP em que a API do backend atende |
+| `DATABASE_URL` | `postgresql://usuario:senha@localhost:5432/greener_db` | conexão do PostgreSQL usada pelo driver `pg` |
+| `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
+| `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
+| `POLLING_INTERVAL_MS` | `60000` | intervalo do polling do backend às APIs do parceiro (60 s) |
+| `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
+
+Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
 
 ## 9. Como trabalhamos
 
