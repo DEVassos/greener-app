@@ -13,14 +13,13 @@ export interface CollectorApi {
 }
 export interface CollectorLifecycle { start(): void; stop(): Promise<void> }
 
+/** Arredonda à escala da coluna: a API manda resíduo de float (51.248000000000005); o JSON bruto guarda o original. */
 function decimal(value: number, precision: number, scale: number): string {
-  const [coefficient, exponent = '0'] = String(value).split('e');
-  const fraction = coefficient.split('.')[1]?.length ?? 0;
-  if (!Number.isFinite(value) || Math.abs(value) >= 10 ** (precision - scale)
-    || Math.max(0, fraction - Number(exponent)) > scale) {
-    throw new ValidationError('Observação fora da faixa ou precisão SQL.');
+  const fixed = Number.isFinite(value) ? value.toFixed(scale) : '';
+  if (!fixed || Math.abs(Number(fixed)) >= 10 ** (precision - scale)) {
+    throw new ValidationError('Observação fora da faixa SQL.');
   }
-  return String(value);
+  return fixed;
 }
 function discovery(items: ServiceSummary[]): DiscoveredService[] {
   const ids = new Set<string>();

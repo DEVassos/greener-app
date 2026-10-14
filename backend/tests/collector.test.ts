@@ -37,10 +37,16 @@ it.each([1, 2147483647])('aceita intervalo SQL %s e preserva bigint/raw', value 
   expect(observation(stored, { ...ok, metrics: { ...ok.metrics, collectionIntervalSeconds: value } }, new Date()))
     .toMatchObject({ service_id: stored.id, metrics: raw, collection_interval_seconds: value });
 });
-it.each([{ cpuPercent: 50.001 }, { memoryGb: 1e11 }, { memoryGb: 1e-10 }, { diskGb: -1 }, { networkGb: Infinity }])
-  ('recusa faixa/precisão inválida %j', metric => {
-    expect(() => observation(stored, { ...ok, metrics: { ...ok.metrics, ...metric } }, new Date())).toThrow();
-  });
+it.each([{ cpuPercent: 100.001 }, { memoryGb: 1e11 }, { diskGb: -1 },
+  { networkGb: Infinity }])('recusa faixa inválida %j', metric => {
+  expect(() => observation(stored, { ...ok, metrics: { ...ok.metrics, ...metric } }, new Date())).toThrow();
+});
+it('arredonda resíduo de float à escala da coluna e preserva o original no JSON bruto', () => {
+  const real = { ...raw, metrics: { ...raw.metrics, cpu_percent: 51.248000000000005 } };
+  expect(observation(stored, { ...ok, raw: real, metrics: { ...ok.metrics, cpuPercent: 51.248000000000005,
+    memoryGb: 1.0000000001, diskGb: 1e-10 } }, new Date()))
+    .toMatchObject({ cpu_percent: '51.25', memory_gb: '1.000000000', disk_gb: '0.000000000', metrics: real });
+});
 it('falha de descoberta preserva cadastro; vazia válida reconcilia sem coleta', async () => {
   vi.mocked(api.listServices).mockRejectedValueOnce(new Error('rede'));
   await worker.run();
