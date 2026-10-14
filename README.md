@@ -117,9 +117,11 @@ O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](http
 | `POSTGRES_HOST_PORT` | `5433` | porta do host em que o banco do compose fica acessível; dentro do Docker é sempre `postgres:5432`. 5433 evita conflito com um PostgreSQL local; troque se ela estiver em uso |
 | `PORT` | `3000` | porta HTTP em que a API do backend atende |
 | `DATABASE_URL` | `postgresql://greener:greener@localhost:5433/greener_db` | conexão do PostgreSQL usada pelo driver `pg` fora do Docker (no compose ela é montada com `POSTGRES_*`) |
+| `CARBON_API_URL` | `https://carbon.unilaunch.org` | base da API de intensidade de carbono do parceiro |
 | `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
 | `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
-| `POLLING_INTERVAL_MS` | `60000` | intervalo do polling do backend às APIs do parceiro (60 s) |
+| `METRICS_API_URL` | `https://metrics.unilaunch.org` | base da API agregadora de métricas do parceiro |
+| `POLLING_INTERVAL_MS` | `30000` | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta (30 s); o prazo normal vem de `collection_interval_seconds` |
 | `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
 
 Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
