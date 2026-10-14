@@ -70,15 +70,19 @@ Esperado: `200` e `{"status":"ok","db":"ok"}`; no log, `API disponível na porta
 ```ts
 const api = createMetricsApi({ baseUrl: env.metricsApiUrl });
 const services = await api.listServices();             // ServiceSummary[]
-const result = await api.getServiceMetrics('billing-api'); // { status: 'ok', metrics } | { status: 'sem_metricas' } | { status: 'indisponivel' }
+const result = await api.getServiceMetrics('billing-api', signal); // { status: 'ok', metrics, raw } | { status: 'sem_metricas' } | { status: 'indisponivel' }
 ```
 
 - **Tipos:** `metrics-api.types.ts` tem os tipos do JSON da API (`Raw*`, snake_case) e os tipos devolvidos ao sistema (camelCase). Toda resposta é validada antes da conversão; formato inesperado não passa adiante.
 - **Estados do serviço:** em `GET /metrics/{id}`, 404 vira `sem_metricas` (removido ou sem métricas) e 500 vira `indisponivel`, como prevê a especificação. Não são exceções: a coleta de um serviço não interrompe a dos outros.
+- **JSON bruto:** no caso `ok`, `raw` devolve o corpo original já parseado, com os campos adicionais preservados, sem uma segunda chamada à API (contrato da #97, precursor da #19). Restrições de armazenamento, como o limite da coluna, ficam no consumidor, não no cliente.
+- **Cancelamento:** `listServices(signal?)` e `getServiceMetrics(id, signal?)` aceitam `AbortSignal`. O abort do consumidor conserva a razão original e não provoca retry; o timeout vale por tentativa e cobre a leitura de headers e corpo, com no máximo duas tentativas de transporte.
 - **Falhas da API:** sem conexão, mais de 10 s sem resposta, outro HTTP de erro ou corpo fora do formato lançam `ExternalApiError` (`EXTERNAL_API_ERROR`, 502, mensagem em pt-BR, causa preservada em `cause`). Falha de rede e timeout ganham mais uma tentativa; respostas HTTP não são repetidas.
-- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede.
+- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede; `tests/metrics-cancellation.test.ts` cobre o JSON bruto com campos adicionais, o cancelamento antes e durante headers/corpo, o abort entre tentativas e o timeout de corpo.
 
 ## Boot, saúde e falhas
+
+O worker descrito na seção final pertence à implementação em revisão da #19; não foi integrado nesta base.
 
 Antes de abrir HTTP, o backend valida ambiente e consulta PostgreSQL. Falha encerra com código não zero e fecha o pool. Cada GET /health executa nova consulta, sem cache de sucesso. Falha em runtime retorna DATABASE_ERROR/500 e mantém HTTP ativo; a chamada seguinte pode recuperar. Timeouts: conexão e statement 3 s; query 4 s. Health verifica conectividade, não valida schema nem ingestão.
 
@@ -139,3 +143,17 @@ VALUES (9007199254740993, 'review@example.test', '$2b$10$' || repeat('a', 53));
 A fixture contém um hash sintético apenas no formato exigido pelo CHECK, não credencial de login nem seed da aplicação. No processo de testes, forneça `REPOSITORY_TEST_DATABASE_URL` apontando exclusivamente para esse banco e execute `npm test`. A variável pertence somente ao teste, não à configuração do backend. A suíte altera dados e exige banco novo a cada execução. Use Docker/Ubuntu WSL com rede exclusiva; se localhost do Windows não alcançar o banco, execute os testes em container Node na mesma rede, copiando o backend sem node_modules, dist ou .env para diretório descartável antes de npm ci. Não escreva sobre o checkout montado.
 
 Verificação local em 11/10/2026: tipos/build no Windows aprovados; no Ubuntu WSL, PostgreSQL 16-alpine e Node 24-alpine descartáveis executaram 31/31 testes (6 de integração), tipos e build. A execução que passou compartilhou a rede do container PostgreSQL; tentativas anteriores falharam por banco encerrado/conectividade, sem comprovar integração. npm ci reportou 3 alertas nas dependências existentes, sem alteração de lockfile. Compose integrado, worker e persistência de volume não foram verificados nesta entrega.
+
+## Worker — implementação em revisão da #19
+
+`jobs/collector.ts` executa descoberta completa, reconciliação transacional e coleta por prazo, com HTTP fora das transações. Descoberta inválida preserva cadastro/estados; lista vazia válida marca ausentes como removidos sem fabricar coleta. IDs e primeira descoberta são preservados; retorno permite coleta imediata. Cada observação e atualização de estado usam a mesma transação; falha desfaz ambas e permite continuar os demais serviços.
+
+`POLLING_INTERVAL_MS` (padrão 30000, inteiro entre 1 e 2147483647 ms) controla descoberta e prazo inicial/de recuperação. Métrica válida define próximo prazo pelo intervalo externo; falha conserva o último válido. Dispatcher agenda um tick após o ciclo, sem sobreposição/backfill. Prazos longos ficam como deadlines numéricos, sem timers acima do limite Node; polling da tela é independente. Após reinício, prazos em memória são reconstruídos com coleta inicial, sem compensar histórico.
+
+Antes do INSERT, o worker valida faixa SQL, CPU, GB e intervalo inteiro de 1 a 2147483647 segundos; medidas são arredondadas à escala da coluna (a API manda resíduo de float, como `51.248000000000005` → `51.25`) e o valor original fica no JSON bruto. Sucesso: serviço ativo/coleta ok; 404 ainda listado: sem_metricas; falha externa/observação inválida: indisponivel/erro, medidas nulas e diagnóstico. Cálculos permanecem nao_calculado com campos ambientais nulos. SIGTERM impede novos ciclos, cancela HTTP sem diagnóstico artificial, aguarda transação ativa e só então fecha pool, dentro do limite existente de 10s.
+
+Dependência obrigatória: PR #98/#97 fornece JSON original e cancelamento ao cliente HTTP. Este PR #19 nasce diretamente de develop e não inclui commits do precursor; permanece draft até a dependência ser integrada. A #16 mantém resiliência geral; aqui existe somente o tratamento necessário ao worker. Não há confirmação sobre trabalho local não publicado de Lucas. Compose completo/volume continuam na #27; nenhuma infraestrutura concorrente foi criada.
+
+Como verificar isoladamente: `cd backend && npm ci && npm run typecheck && npm test && npm run build`. Para sete testes PostgreSQL (seis existentes e um cenário composto do worker), fornecer REPOSITORY_TEST_DATABASE_URL e WORKER_TEST_DATABASE_URL para **bancos novos distintos e exclusivos**, ambos com schema aplicado; somente o primeiro recebe a fixture sintética já documentada. Sem URLs, integrações são explicitamente puladas. Testes cobrem descoberta, intervalos, retorno, rollback, JSON adicional, bigint, região histórica e shutdown. Teste combinado com #98 deve usar checkout descartável; não duplicar seus commits nesta branch.
+
+Verificações do autor em 13/10/2026, Ubuntu WSL/Docker e PostgreSQL 16 exclusivo: branch independente em Node 24.21.0, typecheck/build e 82/82 testes aprovados (sete PostgreSQL, nenhum pulado). Snapshot descartável combinando #92/#98/#19 em Node 20.20.2: typecheck/build, 125/125 testes e smoke de JSON bruto/HTTP fora da transação/shutdown aprovados. Tentativas de preparação tiveram falhas transitórias de prontidão PostgreSQL, rede npm, esbuild/overlay e leitura do script local; a execução final usou tmpfs exclusivo e terminou com sucesso. Compose completo, volume e revisão independente não foram comprovados.
