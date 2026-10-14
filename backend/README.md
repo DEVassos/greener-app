@@ -76,19 +76,17 @@ Esperado: `200` e `{"status":"ok","db":"ok"}`. Encerrar com `docker rm -f api-ch
 ```ts
 const api = createMetricsApi({ baseUrl: env.metricsApiUrl });
 const services = await api.listServices();             // ServiceSummary[]
-const result = await api.getServiceMetrics('billing-api'); // { status: 'ok', metrics } | { status: 'sem_metricas' } | { status: 'indisponivel' }
+const result = await api.getServiceMetrics('billing-api', signal); // { status: 'ok', metrics, raw } | { status: 'sem_metricas' } | { status: 'indisponivel' }
 ```
 
 - **Tipos:** `metrics-api.types.ts` tem os tipos do JSON da API (`Raw*`, snake_case) e os tipos devolvidos ao sistema (camelCase). Toda resposta é validada antes da conversão; formato inesperado não passa adiante.
 - **Estados do serviço:** em `GET /metrics/{id}`, 404 vira `sem_metricas` (removido ou sem métricas) e 500 vira `indisponivel`, como prevê a especificação. Não são exceções: a coleta de um serviço não interrompe a dos outros.
+- **JSON bruto:** no caso `ok`, `raw` devolve o corpo original já parseado, com os campos adicionais preservados, sem uma segunda chamada à API (contrato da #97, precursor da #19). Restrições de armazenamento, como o limite da coluna, ficam no consumidor, não no cliente.
+- **Cancelamento:** `listServices(signal?)` e `getServiceMetrics(id, signal?)` aceitam `AbortSignal`. O abort do consumidor conserva a razão original e não provoca retry; o timeout vale por tentativa e cobre a leitura de headers e corpo, com no máximo duas tentativas de transporte.
 - **Falhas da API:** sem conexão, mais de 10 s sem resposta, outro HTTP de erro ou corpo fora do formato lançam `ExternalApiError` (`EXTERNAL_API_ERROR`, 502, mensagem em pt-BR, causa preservada em `cause`). Falha de rede e timeout ganham mais uma tentativa; respostas HTTP não são repetidas.
-- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede.
+- **Testes:** `tests/metrics-api.test.ts` simula a API (sucesso, lista vazia, formato inválido, corpo não JSON, 404, 500, outros HTTP, falha de rede com nova tentativa e timeout) sem acessar a rede; `tests/metrics-cancellation.test.ts` cobre o JSON bruto com campos adicionais, o cancelamento antes e durante headers/corpo, o abort entre tentativas e o timeout de corpo.
 
 ## Boot, saúde e falhas
-
-Contrato adicional em revisão (#97, precursor da #19): `getServiceMetrics(id, signal?)` retorna também `raw` no caso `ok`, com o objeto JSON original já parseado e campos adicionais preservados. `listServices(signal?)` também aceita AbortSignal. Cancelamento do consumidor conserva a razão e impede retries; timeout abrange headers/corpo por tentativa, com no máximo duas tentativas de transporte. Estados e métricas normalizadas existentes permanecem compatíveis. Restrições exclusivas do SQL ficam no consumidor, não no cliente.
-
-Verificação isolada em 13/10/2026, Ubuntu WSL/Docker, Node 24 e PostgreSQL 16 descartável: typecheck, 61/61 testes (seis PostgreSQL, nenhum pulado) e build aprovados. Testes adicionais em `tests/metrics-cancellation.test.ts`. Compose completo e volume não foram verificados; pertencem à #27.
 
 Antes de abrir HTTP, o backend valida ambiente e consulta PostgreSQL. Falha encerra com código não zero e fecha o pool. Cada GET /health executa nova consulta, sem cache de sucesso. Falha em runtime retorna DATABASE_ERROR/500 e mantém HTTP ativo; a chamada seguinte pode recuperar. Timeouts: conexão e statement 3 s; query 4 s. Health verifica conectividade, não valida schema nem ingestão.
 
