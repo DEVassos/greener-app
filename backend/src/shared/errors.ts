@@ -10,7 +10,7 @@ export class ValidationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor() { super('NOT_FOUND', 404, 'Rota não encontrada.'); }
+  constructor(message = 'Rota não encontrada.') { super('NOT_FOUND', 404, message); }
 }
 
 export class DatabaseError extends AppError {
