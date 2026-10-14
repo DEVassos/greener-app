@@ -19,15 +19,15 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 
-Na base atual `backend/src` consome **apenas `PORT` e `DATABASE_URL`**. As três variáveis abaixo constam do modelo da raiz ([`.env.example`](../.env.example), [#7](https://github.com/DEVassos/greener-app/issues/7)) e estão previstas para as entregas seguintes; **ainda não têm consumidor em `backend/src`** e não são validadas no boot:
+Na base atual `backend/src` consome as quatro variáveis da tabela acima. As três variáveis abaixo constam do modelo da raiz ([`.env.example`](../.env.example), [#7](https://github.com/DEVassos/greener-app/issues/7)) e estão previstas para as entregas seguintes; **ainda não têm consumidor em `backend/src`** e não são validadas no boot:
 
-| Variável | Formato | Finalidade | Consumidor futuro |
-|---|---|---|---|
-| JWT_SECRET | string aleatória (sugestão: 32 bytes em hex) | chave que assina os tokens JWT da área de configuração (DW06/RP06) | [#20](https://github.com/DEVassos/greener-app/issues/20) — login JWT |
-| JWT_EXPIRES_IN | duração no formato do `jsonwebtoken` (`8h`, `7d`) | validade do token emitido no login; sem *refresh token* no MVP | [#20](https://github.com/DEVassos/greener-app/issues/20) |
-| POLLING_INTERVAL_MS | inteiro em milissegundos (`60000` = 60 s) | intervalo do polling do backend às APIs do parceiro | [#19](https://github.com/DEVassos/greener-app/issues/19) — worker de coleta |
+| Variável | Valor no `.env.example` | Formato | Finalidade | Consumidor futuro |
+|---|---|---|---|---|
+| JWT_SECRET | `dev-secret-change-me` (só para desenvolvimento; trocar em cada instalação) | string aleatória (sugestão: 32 bytes em hex) | chave que assina os tokens JWT da área de configuração (DW06/RP06) | [#20](https://github.com/DEVassos/greener-app/issues/20) — login JWT |
+| JWT_EXPIRES_IN | `8h` | duração no formato do `jsonwebtoken` (`8h`, `7d`) | validade do token emitido no login; sem *refresh token* no MVP | [#20](https://github.com/DEVassos/greener-app/issues/20) |
+| POLLING_INTERVAL_MS | `30000` (30 s) | inteiro em milissegundos | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta | [#19](https://github.com/DEVassos/greener-app/issues/19) — worker de coleta |
 
-Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. Dockerfile backend (#26) e serviços backend/PostgreSQL (#27) ainda são dependências; esta branch não cria infraestrutura concorrente à #81. O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
+Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. A #26 entrega `backend/Dockerfile` e `backend/.dockerignore`; falta a #27 acrescentar os serviços `backend` e `postgres` (volume nomeado e healthcheck) ao `compose.yaml` — até lá o build local é o `docker build` descrito em [Docker](#docker). O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
 
 Comandos do módulo, com Node 20 ou superior e ambiente já fornecido (atalhos de desenvolvimento/validação, não substituem Compose):
 
