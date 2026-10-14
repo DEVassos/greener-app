@@ -38,6 +38,10 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
+- **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
+
+  ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
+
 ## 4. Escopo planejado
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
