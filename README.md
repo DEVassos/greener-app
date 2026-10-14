@@ -106,6 +106,27 @@ Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi p
 
 `docker compose down` para os containers; `docker compose down -v` também apaga os volumes.
 
+### Modelo de configuração (variáveis de ambiente)
+
+Os valores de configuração vivem em um `.env` na raiz do repositório, que **não** é versionado ([`.gitignore`](.gitignore)). O que vai para o Git é o **modelo** em [`.env.example`](.env.example), com valores de **exemplo** para desenvolvimento: na raiz do repositório, `cp .env.example .env`.
+
+São exemplos, não um preset universal: `DATABASE_URL` depende do banco, das credenciais e do host de cada ambiente — dentro de um container, `localhost` aponta para o próprio container, não para a máquina nem para o serviço do PostgreSQL. Revise os valores em cada instalação.
+
+Hoje o `compose.yaml` sobe só o frontend, que recebe a `VITE_API_URL` como argumento de build. **O backend e o PostgreSQL no compose, com a injeção das variáveis deles, são a [#27](https://github.com/DEVassos/greener-app/issues/27)**; até lá o backend lê as variáveis do ambiente do processo, sem leitura automática de `.env`.
+
+| Variável | Exemplo em `.env.example` | Para que serve |
+|---|---|---|
+| `PORT` | `3000` | porta HTTP em que a API do backend atende |
+| `DATABASE_URL` | `postgresql://usuario:senha@localhost:5432/greener_db` | conexão do PostgreSQL usada pelo driver `pg` |
+| `CARBON_API_URL` | `https://carbon.unilaunch.org` | base da API de intensidade de carbono do parceiro |
+| `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
+| `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
+| `METRICS_API_URL` | `https://metrics.unilaunch.org` | base da API agregadora de métricas do parceiro |
+| `POLLING_INTERVAL_MS` | `30000` | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta (30 s); o prazo normal vem de `collection_interval_seconds` |
+| `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
+
+Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
+
 ## 9. Como trabalhamos
 
 - **Git Flow:** `main` recebe uma release por sprint (tag `sprint-N`); `develop` integra o trabalho; cada issue vira uma branch `tipo/<nº>-slug` e um Pull Request revisado por outra pessoa do time.
@@ -126,7 +147,7 @@ Enquanto o backend não está no compose, o dashboard mostra o aviso "Não foi p
 | [docs/plano-de-entregas.md](docs/plano-de-entregas.md) | Plano das sprints, critérios da rubrica, responsáveis e evidências |
 | [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento ([Sprint 1](docs/sprints/sprint-1/planning.md)), dailies, review, retrospectiva, participação |
 | [docs/pontos-para-discutir.md](docs/pontos-para-discutir.md) | Decisões em aberto e dúvidas para o parceiro |
-| [docs/produto/](docs/produto/) | Proposta de diferenciais e protótipo HTML do dashboard |
+| [docs/produto/](docs/produto/) | Proposta de diferenciais, protótipo HTML do dashboard e [protótipo navegável no Figma](docs/produto/prototipo-figma.md) (dashboard, login e cadastro, desktop e celular) |
 | [docs/adr/](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [docs/processo/](docs/processo/) | Como o time trabalha |
 | [docs/contexto/](docs/contexto/) | Documentos do desafio (edital, documentação estendida, apresentação do kickoff, rubrica) |

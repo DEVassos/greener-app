@@ -14,9 +14,18 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 |---|---|---|
 | PORT | 3000 | inteiro de 1 a 65535 |
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
+| CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
 | METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e a #27 fará a injeção no Compose. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
+
+Na base atual `backend/src` consome as quatro variáveis da tabela acima. As três variáveis abaixo constam do modelo da raiz ([`.env.example`](../.env.example), [#7](https://github.com/DEVassos/greener-app/issues/7)) e estão previstas para as entregas seguintes; **ainda não têm consumidor em `backend/src`** e não são validadas no boot:
+
+| Variável | Valor no `.env.example` | Formato | Finalidade | Consumidor futuro |
+|---|---|---|---|---|
+| JWT_SECRET | `dev-secret-change-me` (só para desenvolvimento; trocar em cada instalação) | string aleatória (sugestão: 32 bytes em hex) | chave que assina os tokens JWT da área de configuração (DW06/RP06) | [#20](https://github.com/DEVassos/greener-app/issues/20) — login JWT |
+| JWT_EXPIRES_IN | `8h` | duração no formato do `jsonwebtoken` (`8h`, `7d`) | validade do token emitido no login; sem *refresh token* no MVP | [#20](https://github.com/DEVassos/greener-app/issues/20) |
+| POLLING_INTERVAL_MS | `30000` (30 s) | inteiro em milissegundos | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta | [#19](https://github.com/DEVassos/greener-app/issues/19) — worker de coleta |
 
 Caminho oficial: `docker compose up --build`, pelo WSL nesta máquina. A #26 entrega `backend/Dockerfile` e `backend/.dockerignore`; falta a #27 acrescentar os serviços `backend` e `postgres` (volume nomeado e healthcheck) ao `compose.yaml` — até lá o build local é o `docker build` descrito em [Docker](#docker). O host dentro da DATABASE_URL precisa ser o serviço PostgreSQL do Compose, não localhost.
 
@@ -95,6 +104,26 @@ Após disponibilizar a #27 (`compose.yaml` com os serviços `backend` e `postgre
 
 `npm test` cobre configuração, espera da verificação, falha/recuperação HTTP, parsing, erros e boot/encerramento com banco falso. É necessário complementar com PostgreSQL real descartável e registrar resultados; testes falsos não comprovam conexão real. Erro inesperado e parsing válido usam aplicações exclusivas dos testes, sem endpoints demonstrativos publicados.
 
+## Cliente de carbono — entrega em revisão da #17
+
+`src/integrations/carbon-api.ts` oferece `createCarbonApi({ baseUrl })` e `getIntensity(regionCode)` para `GET /regions/{code}/carbon-intensity`. A base vem de `readEnvironment().carbonApiUrl`; o cliente ainda não é chamado por rota, worker ou cálculo. Tipos ficam em `carbon-api.types.ts`; erros externos usam a única `ExternalApiError` em `shared/errors.ts`, derivada de `AppError` (502).
+
+**Decisão autorizada por Vinicius (@viniciusaugusto1997), em 11/10/2026, para a #17:** cache em memória por região e instância por 1 hora; uma tentativa; timeout de 10 segundos abrangendo requisição e corpo. Leitura do cache não renova prazo. Entrada vencida é descartada; falha nunca retorna fator antigo ou zero substituto. Esta decisão não é atribuída à equipe.
+
+Resposta válida retorna `status: 'ok'`, `factor` (região, intensidade em gCO₂e/kWh, renováveis), `source: 'api' | 'cache'`, `fetchedAt` e `expiresAt` (epoch em ms). Intensidade deve ser finita e não negativa, incluindo zero, com região correspondente; metadados obrigatórios seguem o OpenAPI. Não há arredondamento ou limite superior externo presumido. O SQL limita faixa/precisão na persistência futura.
+
+404 retorna `{ status: 'region_not_found', regionCode }`, sem fator. Rede, timeout, HTTP inesperado ou resposta inválida lançam erro tipado com causa; não são armazenados no cache. O consumidor futuro deve preservar métricas e mapear falha de carbono para cálculo indisponível, intensidade/emissão `NULL` e mensagem própria, conforme UML/SQL. Antes de implementar cálculo, permanece `nao_calculado`; zero conhecido não significa ausência. A #17 não altera SQL nem implementa esse consumidor.
+
+Como verificar esta entrega isolada (não exige banco): `cd backend && npm ci && npm run typecheck && npm test && npm run build`. Os testes determinísticos usam HTTP e relógio controlados, incluindo expiração exata, fator zero, 404, falhas e timeout durante leitura do corpo. Consulta real complementar:
+
+```bash
+cd backend
+npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const {createCarbonApi} = await import('./src/integrations/carbon-api'); const {carbonApiUrl} = readEnvironment({DATABASE_URL:'postgresql://localhost/greener'}); console.log(await createCarbonApi({baseUrl: carbonApiUrl}).getIntensity('br-sudeste')); })"
+```
+
+O comando fornece uma URL PostgreSQL sintática apenas à validação de configuração, sem abrir conexão. Esperado: fator válido com `source: 'api'`; repetir na mesma instância antes de uma hora retorna `source: 'cache'`. Falha da API real não substitui nem invalida a verificação determinística; registre o resultado observado.
+
+Compatibilização com `develop` em 13/10/2026: configurações de métricas e carbono coexistem e usam uma única `ExternalApiError`. Regressão isolada no Ubuntu WSL/Docker, Node 24 e PostgreSQL 16 descartável: typecheck, 90/90 testes (incluindo seis integrações PostgreSQL, nenhum pulado) e build aprovados. Isso não comprova Compose completo, worker ou volume persistente. A #43 ainda menciona último fator conhecido em falha; a #17 conserva a política autorizada de não usar cache vencido. O PO/time deve conciliar essa divergência antes da integração do cálculo, sem mudança silenciosa nesta entrega.
 ## Repositories — contribuição local da #14
 
 Lucas permanece responsável e futuro revisor; Vinicius atua como apoio autorizado. `ServiceRepository` em `modules/services` lista, busca por ID, faz upsert por `external_id`, atualiza estado e marca ausentes como removidos. Preserva ID/first_seen_at; upsert conserva estados de métricas e reativa reaparecidos. `CollectionRepository` em `modules/collections` somente insere; `UserRepository` no arquivo existente `modules/usuarios/usuarios.repository.ts` busca email sem distinção de caixa. Hash é informação interna, nunca resposta HTTP/log.
