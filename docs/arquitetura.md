@@ -2,7 +2,7 @@
 
 UML e DDL foram integrados pelo PR #77. Base SQL de Lucas (#5/#44), modelagem #28; o contexto está no [registro de integração](arquitetura/integracao-modelagem-banco.md). Nome EcoPulse e transição #68 respeitados, sem renomeação geral.
 
-O setup local da #8, em revisão, acrescenta Express/TypeScript e pool pg: ambiente validado → consulta real ao banco → abertura HTTP. Cada GET /health percorre routes/controller/service/repository e consulta novamente o banco; falhas usam middleware global. Não entrega worker, JWT, cálculos ou auditoria. Organização e limites em [backend/README.md](../backend/README.md) e contrato em [api.md](api.md); Docker/Compose dependem das #26/#27.
+O setup local da #8, em revisão, acrescenta Express/TypeScript e pool pg: ambiente validado → consulta real ao banco → abertura HTTP. Cada GET /health percorre routes/controller/service/repository e consulta novamente o banco; falhas usam middleware global. Não entrega worker, JWT, cálculos ou auditoria. Organização e limites em [backend/README.md](../backend/README.md) e contrato em [api.md](api.md). No `compose.yaml` (#26, #27) o backend só sobe depois do healthcheck do PostgreSQL e se conecta a ele pelo host `postgres` da rede interna.
 
 ## Responsabilidades e fluxo projetado
 
@@ -52,4 +52,4 @@ Primeira abertura por sessão de navegação em uma aba; reload e navegação in
 
 ## Inicialização e evolução
 
-Schema inicial em transação, reaplicável ao mesmo modelo. Banco anterior com bytes é recusado pelo guard; precisa de migração numerada conforme ADR 0002, sem conversão presumida nem remoção de dados. Não há seed ou compose nesta branch; execução oficial futura Docker e volume persistente precisam ser entregues pela infraestrutura. Comandos de validação isolada: [README do banco](../database/README.md). Precisão e fontes: [cálculos](calculos.md).
+Schema inicial em transação, reaplicável ao mesmo modelo. Banco anterior com bytes é recusado pelo guard; precisa de migração numerada conforme ADR 0002, sem conversão presumida nem remoção de dados. Não há seed. No `compose.yaml` (#27) o serviço `postgres` (16-alpine) aplica o schema na primeira criação do volume nomeado `pgdata`, que preserva os dados entre reinícios; só `docker compose down -v` os apaga. Comandos de validação isolada: [README do banco](../database/README.md). Precisão e fontes: [cálculos](calculos.md).
