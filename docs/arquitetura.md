@@ -10,7 +10,18 @@ Contribuição local da #14: repositories de services/collections e UserReposito
 
 Metrics API → worker futuro → validação de métricas → repositories pg → PostgreSQL → API REST futura → dashboard. Carbon API alimenta cálculo na Sprint 2. React/TS e Node/TS são obrigatórios, mas não implementados por esta tarefa. SQL de dados ficará exclusivamente nos repositories com parâmetros; sem ORM/query builder.
 
-Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela será configuração independente.
+Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`, ver [Frontend](#frontend)).
+
+## Frontend
+
+React/TypeScript com Vite, em camadas de dependência única: **pages → hooks → services**. Detalhes e passos de verificação no [README do frontend](../frontend/README.md).
+
+- `pages/` monta a tela e só conversa com hooks; não faz HTTP nem guarda timer.
+- `hooks/` guarda o estado da tela: `useServices` busca a lista (dado, carregando, erro, horário da última busca) e repete a busca por `usePolling`, que agenda a próxima só depois que a anterior termina, pausa com a aba oculta e cancela a requisição pendente ao sair (`AbortController`).
+- `services/` é o único lugar com HTTP: `api.ts` (base `VITE_API_URL`, erros `{ error: { code, message } }` viram `ApiError`) e `services.service.ts` (`GET /services`). Sem `VITE_API_URL`, devolve os dados de demonstração.
+- `MonitoringProvider` (em `App.tsx`, acima das rotas) lê `VITE_REFRESH_INTERVAL_MS` uma vez e entrega o intervalo pelo `MonitoringContext` (`useMonitoring`): padrão 30 s, limitado entre 5 s e 2.147.483.647 ms (o maior atraso do `setTimeout`).
+
+Fluxo de uma atualização: `usePolling` dispara → `useServices` chama `fetchServices` → backend `GET /services` → estado novo → a tabela e o selo "Última atualização" mudam sem recarregar a página. Uma falha mantém o último dado na tela e marca o selo como desatualizado.
 
 ## Modelo de dados
 
