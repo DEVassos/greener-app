@@ -14,7 +14,18 @@ Metrics API → worker futuro → validação de métricas → repositories pg �
 
 Trabalho local da #17: `backend/src/integrations/carbon-api.ts` consulta o fator regional e mantém cache em memória, com configuração centralizada e tipos próprios. HTTP/relógio são injetáveis para testes; erros usam a hierarquia compartilhada `AppError`. O cliente ainda não participa do fluxo de coleta/cálculo/persistência. Política autorizada por Vinicius e roteiro de verificação em [README backend](../backend/README.md#cliente-de-carbono--trabalho-local-da-17); UML e schema permanecem inalterados.
 
-Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela será configuração independente.
+Dashboard público; configuração e consulta de entradas exigirão JWT no backend com users administrativos. Personas de negócio não criam perfis de autorização automaticamente. O intervalo externo de coleta é dado de cada observação; o intervalo de polling da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`, ver [Frontend](#frontend)).
+
+## Frontend
+
+React/TypeScript com Vite, em camadas de dependência única: **pages → hooks → services**. Detalhes e passos de verificação no [README do frontend](../frontend/README.md).
+
+- `pages/` monta a tela e só conversa com hooks; não faz HTTP nem guarda timer.
+- `hooks/` guarda o estado da tela: `useServices` busca a lista (dado, carregando, erro, horário da última busca) e repete a busca por `usePolling`, que agenda a próxima só depois que a anterior termina, pausa com a aba oculta e cancela a requisição pendente ao sair (`AbortController`).
+- `services/` é o único lugar com HTTP: `api.ts` (base `VITE_API_URL`, erros `{ error: { code, message } }` viram `ApiError`) e `services.service.ts` (`GET /services`). Sem `VITE_API_URL`, devolve os dados de demonstração.
+- `MonitoringProvider` (em `App.tsx`, acima das rotas) lê `VITE_REFRESH_INTERVAL_MS` uma vez e entrega o intervalo pelo `MonitoringContext` (`useMonitoring`): padrão 30 s, limitado entre 5 s e 2.147.483.647 ms (o maior atraso do `setTimeout`).
+
+Fluxo de uma atualização: `usePolling` dispara → `useServices` chama `fetchServices` → backend `GET /services` → estado novo → a tabela e o selo "Última atualização" mudam sem recarregar a página. Uma falha mantém o último dado na tela e marca o selo como desatualizado.
 
 ## Modelo de dados
 

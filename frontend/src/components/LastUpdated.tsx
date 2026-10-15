@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { formatDayTime } from '../utils/format';
+import { formatDayTime, formatNumber } from '../utils/format';
 import './LastUpdated.css';
 
 interface Props {
@@ -13,17 +13,26 @@ interface Props {
   children?: ReactNode;
 }
 
-/** Selo "tempo real": ponto pulsando enquanto os dados estão em dia, laranja quando desatualizados. */
+/**
+ * Selo "tempo real": ponto pulsando enquanto os dados estão em dia, laranja quando desatualizados.
+ * Sem role="status": o horário mudaria a cada ciclo e seria anunciado pelo leitor de tela; a falha já é
+ * anunciada pelo ErrorState (role="alert").
+ */
 export default function LastUpdated({ updatedAt, intervalSeconds, stale = false, children }: Props) {
-  if (!updatedAt) return null;
-
   return (
-    <div className={stale ? 'last-updated last-updated--stale' : 'last-updated'} role="status">
-      <span className="live-dot" aria-hidden="true" />
+    <div className={stale ? 'last-updated last-updated--stale' : 'last-updated'}>
+      {updatedAt && <span className="live-dot" aria-hidden="true" />}
       <span>
-        {stale ? 'Desatualizado desde ' : 'Última atualização: '}
-        <strong>{formatDayTime(updatedAt)}</strong>
-        {intervalSeconds !== undefined && ` · intervalo: ${intervalSeconds} s`}
+        {updatedAt ? (
+          <>
+            {stale ? 'Desatualizado desde ' : 'Última atualização: '}
+            <strong>{formatDayTime(updatedAt)}</strong>
+          </>
+        ) : (
+          'Aguardando a primeira atualização'
+        )}
+        {intervalSeconds !== undefined &&
+          ` · intervalo: ${formatNumber(intervalSeconds, Number.isInteger(intervalSeconds) ? 0 : 1)} s`}
       </span>
       {children}
     </div>

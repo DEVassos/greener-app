@@ -30,10 +30,14 @@ export function usePolling(task: PollingTask, intervalMs: number): { refresh: ()
       const current = new AbortController();
       controller = current;
 
-      await taskRef.current(current.signal);
-
-      if (stopped || current.signal.aborted || document.hidden) return;
-      timer = window.setTimeout(run, intervalMs);
+      try {
+        await taskRef.current(current.signal);
+      } finally {
+        // Agenda a próxima mesmo se a tarefa rejeitar: o erro segue para o console, mas o polling não para
+        if (!stopped && !current.signal.aborted && !document.hidden) {
+          timer = window.setTimeout(run, intervalMs);
+        }
+      }
     }
 
     function handleVisibilityChange() {
