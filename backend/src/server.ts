@@ -3,16 +3,20 @@ import { createApp } from './app';
 import { readEnvironment, type Environment } from './config/env';
 import { createDatabase, type Database } from './db/connection';
 import { verifyConnection } from './modules/health/health.repository';
+import { ServiceRepository } from './modules/services/services.repository';
 import { AppError } from './shared/errors';
+import { Collector, type CollectorLifecycle } from './jobs/collector';
+import { createMetricsApi } from './integrations/metrics-api';
 
-export async function startServer(env: Environment, database: Database): Promise<Server> {
+export async function startServer(env: Environment, database: Database, collector?: CollectorLifecycle): Promise<Server> {
   try {
     await verifyConnection(database);
-    const server = createServer(createApp(() => verifyConnection(database)));
+    const server = createServer(createApp(() => verifyConnection(database), new ServiceRepository(database)));
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
       server.listen(env.port, () => { server.off('error', reject); resolve(); });
     });
+    collector?.start();
     return server;
   } catch (error) {
     await database.close();
@@ -20,8 +24,9 @@ export async function startServer(env: Environment, database: Database): Promise
   }
 }
 
-export async function stopServer(server: Server, database: Database): Promise<void> {
+export async function stopServer(server: Server, database: Database, collector?: CollectorLifecycle): Promise<void> {
   try {
+    await collector?.stop();
     await new Promise<void>((resolve, reject) => {
       server.close(error => error ? reject(error) : resolve());
       server.closeIdleConnections();
@@ -32,7 +37,8 @@ export async function stopServer(server: Server, database: Database): Promise<vo
 async function main(): Promise<void> {
   const env = readEnvironment();
   const database = createDatabase(env.databaseUrl);
-  const server = await startServer(env, database);
+  const collector = new Collector(database, createMetricsApi({ baseUrl: env.metricsApiUrl }), env.pollingIntervalMs);
+  const server = await startServer(env, database, collector);
   console.info(`API disponível na porta ${env.port}.`);
   let stopping = false;
   const shutdown = () => {
@@ -40,7 +46,7 @@ async function main(): Promise<void> {
     stopping = true;
     const deadline = setTimeout(() => process.exit(1), 10000);
     deadline.unref();
-    void stopServer(server, database).then(() => clearTimeout(deadline)).catch(() => {
+    void stopServer(server, database, collector).then(() => clearTimeout(deadline)).catch(() => {
       console.error('Falha ao encerrar servidor e banco.');
       process.exitCode = 1;
     });

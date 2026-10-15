@@ -6,6 +6,8 @@ O setup local da #8, em revisão, acrescenta Express/TypeScript e pool pg: ambie
 
 ## Responsabilidades e fluxo projetado
 
+Implementação em revisão da #19: `jobs/collector.ts` coordena HTTP externo, descoberta válida e repositories existentes. Reconciliação é atômica; coleta e estado usam transação por serviço, mantendo HTTP fora do banco. O dispatcher não sobrepõe ciclos; shutdown cancela transporte e aguarda transações antes do pool. Depende do contrato bruto/cancelamento #97/#98 e da #27 para Compose integrado. Carbono/cálculo não fazem parte deste worker; persistência continua com `nao_calculado`. Essa proposta publicada não é evidência de código já integrado.
+
 Contribuição local da #14: repositories de services/collections e UserRepository no módulo usuarios existente recebem executor tipado do pg. `withTransaction` reserva a mesma conexão e faz commit/rollback; a #19 coordenará as operações somente após descoberta válida, mantendo a decisão de reconciliação e o mapeamento de falhas fora da persistência. IDs bigint e numeric permanecem strings. A entrega não altera UML/schema, não registra rotas e não inicia coleta; contratos e testes no [README backend](../backend/README.md#repositories--contribuição-local-da-14).
 
 Metrics API → worker futuro → validação de métricas → repositories pg → PostgreSQL → API REST futura → dashboard. Carbon API alimenta cálculo na Sprint 2. React/TS e Node/TS são obrigatórios, mas não implementados por esta tarefa. SQL de dados ficará exclusivamente nos repositories com parâmetros; sem ORM/query builder.
