@@ -37,7 +37,7 @@ interface Props {
 
 /** Valor de ordenação da coluna: localização por região, país e cidade; status pela gravidade. */
 function sortValue(service: MonitoredService, key: SortKey): string | number | null {
-  if (key === 'location') return [service.region, service.country, service.city ?? ''].join(' ');
+  if (key === 'location') return [service.region, service.country, service.city].filter(Boolean).join(' ') || null;
   if (key === 'status') return STATUS_ORDER[service.status];
   return service[key];
 }
@@ -103,7 +103,8 @@ export default function ServicesTable({ services, period }: Props) {
       </div>
 
       {/* Rolagem horizontal em telas estreitas: a tabela nunca quebra o layout (RNF01) */}
-      <div className="overflow-x-auto">
+      {/* relative: os textos sr-only (position: absolute) das células ficam dentro da rolagem, sem alargar a página */}
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="whitespace-nowrap text-left text-xs text-muted">
@@ -145,10 +146,19 @@ export default function ServicesTable({ services, period }: Props) {
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}
                 </td>
                 <td className="px-5 py-3">
-                  <span className="mr-2 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-mono text-xs text-secondary">
-                    {service.region}
+                  {service.region && (
+                    <span className="mr-2 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-mono text-xs text-secondary">
+                      {service.region}
+                    </span>
+                  )}
+                  <span className="text-muted">
+                    {[service.city, service.country].filter(Boolean).join(', ') ||
+                      (!service.region && (
+                        <span title="Localização não informada pelo agregador">
+                          —<span className="sr-only">sem localização</span>
+                        </span>
+                      ))}
                   </span>
-                  <span className="text-muted">{service.city ? `${service.city}, ${service.country}` : service.country}</span>
                 </td>
                 <td className="px-5 py-3">
                   <StatusBadge status={service.status} />
