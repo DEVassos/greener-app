@@ -1,6 +1,38 @@
-# API — setup do backend (#8)
+# API — backend
 
-Contrato da implementação local em revisão. A execução integrada depende dos containers backend/PostgreSQL (#26/#27); não há endpoints de negócio nesta entrega.
+Contrato da implementação local em revisão. A execução integrada depende dos containers backend/PostgreSQL (#26/#27).
+
+## GET /api/services
+
+Sem autenticação, parâmetros ou corpo. O prefixo `/api` corresponde ao padrão de `VITE_API_URL=http://localhost:3000/api` usado pelo frontend; `/health` permanece na raiz.
+
+Devolve os serviços persistidos, o estado atual de monitoramento e a coleta mais recente de cada um. A consulta usa `LEFT JOIN LATERAL`, portanto um serviço sem coleta continua aparecendo com `lastReadingAt` e `cpuPercent` como `null`. Localização ausente no cadastro também permanece `null`. Nesta Sprint 1, `energyKwh` e `emissionsG` são sempre `null`: cálculo socioambiental é escopo da Sprint 2.
+
+Resposta 200:
+
+```json
+{
+  "services": [{
+    "id": "1",
+    "name": "Demo",
+    "country": "BR",
+    "region": "Sul",
+    "city": "Porto Alegre",
+    "cpuPercent": 51.25,
+    "energyKwh": null,
+    "emissionsG": null,
+    "status": "ativo",
+    "lastReadingAt": "2026-10-14T20:00:00.000Z"
+  }],
+  "period": "última leitura disponível"
+}
+```
+
+Falha de banco retorna 500 no envelope global, sem stack ou SQL:
+
+```json
+{"error":{"code":"DATABASE_ERROR","message":"Não foi possível verificar a conexão com o banco de dados."}}
+```
 
 ## GET /api/collections
 

@@ -1,6 +1,17 @@
 import type { QueryExecutor } from '../../db/connection';
 import type { DatabaseId, DiscoveredService, ServiceStatus, StoredService } from '../../shared/persistence.types';
 
+export interface ServiceWithLastReading {
+  id: DatabaseId;
+  name: string;
+  status: ServiceStatus;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  last_reading_at: Date | null;
+  cpu_percent: string | null;
+}
+
 export class ServiceRepository {
   constructor(private readonly db: QueryExecutor) {}
   async findAll(): Promise<StoredService[]> {
@@ -8,6 +19,20 @@ export class ServiceRepository {
   }
   async findById(id: DatabaseId): Promise<StoredService | null> {
     return (await this.db.query<StoredService>('SELECT * FROM services WHERE id = $1', [id])).rows[0] ?? null;
+  }
+  async findAllWithLastReading(): Promise<ServiceWithLastReading[]> {
+    return (await this.db.query<ServiceWithLastReading>(`
+      SELECT s.id, s.name, s.status, s.country, s.region, s.city,
+        latest.collected_at AS last_reading_at, latest.cpu_percent
+      FROM services AS s
+      LEFT JOIN LATERAL (
+        SELECT collected_at, cpu_percent
+        FROM collections
+        WHERE service_id = s.id
+        ORDER BY collected_at DESC, id DESC
+        LIMIT 1
+      ) AS latest ON true
+      ORDER BY s.name ASC, s.id ASC`)).rows;
   }
   async upsert(service: DiscoveredService, observedAt: Date): Promise<StoredService> {
     const result = await this.db.query<StoredService>(`
