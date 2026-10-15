@@ -7,6 +7,7 @@
 | Critérios previstos | ES01–ES09, DW01 + DW02, DW03, DW04, DW07, BD01, BD02, BD03, TP02 — denominador **79** |
 | Plano | [docs/plano-de-entregas.md § Sprint 1](../plano-de-entregas.md#sprint-1) |
 | Planejamento | [sprint-1/planning.md](sprint-1/planning.md) |
+| Burndown | [sprint-1/burndown.md](sprint-1/burndown.md) — Story Points por dia, gerado por `.github/scripts/burndown.sh 1` |
 | Daily | issue fixada [#74 Daily — Sprint 1](https://github.com/DEVassos/greener-app/issues/74); atas em PR semanal pelas issues [#72](https://github.com/DEVassos/greener-app/issues/72) e [#73](https://github.com/DEVassos/greener-app/issues/73) |
 
 ## 1. Objetivo da sprint
