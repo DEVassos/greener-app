@@ -1,6 +1,6 @@
 # API — backend
 
-Contrato da implementação local em revisão. A execução integrada depende dos containers backend/PostgreSQL (#26/#27).
+Contrato do backend. A execução integrada usa os containers backend e PostgreSQL do `compose.yaml` (#26/#27): `docker compose up --build`.
 
 ## GET /api/services
 
