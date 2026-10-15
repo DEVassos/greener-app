@@ -6,9 +6,27 @@ export interface Environment {
   carbonApiUrl: string;
   metricsApiUrl: string;
   pollingIntervalMs: number;
+  /** Origens do frontend liberadas por CORS (ex.: http://localhost:5173). */
+  corsOrigins: string[];
 }
 
 const DEFAULT_METRICS_API_URL = 'https://metrics.unilaunch.org';
+const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
+
+/** CORS compara a origem exata do navegador: protocolo http(s), host e porta, sem caminho. */
+function readCorsOrigins(text: string): string[] {
+  const origins = text.split(',').map(item => item.trim()).filter(Boolean);
+  if (origins.length === 0) throw new ValidationError('CORS_ORIGIN deve listar ao menos uma origem.');
+  return origins.map(item => {
+    try {
+      const url = new URL(item);
+      if (!['http:', 'https:'].includes(url.protocol) || url.origin !== item.replace(/\/$/, '')) throw new Error('Origem inválida');
+      return url.origin;
+    } catch {
+      throw new ValidationError('CORS_ORIGIN deve listar origens http(s) separadas por vírgula, sem caminho (ex.: http://localhost:5173).');
+    }
+  });
+}
 
 export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
   const portText = source.PORT ?? '3000';
@@ -56,5 +74,6 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     carbonApiUrl: carbonApiUrl.toString().replace(/\/+$/, ''),
     metricsApiUrl: metricsApiText.replace(/\/+$/, ''),
     pollingIntervalMs,
+    corsOrigins: readCorsOrigins(source.CORS_ORIGIN ?? DEFAULT_CORS_ORIGIN),
   };
 }

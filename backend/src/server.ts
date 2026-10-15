@@ -12,7 +12,7 @@ import { createMetricsApi } from './integrations/metrics-api';
 export async function startServer(env: Environment, database: Database, collector?: CollectorLifecycle): Promise<Server> {
   try {
     await verifyConnection(database);
-    const server = createServer(createApp(() => verifyConnection(database), new CollectionRepository(database), new ServiceRepository(database)));
+    const server = createServer(createApp(() => verifyConnection(database), new CollectionRepository(database), new ServiceRepository(database), env.corsOrigins));
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
       server.listen(env.port, () => { server.off('error', reject); resolve(); });

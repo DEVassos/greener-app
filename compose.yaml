@@ -34,6 +34,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-greener}:${POSTGRES_PASSWORD:-greener}@postgres:5432/${POSTGRES_DB:-greener_db}
       CARBON_API_URL: ${CARBON_API_URL:-https://carbon.unilaunch.org}
       METRICS_API_URL: ${METRICS_API_URL:-https://metrics.unilaunch.org}
+      # Origem do dashboard aberta no navegador (porta do frontend abaixo)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     depends_on:
       postgres:
         condition: service_healthy
