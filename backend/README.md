@@ -16,6 +16,7 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
 | CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
 | METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
+| CORS_ORIGIN | `http://localhost:5173` | origens http(s) separadas por vírgula, sem caminho; só elas recebem `Access-Control-Allow-Origin` (`middlewares/cors.ts`), e o preflight `OPTIONS` responde 204 |
 
 Somente `config/env.ts` lê process.env. Não há leitura automática de `.env`: o ambiente deve ser fornecido ao processo. A #7/#82 mantém o modelo na raiz e o `compose.yaml` (#27) injeta as variáveis no container, com a `DATABASE_URL` montada a partir de `POSTGRES_*` e do host `postgres`. JWT e polling não são exigidos pelo setup. Não registre URLs com credenciais em logs.
 

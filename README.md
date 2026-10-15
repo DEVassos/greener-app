@@ -126,6 +126,7 @@ O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](http
 | `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
 | `METRICS_API_URL` | `https://metrics.unilaunch.org` | base da API agregadora de métricas do parceiro |
 | `POLLING_INTERVAL_MS` | `30000` | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta (30 s); o prazo normal vem de `collection_interval_seconds` |
+| `CORS_ORIGIN` | `http://localhost:5173` | origem(ns) do dashboard liberadas pelo backend para chamar a API pelo navegador (CORS), separadas por vírgula |
 | `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
 
 Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
