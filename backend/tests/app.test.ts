@@ -67,3 +67,33 @@ describe('HTTP', () => {
     expect((await fetch(await serve(app) + '/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"value":1}' })).status).toBe(200);
   });
 });
+
+describe('CORS', () => {
+  const frontend = 'http://localhost:5173';
+  async function corsApp(): Promise<string> {
+    const { collections, services } = repositories();
+    return serve(createApp(async () => {}, collections, services, [frontend]));
+  }
+  it('libera a origem do frontend nas respostas', async () => {
+    const response = await fetch(await corsApp() + '/api/services', { headers: { Origin: frontend } });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('access-control-allow-origin')).toBe(frontend);
+    expect(response.headers.get('vary')).toContain('Origin');
+  });
+  it('responde o preflight com 204 sem chegar às rotas', async () => {
+    const response = await fetch(await corsApp() + '/api/services', { method: 'OPTIONS', headers: {
+      Origin: frontend, 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'authorization' } });
+    expect(response.status).toBe(204);
+    expect(response.headers.get('access-control-allow-origin')).toBe(frontend);
+    expect(response.headers.get('access-control-allow-headers')).toContain('Authorization');
+  });
+  it('não libera origem fora da lista nem chamada sem origem', async () => {
+    const url = await corsApp();
+    const other = await fetch(url + '/api/services', { headers: { Origin: 'http://evil.example' } });
+    expect(other.status).toBe(200);
+    expect(other.headers.get('access-control-allow-origin')).toBeNull();
+    expect((await fetch(url + '/api/services')).headers.get('access-control-allow-origin')).toBeNull();
+    const preflight = await fetch(url + '/api/services', { method: 'OPTIONS', headers: { Origin: 'http://evil.example' } });
+    expect(preflight.headers.get('access-control-allow-origin')).toBeNull();
+  });
+});
