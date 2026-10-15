@@ -166,3 +166,7 @@ Uma linha por item concluído: o que foi verificado, por quem e com que resultad
 | [#120](https://github.com/DEVassos/greener-app/issues/120) · PR [#121](https://github.com/DEVassos/greener-app/pull/121) | largura do documento em 390 px: 494 → 390; texto "— sem localização" no lugar do campo vazio; ordenação conferida; build e `check-*` | @DeaTuribio (executou) e @henriqueptbd-cell (aprovou) | verde |
 
 Ressalva registrada: as aprovações vieram quase todas do PO `@henriqueptbd-cell` e não do **par de revisão** nominal de `.github/equipe.json` (Gabriel ↔ Henrique, Andrea → Lucas, Lucas → Vinicius, Vinicius → Andrea). O item 6 da DoD-PR (aprovação de alguém ≠ autor, com ≥1 comentário substantivo) foi cumprido em todos os PRs acima; a divergência em relação ao par nominal fica como ação da Sprint 2.
+
+## 7. Review
+
+A Sprint Review acontece em **19/10/2026 às 19h30** (data a confirmar com o cliente), depois do congelamento de 18/10 às 20h. Serão demonstrados: a descoberta e a ingestão periódica dos serviços, o histórico gravado no PostgreSQL, o dashboard listando os serviços com estado de monitoramento e localização, a atualização sem recarregar e a subida completa com `docker compose up --build`. O roteiro e o feedback do cliente serão registrados em `sprint-1/review.md` e nesta seção depois da reunião, junto com as mudanças de backlog.
