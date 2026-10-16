@@ -10,6 +10,7 @@ export interface Environment {
   corsOrigins: string[];
 }
 
+const DEFAULT_CARBON_API_URL = 'https://carbon.unilaunch.org';
 const DEFAULT_METRICS_API_URL = 'https://metrics.unilaunch.org';
 const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
 
@@ -45,7 +46,7 @@ export function readEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   }
   let carbonApiUrl: URL;
   try {
-    carbonApiUrl = new URL(source.CARBON_API_URL ?? 'https://carbon.unilaunch.org');
+    carbonApiUrl = new URL(source.CARBON_API_URL || DEFAULT_CARBON_API_URL);
     if (!['http:', 'https:'].includes(carbonApiUrl.protocol)
       || carbonApiUrl.username || carbonApiUrl.password || carbonApiUrl.search || carbonApiUrl.hash) {
       throw new Error('URL inválida');

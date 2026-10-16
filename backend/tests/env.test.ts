@@ -39,7 +39,11 @@ describe('ambiente', () => {
     expect(readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL: 'http://localhost:8080/api/' }).carbonApiUrl)
       .toBe('http://localhost:8080/api');
   });
-  it.each(['', 'ftp://host', 'https://u:p@host', 'https://host/?key=x', 'https://host/#x'])
+  it('usa o padrão oficial quando a base de carbono está vazia', () => {
+    expect(readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL: '' }).carbonApiUrl)
+      .toBe('https://carbon.unilaunch.org');
+  });
+  it.each(['ftp://host', 'https://u:p@host', 'https://host/?key=x', 'https://host/#x'])
     ('recusa base de carbono inválida %s', CARBON_API_URL => {
       expect(() => readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL })).toThrow('CARBON_API_URL');
     });
