@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/scripts/lib/conventions.sh)
 #
-# Biblioteca compartilhada pelos validadores e automações do GreenER.
+# Biblioteca compartilhada pelos validadores e automações do EcoPulse.
 # Uso: source "$(dirname "${BASH_SOURCE[0]}")/lib/conventions.sh"
 # Fornece: ambiente portátil (Windows/macOS/Linux/runner), regexes das convenções,
 # saída com anotações do GitHub Actions, acesso a .github/equipe.json e calendario.json.

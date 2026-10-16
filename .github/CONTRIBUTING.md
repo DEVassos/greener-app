@@ -1,4 +1,4 @@
-# Guia de contribuição — GreenER (DEVassos · ABP 2DSM 2026-2)
+# Guia de contribuição — EcoPulse (DEVassos · ABP 2DSM 2026-2)
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/CONTRIBUTING.md) -->
 
