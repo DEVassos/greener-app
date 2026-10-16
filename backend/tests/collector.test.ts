@@ -75,12 +75,18 @@ it('respeita prazo distinto, alteração, último intervalo após falha e retorn
   vi.mocked(api.listServices).mockResolvedValueOnce([a]); await worker.run(); expect(insert).toHaveBeenCalledTimes(6);
 });
 it('isola falha de um serviço e registra 404/500 sem métricas falsas', async () => {
-  vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }, { ...a, id: 'c' }]);
+  vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }, { ...a, id: 'c' }, { ...a, id: 'd' }]);
   vi.mocked(api.getServiceMetrics).mockRejectedValueOnce(new Error('rede'))
-    .mockResolvedValueOnce({ status: 'sem_metricas' }).mockResolvedValueOnce({ status: 'indisponivel' });
+    .mockResolvedValueOnce({ status: 'sem_metricas' }).mockResolvedValueOnce({ status: 'indisponivel' })
+    .mockResolvedValueOnce(ok);
   await worker.run();
-  expect(insert.mock.calls.map(call => call[0].status)).toEqual(['erro', 'sem_metricas', 'erro']);
-  expect(insert.mock.calls.every(call => call[0].cpu_percent === null)).toBe(true);
+  expect(insert.mock.calls.map(call => call[0].status)).toEqual(['erro', 'sem_metricas', 'erro', 'ok']);
+  expect(insert.mock.calls.slice(0, 3).every(call => call[0].cpu_percent === null)).toBe(true);
+  expect(insert.mock.calls[3][0]).toMatchObject({ status: 'ok', cpu_percent: '50.00' });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(1, stored.id, 'indisponivel');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(2, stored.id, 'sem_metricas');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(3, stored.id, 'indisponivel');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(4, stored.id, 'ativo');
 });
 it('dispatcher não sobrepõe nem compensa ciclos e cancela HTTP na parada', async () => {
   vi.useFakeTimers();
