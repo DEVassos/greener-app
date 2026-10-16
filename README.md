@@ -34,9 +34,9 @@ Setup do backend: [organização e validação](backend/README.md) e [contrato d
 
 ## 3. Funcionalidades implementadas
 
-O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
+O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. O que está previsto para a Sprint 1 (review em 19/10/2026) está em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
 
-- **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas), com busca por nome e ordenação por coluna. Enquanto o backend não expõe `GET /services`, o frontend roda com dados ilustrativos ou com o backend falso (`npm run mock`); como executar em [frontend/README.md](frontend/README.md).
+- **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas), com busca por nome e ordenação por coluna. A tela consome `GET /api/services` (#115) pela base definida em `VITE_API_URL`; sem ela (variável vazia), o frontend sobe em modo demonstração com dados ilustrativos (`npm run mock`) — como executar em [frontend/README.md](frontend/README.md).
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
@@ -44,15 +44,20 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
 
-- **RF11, RNF02 — Atualização automática sem recarregar (#100):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
+- **RF11, RNF02 — Atualização automática sem recarregar (#100, #114):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
 
   ![Dashboard depois de uma atualização com falha](docs/img/sprint-1-atualizacao-automatica.png)
+
+- **RF01, RF02, RF03, RF04 — Descoberta e coleta periódica (#95, #98, #99):** o backend descobre os serviços no agregador de métricas, consulta `/metrics/{id}` e grava o histórico no PostgreSQL; o _worker_ roda em segundo plano e reconcilia serviços que aparecem, ficam indisponíveis ou voltam a exportar métricas.
+
+- **RF10 — API dos serviços e histórico de coletas (#115, #116, #119):** `GET /api/services` devolve os serviços monitorados com a última leitura, e `GET /api/collections?service_id=&from=&to=&limit=` devolve o histórico paginado de coletas, com CORS liberado para o dashboard. Contrato completo em [docs/api.md](docs/api.md).
+
+- **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
 ## 4. Escopo planejado
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
 
-- **Descoberta dinâmica de serviços:** ingestão periódica resiliente via `/services` e `/metrics/{id}`, reconhecendo adições, remoções e quedas sem intervenção manual.
 - **Motor de cálculo socioambiental:** potência (W), energia (kWh) e emissões (gCO₂e) pela fórmula oficial do desafio, com o fator regional da API de intensidade de carbono.
 - **Dashboard em três níveis:** visão executiva (kWh total, gCO₂e, serviços ativos e indisponíveis, com atualização sem recarregar), análise comparativa (ranking e distribuição geográfica) e investigação detalhada (histórico por serviço).
 - **Área de configuração autenticada:** JWT no backend e senhas com bcrypt.
@@ -105,7 +110,7 @@ docker compose up --build
 | Backend (API e `/health`) | http://localhost:3000/health | no `compose.yaml`; sobe depois que o PostgreSQL fica saudável |
 | PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U ecopulse -d ecopulse_db` |
 
-Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). O backend ainda não expõe `/services`, então o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). Com `VITE_API_URL` apontando para `http://localhost:3000/api` (como no `.env.example`), o dashboard mostra os serviços que o backend coletou: a lista começa vazia e é preenchida pelo coletor que o backend inicia junto com a API (descoberta no agregador a cada `POLLING_INTERVAL_MS`, padrão 30 s); sem acesso ao agregador, a lista para de mudar e mostra o que já está no banco; o aviso "Desatualizado desde …" aparece quando o próprio backend não responde. Deixando `VITE_API_URL` vazia, o frontend sobe em modo demonstração com dados ilustrativos e faixa de aviso; `npm run mock` sobe um backend falso para desenvolvimento. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
 `docker compose down` para os containers e mantém os dados; `docker compose down -v` também apaga o volume `pgdata` (banco zerado na próxima subida).
 
@@ -162,7 +167,7 @@ Documentação técnica de execução (`docs/arquitetura.md`, `docs/api.md`, `do
 
 ## 11. Status
 
-**Sprint 1** (29/09 → 19/10/2026): em andamento.
+**Sprint 1** (29/09 → 19/10/2026): em fechamento — congelamento em 18/10/2026 às 20h e review em 19/10/2026 às 19h30. `develop` reúne 40 Pull Requests mergeados entre 06/10 e 15/10, cobrindo os itens do [plano de entregas](docs/plano-de-entregas.md) previstos para a sprint (18 itens, 79 pontos): 13 concluídos; ES05 (distribuição), ES06 (review) e ES09 (participação) fecham com a review de 19/10 e o fechamento; ES07 está **parcial** (#60 e #110 mergeados sem revisão, #82 com mudanças pedidas) e ES08 também — os READMEs de [`backend/`](backend/README.md) e [`database/`](database/README.md) e o [`docs/api.md`](docs/api.md) ainda tratam entregas já mergeadas como "em revisão". Situação por critério, verificações realizadas e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
 
 ---
 
