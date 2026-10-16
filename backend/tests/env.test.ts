@@ -28,8 +28,8 @@ describe('ambiente', () => {
     expect(() => readEnvironment({ DATABASE_URL })).toThrow('DATABASE_URL');
   });
   it('lê a lista de origens do CORS', () => {
-    expect(readEnvironment({ DATABASE_URL: databaseUrl, CORS_ORIGIN: 'http://localhost:5173, https://greener.example/' })
-      .corsOrigins).toEqual(['http://localhost:5173', 'https://greener.example']);
+    expect(readEnvironment({ DATABASE_URL: databaseUrl, CORS_ORIGIN: 'http://localhost:5173, https://ecopulse.example/' })
+      .corsOrigins).toEqual(['http://localhost:5173', 'https://ecopulse.example']);
   });
   it.each(['', ' , ', 'localhost:5173', 'ftp://host', 'http://localhost:5173/app', 'http://u:p@host'])
     ('recusa origem de CORS inválida %j', CORS_ORIGIN => {
