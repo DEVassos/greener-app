@@ -166,7 +166,7 @@ Documentação técnica de execução (`docs/arquitetura.md`, `docs/api.md`, `do
 
 ## 11. Status
 
-**Sprint 1** (29/09 → 19/10/2026): em andamento.
+**Sprint 1** (29/09 → 19/10/2026): em fechamento — congelamento em 18/10/2026 às 20h e review em 19/10/2026 às 19h30. `develop` reúne 42 Pull Requests mergeados entre 05/10 e 15/10, cobrindo os itens do [plano de entregas](docs/plano-de-entregas.md) previstos para a sprint (18 itens, 79 pontos): 15 concluídos, ES06 (review) e ES09 (participação) fecham com a review de 19/10 e ES08 está **parcial** — os READMEs de [`backend/`](backend/README.md) e [`database/`](database/README.md) e o [`docs/api.md`](docs/api.md) ainda tratam entregas já mergeadas como "em revisão". Situação por critério, verificações realizadas e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
 
 ---
 
