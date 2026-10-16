@@ -36,7 +36,7 @@ Setup do backend: [organização e validação](backend/README.md) e [contrato d
 
 O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A primeira versão executável está prevista para a Sprint 1 (review em 19/10/2026).
 
-- **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas), com busca por nome e ordenação por coluna. Enquanto o backend não expõe `GET /services`, o frontend roda com dados ilustrativos ou com o backend falso (`npm run mock`); como executar em [frontend/README.md](frontend/README.md).
+- **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas ou removido, quando o serviço sai da lista do agregador), com busca por nome e ordenação por coluna. Os dados vêm de `GET /api/services` do backend (#111); sem `.env`, o frontend roda com dados ilustrativos, e o backend falso (`npm run mock`) permite testar a tela sem o backend; como executar em [frontend/README.md](frontend/README.md).
 
   ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
 
