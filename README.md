@@ -56,7 +56,6 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 > Planejado, **ainda não implementado**. O andamento real está no [quadro do projeto](https://github.com/orgs/DEVassos/projects/6) e no [plano de entregas](docs/plano-de-entregas.md).
 
-- **Descoberta dinâmica de serviços:** ingestão periódica resiliente via `/services` e `/metrics/{id}`, reconhecendo adições, remoções e quedas sem intervenção manual.
 - **Motor de cálculo socioambiental:** potência (W), energia (kWh) e emissões (gCO₂e) pela fórmula oficial do desafio, com o fator regional da API de intensidade de carbono.
 - **Dashboard em três níveis:** visão executiva (kWh total, gCO₂e, serviços ativos e indisponíveis, com atualização sem recarregar), análise comparativa (ranking e distribuição geográfica) e investigação detalhada (histórico por serviço).
 - **Área de configuração autenticada:** JWT no backend e senhas com bcrypt.
@@ -109,7 +108,7 @@ docker compose up --build
 | Backend (API e `/health`) | http://localhost:3000/health | no `compose.yaml`; sobe depois que o PostgreSQL fica saudável |
 | PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U greener -d greener_db` |
 
-Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). Com `VITE_API_URL` apontando para `http://localhost:3000/api` (como no `.env.example`), o dashboard mostra os serviços que o backend coletou: a lista começa vazia e é preenchida pelo coletor que o backend inicia junto com a API (descoberta no agregador a cada `POLLING_INTERVAL_MS`, padrão 30 s); sem acesso ao agregador, a tela mantém os dados anteriores e avisa que estão desatualizados. Deixando `VITE_API_URL` vazia, o frontend sobe em modo demonstração com dados ilustrativos e faixa de aviso; `npm run mock` sobe um backend falso para desenvolvimento. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). Com `VITE_API_URL` apontando para `http://localhost:3000/api` (como no `.env.example`), o dashboard mostra os serviços que o backend coletou: a lista começa vazia e é preenchida pelo coletor que o backend inicia junto com a API (descoberta no agregador a cada `POLLING_INTERVAL_MS`, padrão 30 s); sem acesso ao agregador, a lista para de mudar e mostra o que já está no banco; o aviso "Desatualizado desde …" aparece quando o próprio backend não responde. Deixando `VITE_API_URL` vazia, o frontend sobe em modo demonstração com dados ilustrativos e faixa de aviso; `npm run mock` sobe um backend falso para desenvolvimento. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
 `docker compose down` para os containers e mantém os dados; `docker compose down -v` também apaga o volume `pgdata` (banco zerado na próxima subida).
 
@@ -166,7 +165,7 @@ Documentação técnica de execução (`docs/arquitetura.md`, `docs/api.md`, `do
 
 ## 11. Status
 
-**Sprint 1** (29/09 → 19/10/2026): em fechamento — congelamento em 18/10/2026 às 20h e review em 19/10/2026 às 19h30. `develop` reúne 42 Pull Requests mergeados entre 05/10 e 15/10, cobrindo os itens do [plano de entregas](docs/plano-de-entregas.md) previstos para a sprint (18 itens, 79 pontos): 15 concluídos, ES06 (review) e ES09 (participação) fecham com a review de 19/10 e ES08 está **parcial** — os READMEs de [`backend/`](backend/README.md) e [`database/`](database/README.md) e o [`docs/api.md`](docs/api.md) ainda tratam entregas já mergeadas como "em revisão". Situação por critério, verificações realizadas e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+**Sprint 1** (29/09 → 19/10/2026): em fechamento — congelamento em 18/10/2026 às 20h e review em 19/10/2026 às 19h30. `develop` reúne 40 Pull Requests mergeados entre 06/10 e 15/10, cobrindo os itens do [plano de entregas](docs/plano-de-entregas.md) previstos para a sprint (18 itens, 79 pontos): 13 concluídos; ES05 (distribuição), ES06 (review) e ES09 (participação) fecham com a review de 19/10 e o fechamento; ES07 está **parcial** (#60 e #110 mergeados sem revisão, #82 com mudanças pedidas) e ES08 também — os READMEs de [`backend/`](backend/README.md) e [`database/`](database/README.md) e o [`docs/api.md`](docs/api.md) ainda tratam entregas já mergeadas como "em revisão". Situação por critério, verificações realizadas e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
 
 ---
 
