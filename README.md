@@ -1,4 +1,4 @@
-# 🌱 GreenER — Estimativa do Impacto Ambiental de Aplicações de Software
+# 🌱 EcoPulse — Estimativa do Impacto Ambiental de Aplicações de Software
 
 <div align="center">
 
@@ -14,6 +14,8 @@
 
 </div>
 
+**EcoPulse** é o nome do produto. No edital do desafio ele aparece como **GreenER**; o repositório continua `DEVassos/greener-app`.
+
 ---
 
 ## 1. Problema
@@ -22,9 +24,9 @@ Empresas operam dezenas ou centenas de aplicações distribuídas em várias reg
 
 ## 2. Solução
 
-O **GreenER** é uma plataforma web de observabilidade socioambiental (**GreenOps**) que monitora continuamente aplicações e microsserviços a partir de duas APIs do parceiro — o [Agregador de Métricas](https://metrics.unilaunch.org/docs) e o [Serviço de Intensidade de Carbono](https://carbon.unilaunch.org/docs). Ela traduz métricas de infraestrutura (**CPU, memória, disco e rede**) em **consumo energético (kWh)** e **pegada de carbono estimada (gCO₂e)**, ponderada pela intensidade de carbono da matriz elétrica da região onde cada serviço está hospedado. O ambiente monitorado é dinâmico: serviços surgem, ficam indisponíveis, deixam de exportar métricas e voltam, e a plataforma se adapta sem intervenção manual.
+O **EcoPulse** é uma plataforma web de observabilidade socioambiental (**GreenOps**) que monitora continuamente aplicações e microsserviços a partir de duas APIs do parceiro — o [Agregador de Métricas](https://metrics.unilaunch.org/docs) e o [Serviço de Intensidade de Carbono](https://carbon.unilaunch.org/docs). Ela traduz métricas de infraestrutura (**CPU, memória, disco e rede**) em **consumo energético (kWh)** e **pegada de carbono estimada (gCO₂e)**, ponderada pela intensidade de carbono da matriz elétrica da região onde cada serviço está hospedado. O ambiente monitorado é dinâmico: serviços surgem, ficam indisponíveis, deixam de exportar métricas e voltam, e a plataforma se adapta sem intervenção manual.
 
-> 💡 **Princípio central:** software não consome energia diretamente, mas o hardware que o executa sim. O GreenER é uma ponte analítica entre a infraestrutura de TI e as metas corporativas de sustentabilidade e ESG.
+> 💡 **Princípio central:** software não consome energia diretamente, mas o hardware que o executa sim. O EcoPulse é uma ponte analítica entre a infraestrutura de TI e as metas corporativas de sustentabilidade e ESG.
 
 Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos.md](docs/requisitos.md).
 
@@ -101,7 +103,7 @@ docker compose up --build
 |---|---|---|
 | Frontend (dashboard) | http://localhost:5173 | no `compose.yaml` |
 | Backend (API e `/health`) | http://localhost:3000/health | no `compose.yaml`; sobe depois que o PostgreSQL fica saudável |
-| PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U greener -d greener_db` |
+| PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U ecopulse -d ecopulse_db` |
 
 Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). O backend ainda não expõe `/services`, então o dashboard mostra o aviso "Não foi possível conectar ao servidor". Para ver a tabela preenchida, rode o backend falso no host (`cd frontend && npm ci && npm run mock`) ou deixe `VITE_API_URL` vazia no `.env` e suba com `docker compose up --build` para o modo demonstração. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
@@ -117,10 +119,10 @@ O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](http
 
 | Variável | Exemplo em `.env.example` | Para que serve |
 |---|---|---|
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `greener` / `greener` / `greener_db` | usuário, senha e banco criados no PostgreSQL do compose na primeira subida do volume |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `ecopulse` / `ecopulse` / `ecopulse_db` | usuário, senha e banco criados no PostgreSQL do compose na primeira subida do volume |
 | `POSTGRES_HOST_PORT` | `5433` | porta do host em que o banco do compose fica acessível; dentro do Docker é sempre `postgres:5432`. 5433 evita conflito com um PostgreSQL local; troque se ela estiver em uso |
 | `PORT` | `3000` | porta HTTP em que a API do backend atende |
-| `DATABASE_URL` | `postgresql://greener:greener@localhost:5433/greener_db` | conexão do PostgreSQL usada pelo driver `pg` fora do Docker (no compose ela é montada com `POSTGRES_*`) |
+| `DATABASE_URL` | `postgresql://ecopulse:ecopulse@localhost:5433/ecopulse_db` | conexão do PostgreSQL usada pelo driver `pg` fora do Docker (no compose ela é montada com `POSTGRES_*`) |
 | `CARBON_API_URL` | `https://carbon.unilaunch.org` | base da API de intensidade de carbono do parceiro |
 | `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
 | `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |

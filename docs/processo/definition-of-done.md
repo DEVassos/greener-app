@@ -1,4 +1,4 @@
-# Definition of Ready e Definition of Done — GreenER
+# Definition of Ready e Definition of Done — EcoPulse
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/definition-of-done.md) -->
 

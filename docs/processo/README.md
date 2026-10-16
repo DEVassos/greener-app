@@ -1,8 +1,8 @@
-# Como trabalhamos — processo ágil do GreenER
+# Como trabalhamos — processo ágil do EcoPulse
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/README.md) -->
 
-Este documento descreve o processo Scrum do time GreenER (FATEC ABP 2DSM 2026-2, organização DEVassos). Ele existe para que qualquer pessoa — integrante novo, professor ou avaliador — entenda em poucos minutos **quem faz o quê, quando e onde fica a evidência**. A rubrica lê apenas o GitHub até o fechamento de cada sprint; por isso o processo foi desenhado para que cada atividade deixe um rastro verificável (issue, commit, PR, arquivo em `docs/`).
+Este documento descreve o processo Scrum do time EcoPulse (FATEC ABP 2DSM 2026-2, organização DEVassos). Ele existe para que qualquer pessoa — integrante novo, professor ou avaliador — entenda em poucos minutos **quem faz o quê, quando e onde fica a evidência**. A rubrica lê apenas o GitHub até o fechamento de cada sprint; por isso o processo foi desenhado para que cada atividade deixe um rastro verificável (issue, commit, PR, arquivo em `docs/`).
 
 Documentos relacionados: [Definition of Ready / Done](definition-of-done.md) · [Quadro (GitHub Project)](quadro.md) · [Onboarding](onboarding.md) · [Guia de contribuição: branches, commits, PRs, release](../../.github/CONTRIBUTING.md) · [Templates Scrum](../templates/) · [Plano de entregas](../plano-de-entregas.md) · [Requisitos](../requisitos.md) · [ADRs](../adr/README.md).
 

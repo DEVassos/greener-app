@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/scripts/check-commit-msg.sh)
 #
-# Valida mensagens de commit do GreenER (ES04/ES05/ES09):
+# Valida mensagens de commit do EcoPulse (ES04/ES05/ES09):
 #   type(scope): descrição no imperativo (#issue) [RFxx]   ≤72 caracteres
 #   referência #n no assunto ou no corpo
 #   Co-authored-by: só integrantes de .github/equipe.json (vazio ou alguém do time)

@@ -1,4 +1,4 @@
-# Product Backlog Geral - GreenER
+# Product Backlog Geral - EcoPulse
 
 > Backlog de produto consolidado por User Stories, distribuído entre as sprints do semestre. Complementa `visao-do-produto.md` (visão e personas), `abp-2026-2.md` (raciocínio técnico) e `sprints/sprint-1.md` (planejamento detalhado da Sprint 1).
 
@@ -12,7 +12,7 @@
 
 ### [US01] Descoberta e Ingestão Dinâmica de Serviços
 
-- **Como** serviço de backend do GreenER,
+- **Como** serviço de backend do EcoPulse,
 - **Quero** consultar periodicamente a API do Agregador de Métricas,
 - **Para** descobrir serviços ativos e coletar suas métricas de CPU, RAM, Disco e Rede em tempo real.
 

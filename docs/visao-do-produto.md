@@ -1,6 +1,6 @@
-# Visão do Produto - GreenER
+# Visão do Produto - EcoPulse
 
-> Documento de visão do produto. Consolida **posicionamento**, **personas**, **objetivos mensuráveis** e **fronteira de escopo** da plataforma GreenER. Complementa o raciocínio técnico em `abp-2026-2.md` e a especificação de contratos em `especificacao-api.md`.
+> Documento de visão do produto. Consolida **posicionamento**, **personas**, **objetivos mensuráveis** e **fronteira de escopo** da plataforma EcoPulse. Complementa o raciocínio técnico em `abp-2026-2.md` e a especificação de contratos em `especificacao-api.md`.
 
 ---
 
@@ -8,7 +8,7 @@
 
 - **Para** gestores de TI, engenheiros de software e equipes de ESG/GreenOps
 - **Que** precisam ter visibilidade sobre o impacto ambiental de suas aplicações distribuídas em nuvem
-- **O GreenER** é uma plataforma web de monitoramento e análise ambiental de software
+- **O EcoPulse** é uma plataforma web de monitoramento e análise ambiental de software
 - **Que** converte métricas de infraestrutura (CPU, memória, disco e rede) em indicadores claros de consumo energético (kWh) e emissões de carbono (CO₂e)
 - **Diferente de** ferramentas tradicionais de APM/observabilidade que focam apenas em desempenho e latência
 - **Nosso produto** contextualiza o impacto computacional com a matriz energética regional e permite simulações e comparações para tomadas de decisão sustentáveis.
@@ -25,7 +25,7 @@
 
 ## 3. Personas e Atores
 
-| Persona                                | Papel                                                | O que busca                                                    | Como usa o GreenER                                                               |
+| Persona                                | Papel                                                | O que busca                                                    | Como usa o EcoPulse                                                              |
 | :------------------------------------- | :--------------------------------------------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------- |
 | **Gestor de TI / Produto**             | Responsável por custo e eficiência da infraestrutura | Visão executiva rápida do impacto ambiental do ecossistema     | Painel de KPIs (Nível 1) + exportação de relatório PDF para atas/reuniões        |
 | **Engenheiro GreenOps / DevOps**       | Otimiza consumo de recursos e emissões               | Identificar qual serviço é o maior ofensor e onde otimizar     | Ranking e comparação entre serviços (Nível 2) + investigação detalhada (Nível 3) |

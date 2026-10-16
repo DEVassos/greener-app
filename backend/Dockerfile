@@ -1,4 +1,4 @@
-# Backend do GreenER — imagem multi-stage (ADR 0003; Node 24 alinhado ao frontend do ADR 0005).
+# Backend do EcoPulse — imagem multi-stage (ADR 0003; Node 24 alinhado ao frontend do ADR 0005).
 # 1) build: instala as dependências pelo package-lock e compila o TypeScript (npm run build = tsc)
 # 2) runtime: apenas dist/ e dependências de produção, executado pelo usuário node (não-root)
 

@@ -1,6 +1,6 @@
 # Especificação das APIs Auxiliares (UniLaunch)
 
-Este documento especifica o contrato e comportamento dos microsserviços externos consumidos pelo GreenER.
+Este documento especifica o contrato e comportamento dos microsserviços externos consumidos pelo EcoPulse.
 
 ---
 

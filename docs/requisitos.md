@@ -1,19 +1,19 @@
-# Requisitos do desafio — GreenER
+# Requisitos do desafio — EcoPulse
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/requisitos.md). Fonte: "Desafio 2DSM - 2026-2" (versão 30/06/2026), transcrito em .agilekit/requisitos.json. -->
 
 ## Contexto do desafio
 
-**Tema:** Plataforma para Estimativa do Impacto Ambiental de Aplicações de Software. **Produto:** GreenER.
+**Tema:** Plataforma para Estimativa do Impacto Ambiental de Aplicações de Software. **Produto:** EcoPulse (no edital do desafio: GreenER; repositório `DEVassos/greener-app`).
 
 **Parceiro:** UniLaunch (contato: Otávio Abreu dos Santos Silva; ponto focal acadêmico: Prof. Rodrigo Silva Peres). O cliente disponibiliza duas APIs auxiliares que simulam um ambiente de serviços monitorados:
 
-| API | Documentação | Uso no GreenER |
+| API | Documentação | Uso no EcoPulse |
 |---|---|---|
 | Greener Metrics Aggregator API | https://metrics.unilaunch.org/docs | `GET /services` (descoberta dos serviços e localização) e `GET /metrics/{id_servico}` (métricas de uso por serviço; os valores mudam a cada chamada) |
 | Greener Carbon Intensity API | https://carbon.unilaunch.org/docs | Intensidade de carbono (gCO₂e/kWh) por região, usada para converter energia estimada em emissão de CO₂e |
 
-O GreenER descobre os serviços, coleta métricas periodicamente, estima o consumo energético e a emissão de CO₂e de cada serviço, armazena o histórico em PostgreSQL e apresenta os dados em um dashboard React que se atualiza sem recarregar a página. A configuração do monitoramento fica em uma área protegida por autenticação JWT no backend.
+O EcoPulse descobre os serviços, coleta métricas periodicamente, estima o consumo energético e a emissão de CO₂e de cada serviço, armazena o histórico em PostgreSQL e apresenta os dados em um dashboard React que se atualiza sem recarregar a página. A configuração do monitoramento fica em uma área protegida por autenticação JWT no backend.
 
 **Cronograma (datas a confirmar pelo cliente):** kickoff em 28/09/2026 às 20h; Sprint Reviews previstas para 19/10, 09/11 e 23/11/2026 às 19h30; apresentação final no fim do semestre, a definir. O calendário operacional do time (checkpoints, congelamentos, feriados) está em [`.github/calendario.json`](../.github/calendario.json) e resumido no [plano de entregas](plano-de-entregas.md).
 
