@@ -17,15 +17,17 @@ A execução oficial é exclusivamente Docker (RP04, ADR 0003). O serviço `post
 - tem healthcheck `pg_isready`, e o backend só sobe depois dele (`depends_on: condition: service_healthy`);
 - atende em `postgres:5432` dentro da rede do compose (é o endereço que o backend usa) e fica exposto no host na porta `POSTGRES_HOST_PORT` (padrão e exemplo: 5433, para não conflitar com um PostgreSQL local na 5432). Se a 5433 estiver ocupada, troque no `.env`; a porta interna não muda.
 
-Para acessar do host (psql local, DBeaver): `psql -h localhost -p 5433 -U greener -d greener_db` (ou a porta definida em `POSTGRES_HOST_PORT`).
+Para acessar do host (psql local, DBeaver): `psql -h localhost -p 5433 -U ecopulse -d ecopulse_db` (ou a porta definida em `POSTGRES_HOST_PORT`).
 
-Usuário, senha e banco vêm de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` no `.env` (padrão `greener` / `greener` / `greener_db`, os mesmos do [`.env.example`](../.env.example)). Eles só valem na criação do volume: para trocar, `docker compose down -v`.
+Usuário, senha e banco vêm de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` no `.env` (padrão `ecopulse` / `ecopulse` / `ecopulse_db`, os mesmos do [`.env.example`](../.env.example)). Eles só valem na criação do volume: para trocar, `docker compose down -v`.
+
+**Clone que já subiu o compose antes da #68 (15/10/2026).** Até então o projeto do compose tinha o nome da pasta do clone, em geral `greener-app`, e os containers antigos continuam ocupando as portas 5433, 3000 e 5173. Antes de subir: `docker compose ls -a` mostra o nome antigo; `docker compose -p greener-app down` para a stack antiga (sem `-v`, o volume `greener-app_pgdata` fica guardado; `docker volume rm greener-app_pgdata` o descarta); no `.env`, troque `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` e `DATABASE_URL` pelos valores do `.env.example` (ou rode `cp .env.example .env`, se o seu `.env` não tiver ajustes próprios). Se já subiu com o `.env` antigo, rode `docker compose down -v` antes de subir de novo.
 
 ```bash
 cp .env.example .env
 docker compose up --build -d
-docker compose exec postgres psql -U greener -d greener_db -c '\dt'
-docker compose exec postgres psql -U greener -d greener_db -c 'SELECT count(*) FROM collections;'
+docker compose exec postgres psql -U ecopulse -d ecopulse_db -c '\dt'
+docker compose exec postgres psql -U ecopulse -d ecopulse_db -c 'SELECT count(*) FROM collections;'
 ```
 
 Esperado: as quatro tabelas (`access_entries`, `collections`, `services`, `users`) e a contagem do histórico. No log (`docker compose logs postgres`) aparece `running /docker-entrypoint-initdb.d/schema.sql` só na primeira subida.
@@ -33,9 +35,9 @@ Esperado: as quatro tabelas (`access_entries`, `collections`, `services`, `users
 Persistência (BD03): insira um registro, reinicie e conte de novo.
 
 ```bash
-docker compose exec postgres psql -U greener -d greener_db -c "INSERT INTO services (external_id, name) VALUES ('svc-persist', 'Persistência');"
+docker compose exec postgres psql -U ecopulse -d ecopulse_db -c "INSERT INTO services (external_id, name) VALUES ('svc-persist', 'Persistência');"
 docker compose restart
-docker compose exec postgres psql -U greener -d greener_db -c 'SELECT count(*) FROM services;'
+docker compose exec postgres psql -U ecopulse -d ecopulse_db -c 'SELECT count(*) FROM services;'
 ```
 
 Esperado: a contagem continua `1` depois de `restart` e de `down` seguido de `up`. Depois de `docker compose down -v` e nova subida, volta a `0`, porque o schema é reaplicado num volume novo.

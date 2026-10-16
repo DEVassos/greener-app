@@ -1,4 +1,4 @@
-# `frontend` — GreenER
+# `frontend` — EcoPulse
 
 Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões de CO₂e dos serviços monitorados. Stack: React 19 + TypeScript (Vite 8), react-router e Tailwind CSS 4.
 
@@ -58,7 +58,7 @@ docker compose up --build      # frontend em http://localhost:5173
 
 ## Backend falso (`npm run mock`)
 
-Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do GreenER.)
+Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do EcoPulse.)
 
 | Rota | Pedido | Resposta |
 |---|---|---|

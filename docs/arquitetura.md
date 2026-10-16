@@ -1,6 +1,6 @@
 # Arquitetura — modelo de dados integrado
 
-UML e DDL foram integrados pelo PR #77. Base SQL de Lucas (#5/#44), modelagem #28; o contexto está no [registro de integração](arquitetura/integracao-modelagem-banco.md). Nome EcoPulse e transição #68 respeitados, sem renomeação geral.
+UML e DDL foram integrados pelo PR #77. Base SQL de Lucas (#5/#44), modelagem #28; o contexto está no [registro de integração](arquitetura/integracao-modelagem-banco.md). O nome EcoPulse foi aplicado à documentação e às configurações na #68.
 
 O setup local da #8, em revisão, acrescenta Express/TypeScript e pool pg: ambiente validado → consulta real ao banco → abertura HTTP. Cada GET /health percorre routes/controller/service/repository e consulta novamente o banco; falhas usam middleware global. Não entrega worker, JWT, cálculos ou auditoria. Organização e limites em [backend/README.md](../backend/README.md) e contrato em [api.md](api.md). No `compose.yaml` (#26, #27) o backend só sobe depois do healthcheck do PostgreSQL e se conecta a ele pelo host `postgres` da rede interna.
 

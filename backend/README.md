@@ -117,7 +117,7 @@ Como verificar esta entrega isolada (não exige banco): `cd backend && npm ci &&
 
 ```bash
 cd backend
-npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const {createCarbonApi} = await import('./src/integrations/carbon-api'); const {carbonApiUrl} = readEnvironment({DATABASE_URL:'postgresql://localhost/greener'}); console.log(await createCarbonApi({baseUrl: carbonApiUrl}).getIntensity('br-sudeste')); })"
+npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const {createCarbonApi} = await import('./src/integrations/carbon-api'); const {carbonApiUrl} = readEnvironment({DATABASE_URL:'postgresql://localhost/ecopulse'}); console.log(await createCarbonApi({baseUrl: carbonApiUrl}).getIntensity('br-sudeste')); })"
 ```
 
 O comando fornece uma URL PostgreSQL sintática apenas à validação de configuração, sem abrir conexão. Esperado: fator válido com `source: 'api'`; repetir na mesma instância antes de uma hora retorna `source: 'cache'`. Falha da API real não substitui nem invalida a verificação determinística; registre o resultado observado.
