@@ -14,7 +14,7 @@ O tsconfig mantém ES2022, Node16 para módulo/resolução, strict, rootDir src 
 |---|---|---|
 | PORT | 3000 | inteiro de 1 a 65535 |
 | DATABASE_URL | sem padrão | URL postgres/postgresql com host e nome do banco; obrigatória |
-| CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida |
+| CARBON_API_URL | https://carbon.unilaunch.org | base http(s), sem credenciais, query ou fragmento; barra final removida; vazia usa o padrão oficial |
 | METRICS_API_URL | `https://metrics.unilaunch.org` | URL http(s) da API agregadora de métricas; barra final é removida |
 | CORS_ORIGIN | `http://localhost:5173` | origens http(s) separadas por vírgula, sem caminho; só elas recebem `Access-Control-Allow-Origin` (`middlewares/cors.ts`), e o preflight `OPTIONS` responde 204 |
 
@@ -103,11 +103,11 @@ Com o `compose.yaml` (serviços `backend` e `postgres`, #27), em ambiente descar
 
 `npm test` cobre configuração, espera da verificação, falha/recuperação HTTP, parsing, erros e boot/encerramento com banco falso. É necessário complementar com PostgreSQL real descartável e registrar resultados; testes falsos não comprovam conexão real. Erro inesperado e parsing válido usam aplicações exclusivas dos testes, sem endpoints demonstrativos publicados.
 
-## Cliente de carbono — entrega em revisão da #17
+## Cliente de carbono (#17)
 
 `src/integrations/carbon-api.ts` oferece `createCarbonApi({ baseUrl })` e `getIntensity(regionCode)` para `GET /regions/{code}/carbon-intensity`. A base vem de `readEnvironment().carbonApiUrl`; o cliente ainda não é chamado por rota, worker ou cálculo. Tipos ficam em `carbon-api.types.ts`; erros externos usam a única `ExternalApiError` em `shared/errors.ts`, derivada de `AppError` (502).
 
-**Decisão autorizada por Vinicius (@viniciusaugusto1997), em 11/10/2026, para a #17:** cache em memória por região e instância por 1 hora; uma tentativa; timeout de 10 segundos abrangendo requisição e corpo. Leitura do cache não renova prazo. Entrada vencida é descartada; falha nunca retorna fator antigo ou zero substituto. Esta decisão não é atribuída à equipe.
+**Decisão do PO na [#17](https://github.com/DEVassos/greener-app/issues/17#issuecomment-6157652891):** cache em memória por região e instância por 1 hora; uma tentativa; timeout de 10 segundos abrangendo requisição e corpo. Leitura do cache não renova prazo. Entrada vencida é descartada; falha nunca retorna fator antigo ou zero substituto.
 
 Resposta válida retorna `status: 'ok'`, `factor` (região, intensidade em gCO₂e/kWh, renováveis), `source: 'api' | 'cache'`, `fetchedAt` e `expiresAt` (epoch em ms). Intensidade deve ser finita e não negativa, incluindo zero, com região correspondente; metadados obrigatórios seguem o OpenAPI. Não há arredondamento ou limite superior externo presumido. O SQL limita faixa/precisão na persistência futura.
 
@@ -122,7 +122,6 @@ npx tsx -e "import('./src/config/env').then(async ({readEnvironment}) => { const
 
 O comando fornece uma URL PostgreSQL sintática apenas à validação de configuração, sem abrir conexão. Esperado: fator válido com `source: 'api'`; repetir na mesma instância antes de uma hora retorna `source: 'cache'`. Falha da API real não substitui nem invalida a verificação determinística; registre o resultado observado.
 
-Compatibilização com `develop` em 13/10/2026: configurações de métricas e carbono coexistem e usam uma única `ExternalApiError`. Regressão isolada no Ubuntu WSL/Docker, Node 24 e PostgreSQL 16 descartável: typecheck, 90/90 testes (incluindo seis integrações PostgreSQL, nenhum pulado) e build aprovados. Isso não comprova Compose completo, worker ou volume persistente. A #43 ainda menciona último fator conhecido em falha; a #17 conserva a política autorizada de não usar cache vencido. O PO/time deve conciliar essa divergência antes da integração do cálculo, sem mudança silenciosa nesta entrega.
 ## Repositories — contribuição local da #14
 
 Lucas permanece responsável e futuro revisor; Vinicius atua como apoio autorizado. `ServiceRepository` em `modules/services` lista, busca por ID, faz upsert por `external_id`, atualiza estado e marca ausentes como removidos. Preserva ID/first_seen_at; upsert conserva estados de métricas e reativa reaparecidos. `CollectionRepository` em `modules/collections` somente insere; `UserRepository` no arquivo existente `modules/usuarios/usuarios.repository.ts` busca email sem distinção de caixa. Hash é informação interna, nunca resposta HTTP/log.
