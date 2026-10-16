@@ -18,7 +18,7 @@ Construir e disponibilizar a **arquitetura base e o fluxo funcional de ponta a p
 
 ## 2. Indicadores e Meta da Sprint (Story Points & Rubrica)
 
-- **Composição vigente da Sprint 1 (05/10/2026):** **19 itens e 79 Story Points** — detalhamento em [`plano-de-entregas.md`](../../plano-de-entregas.md).
+- **Composição vigente da Sprint 1 (05/10/2026):** **19 itens; denominador de 79 pontos da rubrica** — detalhamento em [`plano-de-entregas.md`](../../plano-de-entregas.md).
 - **Critérios da rubrica previstos para a Sprint 1:** ES01 a ES09 (40 pts), DW01 (3), DW02 (5), DW03 (6), DW04 (4), DW07 (3), BD01 (4), BD02 (6), BD03 (2) e TP02 (6) = **79 pontos**.
 - **Versão original deste planejamento (29/09/2026), mantida na §4:** 100 pontos, 82 Story Points em 25 tarefas, com autenticação JWT (DW06), motor de cálculo (TP01) e exportação de relatórios no escopo; o replanejamento de 05/10 tirou essas frentes e reduziu a sprint aos 79 pontos vigentes.
 - **Acréscimo desta revisão (29/09/2026):** +13 Story Points / +4 tarefas referentes à **autenticação JWT (RP06 / DW06)** e ao provimento de segredos do ambiente Docker — a área restrita é da Sprint 2.
@@ -83,7 +83,7 @@ flowchart LR
 | **Vinicius Augusto** | Dev Back-end / Segurança | `DB-03`, `BE-04`, `BE-05`, `BE-06`, `BE-07` | **19 pts** |
 | **Henrique Camargo** | Product Owner / Gestão & DevOps | `PO-01`, `PO-02`, `FE-06`, `DEVOPS-02`, `DEVOPS-03` | **13 pts + Gestão** |
 | **Total da Sprint 1 (planejamento inicial, 29/09)** | — | **25 tarefas** | **82 pts** |
-| **Total vigente da Sprint 1 (05/10/2026)** | — | **19 itens** | **79 pts** |
+| **Total vigente da Sprint 1 (05/10/2026)** | — | **19 itens** | — (79 são pontos da rubrica, não Story Points; ver §2) |
 
 > Os totais por integrante acima são os do planejamento inicial e não descontam as tarefas que saíram da sprint; a distribuição vigente por responsável, com as evidências, está em [`plano-de-entregas.md`](../../plano-de-entregas.md) § Participação dos integrantes.
 
