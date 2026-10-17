@@ -1,6 +1,6 @@
 # Cálculos e unidades do modelo
 
-Contrato de dados para RF07 na Sprint 2 (#18). Esta branch prepara armazenamento e modelagem, sem implementar motor de cálculo.
+Contrato de dados para RF07 na Sprint 2 (#18), adiantado na issue #133. O motor de cálculo está implementado em `backend/src/domain/carbon-calculator.ts`; armazenamento e modelagem preservam os resultados de cada coleta.
 
 ## Fonte e fórmula
 

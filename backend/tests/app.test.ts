@@ -45,9 +45,10 @@ describe('HTTP', () => {
     expect((await fetch(url + '/missing')).status).toBe(404);
   });
   it('lista serviços com a última leitura', async () => {
-    const { collections, services } = repositories([], [{ id: '1', name: 'Demo', status: 'ativo', country: 'BR', region: 'Sul', city: null, last_reading_at: new Date('2026-10-14T20:00:00.000Z'), cpu_percent: '51.25' }]);
+    const { collections, services } = repositories([], [{ id: '1', name: 'Demo', status: 'ativo', country: 'BR', region: 'Sul', city: null, last_reading_at: new Date('2026-10-14T20:00:00.000Z'), cpu_percent: '51.25', energy_kwh: '0.000480452625', co2e_grams: '0.040838473125' }]);
     const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/services');
-    expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25 });
+    expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25,
+      energyKwh: 0.000480452625, emissionsG: 0.040838473125 });
   });
   it('valida filtros de collections', async () => {
     const { collections, services } = repositories();
