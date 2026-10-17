@@ -124,8 +124,16 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
           </thead>
           <tbody>
             {rows.map((service) => (
-              // O clique vale para a linha toda; o botão do nome dá o mesmo acesso pelo teclado (o clique dele sobe até aqui)
-              <tr key={service.id} onClick={() => onSelect(service)} className="cursor-pointer border-t border-border hover:bg-surface-2">
+              // O clique vale para a linha toda; o botão do nome dá o mesmo acesso pelo teclado (o clique dele sobe até aqui).
+              // Focar o botão antes de abrir faz o foco voltar para ele ao fechar, mesmo com clique fora do nome.
+              <tr
+                key={service.id}
+                onClick={(event) => {
+                  event.currentTarget.querySelector('button')?.focus();
+                  onSelect(service);
+                }}
+                className="cursor-pointer border-t border-border hover:bg-surface-2"
+              >
                 <th scope="row" className="px-5 py-3 text-left font-medium">
                   <button
                     type="button"
