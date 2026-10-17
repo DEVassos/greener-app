@@ -8,6 +8,7 @@ import { ServiceRepository } from './modules/services/services.repository';
 import { AppError } from './shared/errors';
 import { Collector, type CollectorLifecycle } from './jobs/collector';
 import { createMetricsApi } from './integrations/metrics-api';
+import { createCarbonApi } from './integrations/carbon-api';
 
 export async function startServer(env: Environment, database: Database, collector?: CollectorLifecycle): Promise<Server> {
   try {
@@ -38,7 +39,8 @@ export async function stopServer(server: Server, database: Database, collector?:
 async function main(): Promise<void> {
   const env = readEnvironment();
   const database = createDatabase(env.databaseUrl);
-  const collector = new Collector(database, createMetricsApi({ baseUrl: env.metricsApiUrl }), env.pollingIntervalMs);
+  const collector = new Collector(database, createMetricsApi({ baseUrl: env.metricsApiUrl }), env.pollingIntervalMs,
+    Date.now, console.error, createCarbonApi({ baseUrl: env.carbonApiUrl }));
   const server = await startServer(env, database, collector);
   console.info(`API disponível na porta ${env.port}.`);
   let stopping = false;

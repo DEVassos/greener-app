@@ -10,7 +10,7 @@ O dashboard roda em outra origem (`http://localhost:5173`) e chama a API pelo na
 
 Sem autenticação, parâmetros ou corpo. O prefixo `/api` corresponde ao padrão de `VITE_API_URL=http://localhost:3000/api` usado pelo frontend; `/health` permanece na raiz.
 
-Devolve os serviços persistidos, o estado atual de monitoramento e a coleta mais recente de cada um. A consulta usa `LEFT JOIN LATERAL`, portanto um serviço sem coleta continua aparecendo com `lastReadingAt` e `cpuPercent` como `null`. Localização ausente no cadastro também permanece `null`. Nesta Sprint 1, `energyKwh` e `emissionsG` são sempre `null`: cálculo socioambiental é escopo da Sprint 2.
+Devolve os serviços persistidos, o estado atual de monitoramento e a coleta mais recente de cada um. A consulta usa `LEFT JOIN LATERAL`, portanto um serviço sem coleta continua aparecendo com `lastReadingAt` e `cpuPercent` como `null`. Localização ausente no cadastro também permanece `null`. `energyKwh` e `emissionsG` são calculados a partir do intervalo da própria coleta e do fator regional; se o cálculo estiver indisponível, permanecem `null` sem invalidar as métricas.
 
 Resposta 200:
 
@@ -23,12 +23,12 @@ Resposta 200:
     "region": "Sul",
     "city": "Porto Alegre",
     "cpuPercent": 51.25,
-    "energyKwh": null,
-    "emissionsG": null,
+    "energyKwh": 0.000480452625,
+    "emissionsG": 0.040838473125,
     "status": "ativo",
     "lastReadingAt": "2026-10-14T20:00:00.000Z"
   }],
-  "period": "última leitura disponível"
+  "period": "última leitura (intervalo de coleta)"
 }
 ```
 

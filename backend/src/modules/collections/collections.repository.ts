@@ -13,11 +13,14 @@ export class CollectionRepository {
     const result = await this.db.query<StoredCollection>(`
       INSERT INTO collections (service_id, collected_at, region_code, status,
         collection_interval_seconds, cpu_percent, memory_gb, disk_gb, network_gb,
-        metrics, error_message, calculation_status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, 'nao_calculado')
+        metrics, error_message, calculation_status, carbon_intensity_gco2e_per_kwh,
+        power_watts, energy_kwh, co2e_grams, calculation_error_message)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *`, [reading.service_id, reading.collected_at, reading.region_code, reading.status,
       reading.collection_interval_seconds, reading.cpu_percent, reading.memory_gb, reading.disk_gb,
-      reading.network_gb, JSON.stringify(reading.metrics), reading.error_message]);
+      reading.network_gb, JSON.stringify(reading.metrics), reading.error_message, reading.calculation_status,
+      reading.carbon_intensity_gco2e_per_kwh, reading.power_watts, reading.energy_kwh,
+      reading.co2e_grams, reading.calculation_error_message]);
     return result.rows[0];
   }
   async findAll(filters: CollectionFilters): Promise<CollectionListRow[]> {
