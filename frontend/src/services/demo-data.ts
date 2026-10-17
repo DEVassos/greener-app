@@ -1,7 +1,11 @@
 // Dados ilustrativos do protótipo (APIs do cliente em 01/10/2026).
 // Usados só enquanto VITE_API_URL não estiver definida — a tela avisa que é uma demonstração.
 
+import type { CollectionsResponse, ServiceCollection } from './collections.types';
 import type { MonitoredService, ServicesResponse } from './services.types';
+
+/** Intervalo entre coletas do worker (POLLING_INTERVAL_MS do .env.example). */
+const DEMO_COLLECTION_INTERVAL_MS = 30_000;
 
 /** Horário de uma leitura feita há alguns segundos, para a demonstração parecer viva. */
 function secondsAgo(seconds: number): string {
@@ -19,4 +23,42 @@ export function demoServices(): ServicesResponse {
     { id: 'inventory-sync', name: 'Inventory Sync', country: 'Canadá', region: 'ca-central', city: null, cpuPercent: null, energyKwh: null, emissionsG: null, status: 'sem_metricas', lastReadingAt: null },
   ];
   return { services, period: 'última 1 hora' };
+}
+
+function round(value: number, decimals: number): number {
+  return Number(value.toFixed(decimals));
+}
+
+/**
+ * Histórico ilustrativo de um serviço: `limit` coletas a cada 30 s até agora, coerente com a lista acima.
+ * Serviço sem leitura nenhuma devolve histórico vazio; serviço indisponível tem coletas com erro desde a última leitura.
+ */
+export function demoCollections(serviceId: string, limit: number): CollectionsResponse {
+  const services = demoServices().services;
+  const service = services.find((item) => item.id === serviceId);
+  if (!service || service.lastReadingAt === null) return { collections: [], period: { from: null, to: null } };
+
+  const seed = services.indexOf(service) + 1;
+  const baseCpu = service.cpuPercent ?? 30;
+  const failingSince = service.status === 'indisponivel' ? Date.parse(service.lastReadingAt) : Number.POSITIVE_INFINITY;
+  const now = Date.now();
+
+  const collections = Array.from({ length: limit }, (_, index): ServiceCollection => {
+    const time = now - index * DEMO_COLLECTION_INTERVAL_MS;
+    const common = { id: `${serviceId}-${index}`, serviceId, collectedAt: new Date(time).toISOString() };
+    if (time > failingSince) {
+      return { ...common, status: 'erro', cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, errorMessage: 'Serviço indisponível (HTTP 500).' };
+    }
+    const wave = Math.sin(index / 4 + seed) * 9 + Math.sin(index / 1.7) * 3;
+    return {
+      ...common,
+      status: 'ok',
+      cpuPercent: round(Math.min(100, Math.max(0, baseCpu + wave)), 1),
+      memoryGb: round(0.5 + seed * 0.6 + Math.sin(index / 5) * 0.1, 3),
+      diskGb: round(8 + seed * 3 + (limit - index) * 0.01, 3),
+      networkGb: round(0.05 * seed + Math.abs(Math.sin(index / 3)) * 0.04, 3),
+      errorMessage: null,
+    };
+  });
+  return { collections, period: { from: null, to: null } };
 }

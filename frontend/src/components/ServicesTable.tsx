@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { MonitoredService, ServiceStatus } from '../services/services.types';
 import { formatNumber, formatTime } from '../utils/format';
+import MissingValue from './MissingValue';
 import StatusBadge from './StatusBadge';
 
 type SortKey = 'name' | 'cpuPercent' | 'energyKwh' | 'emissionsG' | 'lastReadingAt' | 'location' | 'status';
@@ -33,6 +34,8 @@ interface Props {
   services: MonitoredService[];
   /** Período dos valores de energia e emissão (ex.: "última 1 hora"). */
   period: string;
+  /** Clique na linha (ou Enter no nome): abre os detalhes e o histórico do serviço. */
+  onSelect: (service: MonitoredService) => void;
 }
 
 /** Valor de ordenação da coluna: localização por região, país e cidade; status pela gravidade. */
@@ -53,16 +56,8 @@ function compare(a: MonitoredService, b: MonitoredService, key: SortKey, directi
   return ((left as number) - (right as number)) * direction;
 }
 
-function Missing() {
-  return (
-    <span className="text-muted" title="Sem métrica nesta leitura">
-      —<span className="sr-only">sem métrica</span>
-    </span>
-  );
-}
-
-/** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome e ordenação por coluna. */
-export default function ServicesTable({ services, period }: Props) {
+/** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome, ordenação por coluna e clique para os detalhes. */
+export default function ServicesTable({ services, period, onSelect }: Props) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('emissionsG');
   const [direction, setDirection] = useState<1 | -1>(-1);
@@ -129,18 +124,26 @@ export default function ServicesTable({ services, period }: Props) {
           </thead>
           <tbody>
             {rows.map((service) => (
-              <tr key={service.id} className="border-t border-border">
+              // O clique vale para a linha toda; o botão do nome dá o mesmo acesso pelo teclado (o clique dele sobe até aqui)
+              <tr key={service.id} onClick={() => onSelect(service)} className="cursor-pointer border-t border-border hover:bg-surface-2">
                 <th scope="row" className="px-5 py-3 text-left font-medium">
-                  {service.name}
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    title="Ver detalhes e histórico de coletas"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-left font-sans text-sm font-medium text-text underline decoration-border underline-offset-4 hover:decoration-primary"
+                  >
+                    {service.name}
+                  </button>
                 </th>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.cpuPercent === null ? <Missing /> : `${formatNumber(service.cpuPercent, 0)}%`}
+                  {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
                 </td>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.energyKwh === null ? <Missing /> : formatNumber(service.energyKwh, 4)}
+                  {service.energyKwh === null ? <MissingValue /> : formatNumber(service.energyKwh, 4)}
                 </td>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.emissionsG === null ? <Missing /> : formatNumber(service.emissionsG, 1)}
+                  {service.emissionsG === null ? <MissingValue /> : formatNumber(service.emissionsG, 1)}
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-muted">
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}
