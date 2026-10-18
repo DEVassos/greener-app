@@ -34,7 +34,9 @@ gh issue list -R "$REPO" --milestone "$MS" --state all --limit 300 --json number
 gh project item-list "$PNUM" --owner "$POWNER" --limit 500 --format json > "$TMP/proj.json"
 
 # último dia do gráfico: hoje, limitado ao fim da sprint
-HOJE="$(TZ=America/Sao_Paulo date +%F)"
+# UTC-3 fixo em formato POSIX: o Git Bash não traz zoneinfo e trataria America/Sao_Paulo como UTC
+TZ_BR="<-03>3"
+HOJE="$(TZ="$TZ_BR" date +%F)"
 ATE="$FIM"; [[ "$HOJE" < "$FIM" ]] && ATE="$HOJE"
 DIAS="$(jq -rn --arg i "$INICIO" --arg f "$ATE" '
   [range(($i+"T12:00:00Z"|fromdateiso8601); ($f+"T12:00:00Z"|fromdateiso8601)+1; 86400) | strftime("%Y-%m-%d")]')"
@@ -74,7 +76,7 @@ lista() { jq -r --arg u "https://github.com/$REPO/issues/" 'if length == 0 then 
 {
   echo "# Burndown — Sprint $N"
   echo
-  echo "_Gerado em $(TZ=America/Sao_Paulo date '+%d/%m/%Y %H:%M') por \`.github/scripts/burndown.sh $N\` a partir das issues da milestone [$MS](https://github.com/$REPO/milestones) e do campo **Story Points** do [quadro](https://github.com/orgs/$POWNER/projects/$PNUM). Período da sprint: $(date -d "$INICIO" +%d/%m) a $(date -d "$FIM" +%d/%m/%Y); dados até $ULT._"
+  echo "_Gerado em $(TZ="$TZ_BR" date '+%d/%m/%Y %H:%M') por \`.github/scripts/burndown.sh $N\` a partir das issues da milestone [$MS](https://github.com/$REPO/milestones) e do campo **Story Points** do [quadro](https://github.com/orgs/$POWNER/projects/$PNUM). Período da sprint: $(date -d "$INICIO" +%d/%m) a $(date -d "$FIM" +%d/%m/%Y); dados até $ULT._"
   echo
   echo '```mermaid'
   echo 'xychart-beta'
