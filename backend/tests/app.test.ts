@@ -58,6 +58,20 @@ describe('HTTP', () => {
     const { collections, services } = repositories([], []);
     expect((await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?service_id=99')).status).toBe(404);
   });
+  it('expõe o intervalo da coleta no histórico e mantém nulo sem métricas', async () => {
+    const { collections, services } = repositories([
+      { id: '2', service_id: '1', collected_at: new Date('2026-10-14T20:01:00.000Z'), status: 'ok',
+        collection_interval_seconds: 27, cpu_percent: '42.5', memory_gb: '1.2', disk_gb: '10', network_gb: '0.3', error_message: null },
+      { id: '1', service_id: '1', collected_at: new Date('2026-10-14T20:00:00.000Z'), status: 'erro',
+        collection_interval_seconds: null, cpu_percent: null, memory_gb: null, disk_gb: null, network_gb: null, error_message: 'Timeout' },
+    ]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections');
+    expect(response.status).toBe(200);
+    expect((await response.json()).collections).toEqual([
+      expect.objectContaining({ id: '2', collectionIntervalSeconds: 27 }),
+      expect.objectContaining({ id: '1', collectionIntervalSeconds: null }),
+    ]);
+  });
   it('protege erros inesperados', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { collections, services } = repositories();
