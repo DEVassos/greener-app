@@ -1,4 +1,4 @@
-# Frontend do GreenER — imagem multi-stage (ADR 0003).
+# Frontend do EcoPulse — imagem multi-stage (ADR 0003).
 # 1) build: instala as dependências pelo package-lock e gera dist/ (npm run build = tsc --noEmit + vite build)
 # 2) runtime: só os arquivos estáticos, servidos por nginx sem root na porta 8080
 

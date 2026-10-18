@@ -1,6 +1,6 @@
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/ISSUE_TEMPLATE/historia.yml)
 name: "História de usuário"
-description: "Funcionalidade do GreenER ligada a um requisito (RF/RNF). Criada e priorizada pelo PO."
+description: "Funcionalidade do EcoPulse ligada a um requisito (RF/RNF). Criada e priorizada pelo PO."
 title: "RFxx — "
 labels: ["tipo:historia"]
 type: Feature

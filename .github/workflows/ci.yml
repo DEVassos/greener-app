@@ -81,7 +81,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: greener
+          POSTGRES_DB: ecopulse
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
@@ -91,7 +91,7 @@ jobs:
           PGPASSWORD: postgres
         run: |
           if [ ! -f database/schema.sql ]; then echo "sem database/schema.sql ainda"; exit 0; fi
-          psql -h localhost -U postgres -d greener -v ON_ERROR_STOP=1 -f database/schema.sql
-          for f in database/migrations/*.sql; do [ -f "$f" ] && psql -h localhost -U postgres -d greener -v ON_ERROR_STOP=1 -f "$f"; done
-          n=$(psql -h localhost -U postgres -d greener -Atc "select count(*) from information_schema.tables where table_schema='public'")
+          psql -h localhost -U postgres -d ecopulse -v ON_ERROR_STOP=1 -f database/schema.sql
+          for f in database/migrations/*.sql; do [ -f "$f" ] && psql -h localhost -U postgres -d ecopulse -v ON_ERROR_STOP=1 -f "$f"; done
+          n=$(psql -h localhost -U postgres -d ecopulse -Atc "select count(*) from information_schema.tables where table_schema='public'")
           echo "tabelas criadas: $n"; [ "$n" -gt 0 ]

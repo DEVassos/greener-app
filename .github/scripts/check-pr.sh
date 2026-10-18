@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/scripts/check-pr.sh)
 #
-# Valida metadados de um Pull Request do GreenER (Git Flow + rastreabilidade ES04 + DoD ES07):
+# Valida metadados de um Pull Request do EcoPulse (Git Flow + rastreabilidade ES04 + DoD ES07):
 #   título no padrão de commit; branch de origem no padrão; base correta (develop p/ trabalho,
 #   main só p/ release/hotfix); corpo com "Closes #n"; ≥1 label RF/RNF (ou tipo:processo|bug);
 #   checklist sem "- [ ]" pendente (aceita "N/A — motivo"); sem placeholders nem rodapé "Generated with …"; aviso >400 linhas.
