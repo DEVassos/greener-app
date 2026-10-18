@@ -4,7 +4,7 @@ import { demoCollections } from './demo-data';
 import { isDemoMode } from './services.service';
 
 /** Quantas coletas a janela de detalhes mostra (padrão da API; máximo 500). */
-export const HISTORY_LIMIT = 50;
+export const HISTORY_LIMIT = 100;
 
 /** Histórico de coletas de um serviço, da mais recente para a mais antiga. */
 export async function fetchServiceCollections(serviceId: string, signal?: AbortSignal): Promise<CollectionsResponse> {

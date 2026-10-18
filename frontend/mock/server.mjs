@@ -51,12 +51,13 @@ function serviceCollections(service, limit) {
   return Array.from({ length: limit }, (_, index) => {
     const common = { id: `${service.id}-${index}`, serviceId: service.id, collectedAt: new Date(now - index * 30_000).toISOString() };
     if (service.status === 'indisponivel' && index < 10) {
-      return { ...common, status: 'erro', cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, errorMessage: 'Serviço indisponível (HTTP 500).' };
+      return { ...common, status: 'erro', collectionIntervalSeconds: null, cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, errorMessage: 'Serviço indisponível (HTTP 500).' };
     }
     const cpu = (service.cpu ?? 30) * (1 + (Math.random() - 0.5) * 0.3);
     return {
       ...common,
       status: 'ok',
+      collectionIntervalSeconds: 30,
       cpuPercent: Number(Math.min(100, cpu).toFixed(1)),
       memoryGb: Number((1 + Math.random() * 0.2).toFixed(3)),
       diskGb: Number((12 + (limit - index) * 0.01).toFixed(3)),
