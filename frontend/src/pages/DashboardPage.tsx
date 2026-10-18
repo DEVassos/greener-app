@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
+import ServiceDetailsDialog from '../components/ServiceDetailsDialog';
 import ServicesTable from '../components/ServicesTable';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useServices } from '../hooks/useServices';
@@ -12,6 +14,9 @@ import './DashboardPage.css';
 export default function DashboardPage() {
   const { data, loading, error, updatedAt, refresh } = useServices();
   const { refreshIntervalMs } = useMonitoring();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // A janela usa a linha atual da lista: status, CPU e última leitura acompanham cada atualização
+  const selected = data?.services.find((service) => service.id === selectedId) ?? null;
 
   return (
     <div className="page">
@@ -25,11 +30,14 @@ export default function DashboardPage() {
         <LastUpdated updatedAt={updatedAt} intervalSeconds={refreshIntervalMs / 1000} stale={error !== ''}>
           <button
             type="button"
-            onClick={refresh}
-            disabled={loading}
+            // aria-disabled em vez de disabled: o botão não perde o foco do teclado a cada ciclo
+            onClick={() => {
+              if (!loading) refresh();
+            }}
+            aria-disabled={loading}
             aria-label="Atualizar agora"
             title="Atualizar agora"
-            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text disabled:cursor-wait disabled:opacity-60"
+            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text aria-disabled:cursor-wait aria-disabled:opacity-60"
           >
             <svg
               viewBox="0 0 24 24"
@@ -63,7 +71,12 @@ export default function DashboardPage() {
           />
         )}
 
-        {data && data.services.length > 0 && <ServicesTable services={data.services} period={data.period} />}
+        {data && data.services.length > 0 && (
+          <ServicesTable services={data.services} period={data.period} onSelect={(service) => setSelectedId(service.id)} />
+        )}
+
+        {/* Montada só enquanto aberta: fechar desmonta e cancela o polling do histórico */}
+        {selected && <ServiceDetailsDialog key={selected.id} service={selected} onClose={() => setSelectedId(null)} />}
       </main>
 
       <footer className="page-footer">EcoPulse · DEVassos · Fatec Jacareí 2DSM 2026-2</footer>

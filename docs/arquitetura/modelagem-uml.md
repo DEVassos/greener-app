@@ -1,6 +1,6 @@
 # Modelagem UML — integração do banco
 
-Modelo proposto nesta branch para revisão de Vinicius, Frank e equipe. Integra a modelagem versionada (#28), a v2 local e o SQL de Lucas (#5/#44). Não declara backend, worker, JWT ou auditoria implementados. EcoPulse é o nome atual; a transição dos documentos permanece na #68.
+Modelo proposto nesta branch para revisão de Vinicius, Frank e equipe. Integra a modelagem versionada (#28), a v2 local e o SQL de Lucas (#5/#44). Não declara backend, worker, JWT ou auditoria implementados. EcoPulse é o nome do produto, aplicado aos documentos na #68.
 
 ## Fontes e sprints
 

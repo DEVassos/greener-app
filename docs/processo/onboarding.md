@@ -1,4 +1,4 @@
-# Onboarding — primeiro dia no GreenER
+# Onboarding — primeiro dia no EcoPulse
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/onboarding.md) -->
 

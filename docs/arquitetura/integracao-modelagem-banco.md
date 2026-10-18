@@ -51,7 +51,7 @@ Sem necessidade comprovada de percentual renovável para os requisitos deste esc
 
 Auditoria solicitada por Vinicius e aprovada para modelagem local: primeira abertura por sessão da aba; sem polling, worker ou tentativas de login. A issue, sprint, política de retenção e implantação ainda precisam ser formalizadas. Não foram criadas issues/ADRs de aprovação presumida. A consulta usa as credenciais administrativas existentes, sem RBAC detalhado.
 
-Nome EcoPulse formalizado no [PR #62](https://github.com/DEVassos/greener-app/pull/62#issuecomment-6070817778); renome geral após Sprint 1 na [#68](https://github.com/DEVassos/greener-app/issues/68). Não houve renomeação geral.
+Nome EcoPulse formalizado no [PR #62](https://github.com/DEVassos/greener-app/pull/62#issuecomment-6070817778) e aplicado à documentação e às configurações na [#68](https://github.com/DEVassos/greener-app/issues/68); o repositório continua `greener-app`.
 
 ## Inicialização, evolução e compatibilidade
 

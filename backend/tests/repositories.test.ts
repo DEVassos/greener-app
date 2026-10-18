@@ -32,6 +32,14 @@ it('usa uma conexão, parâmetros separados e libera após commit', async () => 
   expect(fake.connect).toHaveBeenCalledOnce();
   expect(fake.release).toHaveBeenCalledExactlyOnceWith(undefined);
 });
+it('busca cada serviço com sua última coleta por LEFT JOIN LATERAL', async () => {
+  fake.poolQuery.mockResolvedValueOnce({ rows: [] });
+  await new ServiceRepository(createDatabase('postgresql://localhost/test')).findAllWithLastReading();
+  expect(fake.poolQuery).toHaveBeenCalledOnce();
+  expect(fake.poolQuery.mock.calls[0][0]).toContain('LEFT JOIN LATERAL');
+  expect(fake.poolQuery.mock.calls[0][0]).toContain('ORDER BY collected_at DESC, id DESC');
+  expect(fake.poolQuery.mock.calls[0][1]).toEqual([]);
+});
 it.each(['BEGIN', 'consulta', 'COMMIT', 'ROLLBACK'])('libera conexão após falha em %s', async stage => {
   const original = new Error('falha controlada');
   fake.query.mockImplementation(async (sql: string) => {

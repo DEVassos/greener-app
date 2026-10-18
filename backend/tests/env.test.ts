@@ -17,6 +17,7 @@ describe('ambiente', () => {
       databaseUrl,
       metricsApiUrl: 'https://metrics.unilaunch.org',
       pollingIntervalMs: 30000,
+      corsOrigins: ['http://localhost:5173'],
     });
     expect(readEnvironment({ PORT: '4321', DATABASE_URL: databaseUrl }).port).toBe(4321);
   });
@@ -26,11 +27,23 @@ describe('ambiente', () => {
   it.each([undefined, '', 'https://localhost/db', 'postgresql://localhost/'])('recusa banco inválido', DATABASE_URL => {
     expect(() => readEnvironment({ DATABASE_URL })).toThrow('DATABASE_URL');
   });
+  it('lê a lista de origens do CORS', () => {
+    expect(readEnvironment({ DATABASE_URL: databaseUrl, CORS_ORIGIN: 'http://localhost:5173, https://ecopulse.example/' })
+      .corsOrigins).toEqual(['http://localhost:5173', 'https://ecopulse.example']);
+  });
+  it.each(['', ' , ', 'localhost:5173', 'ftp://host', 'http://localhost:5173/app', 'http://u:p@host'])
+    ('recusa origem de CORS inválida %j', CORS_ORIGIN => {
+      expect(() => readEnvironment({ DATABASE_URL: databaseUrl, CORS_ORIGIN })).toThrow('CORS_ORIGIN');
+    });
   it('normaliza a base de carbono configurada', () => {
     expect(readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL: 'http://localhost:8080/api/' }).carbonApiUrl)
       .toBe('http://localhost:8080/api');
   });
-  it.each(['', 'ftp://host', 'https://u:p@host', 'https://host/?key=x', 'https://host/#x'])
+  it('usa o padrão oficial quando a base de carbono está vazia', () => {
+    expect(readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL: '' }).carbonApiUrl)
+      .toBe('https://carbon.unilaunch.org');
+  });
+  it.each(['ftp://host', 'https://u:p@host', 'https://host/?key=x', 'https://host/#x'])
     ('recusa base de carbono inválida %s', CARBON_API_URL => {
       expect(() => readEnvironment({ DATABASE_URL: databaseUrl, CARBON_API_URL })).toThrow('CARBON_API_URL');
     });

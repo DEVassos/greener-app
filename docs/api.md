@@ -1,6 +1,52 @@
-# API — setup do backend (#8)
+# API — backend
 
-Contrato da implementação local em revisão. A execução integrada depende dos containers backend/PostgreSQL (#26/#27); não há endpoints de negócio nesta entrega.
+Contrato do backend. A execução integrada usa os containers backend e PostgreSQL do `compose.yaml` (#26/#27): `docker compose up --build`.
+
+## CORS
+
+O dashboard roda em outra origem (`http://localhost:5173`) e chama a API pelo navegador. O backend envia `Access-Control-Allow-Origin` só para as origens de `CORS_ORIGIN` (padrão `http://localhost:5173`, lista separada por vírgula) e responde o preflight `OPTIONS` com `204`, liberando `Content-Type` e `Authorization`. Outra origem não recebe o cabeçalho, e o navegador bloqueia a resposta. Chamadas sem navegador (`curl`) não são afetadas.
+
+## GET /api/services
+
+Sem autenticação, parâmetros ou corpo. O prefixo `/api` corresponde ao padrão de `VITE_API_URL=http://localhost:3000/api` usado pelo frontend; `/health` permanece na raiz.
+
+Devolve os serviços persistidos, o estado atual de monitoramento e a coleta mais recente de cada um. A consulta usa `LEFT JOIN LATERAL`, portanto um serviço sem coleta continua aparecendo com `lastReadingAt` e `cpuPercent` como `null`. Localização ausente no cadastro também permanece `null`. `energyKwh` e `emissionsG` são calculados a partir do intervalo da própria coleta e do fator regional; se o cálculo estiver indisponível, permanecem `null` sem invalidar as métricas.
+
+Resposta 200:
+
+```json
+{
+  "services": [{
+    "id": "1",
+    "name": "Demo",
+    "country": "BR",
+    "region": "Sul",
+    "city": "Porto Alegre",
+    "cpuPercent": 51.25,
+    "energyKwh": 0.000480452625,
+    "emissionsG": 0.040838473125,
+    "status": "ativo",
+    "lastReadingAt": "2026-10-14T20:00:00.000Z"
+  }],
+  "period": "última leitura (intervalo de coleta)"
+}
+```
+
+Falha de banco retorna 500 no envelope global, sem stack ou SQL:
+
+```json
+{"error":{"code":"DATABASE_ERROR","message":"Não foi possível verificar a conexão com o banco de dados."}}
+```
+
+## GET /api/collections
+
+Histórico de coletas, sem autenticação ou corpo. Parâmetros opcionais: `service_id` (inteiro positivo), `from` e `to` (ISO 8601) e `limit` (1 a 500; padrão 50). A lista é sempre ordenada da coleta mais recente para a mais antiga.
+
+```json
+{"collections":[{"id":"1","serviceId":"1","collectedAt":"2026-10-14T20:00:00.000Z","status":"ok","cpuPercent":42.5,"memoryGb":1.2,"diskGb":10,"networkGb":0.3,"errorMessage":null}],"period":{"from":null,"to":null}}
+```
+
+Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global, sem stack ou SQL.
 
 ## GET /health
 

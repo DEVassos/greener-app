@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Collector, observation, type CollectorApi } from '../src/jobs/collector';
+import type { CarbonApi } from '../src/integrations/carbon-api';
+import { ExternalApiError } from '../src/shared/errors';
 import { ServiceRepository } from '../src/modules/services/services.repository';
 import { CollectionRepository } from '../src/modules/collections/collections.repository';
 import type { Database } from '../src/db/connection';
@@ -14,18 +16,19 @@ const stored = { id: '9007199254740993', external_id: 'a', region_code: 'br-sude
 let now: number;
 let api: CollectorApi;
 let worker: Collector;
+let database: Database;
 let insert: ReturnType<typeof vi.spyOn>;
 const report = vi.fn();
 beforeEach(() => {
   now = 0; report.mockClear();
   const query = vi.fn(async () => ({ rows: [], rowCount: 0, fields: [], command: '', oid: 0 }));
-  const db = { query, close: vi.fn(), withClient: async work => work({ query }) } as Database;
+  database = { query, close: vi.fn(), withClient: async work => work({ query }) } as Database;
   vi.spyOn(ServiceRepository.prototype, 'upsert').mockImplementation(async s => ({ ...stored, ...s }));
   vi.spyOn(ServiceRepository.prototype, 'markMissingAsRemoved').mockResolvedValue([]);
   vi.spyOn(ServiceRepository.prototype, 'updateStatus').mockResolvedValue(stored);
   insert = vi.spyOn(CollectionRepository.prototype, 'insert').mockImplementation(async r => ({ ...r } as never));
   api = { listServices: vi.fn(async () => [a]), getServiceMetrics: vi.fn(async () => ok) };
-  worker = new Collector(db, api, 1000, () => now, report);
+  worker = new Collector(database, api, 1000, () => now, report);
 });
 afterEach(async () => { await worker.stop(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
@@ -75,12 +78,18 @@ it('respeita prazo distinto, alteração, último intervalo após falha e retorn
   vi.mocked(api.listServices).mockResolvedValueOnce([a]); await worker.run(); expect(insert).toHaveBeenCalledTimes(6);
 });
 it('isola falha de um serviço e registra 404/500 sem métricas falsas', async () => {
-  vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }, { ...a, id: 'c' }]);
+  vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }, { ...a, id: 'c' }, { ...a, id: 'd' }]);
   vi.mocked(api.getServiceMetrics).mockRejectedValueOnce(new Error('rede'))
-    .mockResolvedValueOnce({ status: 'sem_metricas' }).mockResolvedValueOnce({ status: 'indisponivel' });
+    .mockResolvedValueOnce({ status: 'sem_metricas' }).mockResolvedValueOnce({ status: 'indisponivel' })
+    .mockResolvedValueOnce(ok);
   await worker.run();
-  expect(insert.mock.calls.map(call => call[0].status)).toEqual(['erro', 'sem_metricas', 'erro']);
-  expect(insert.mock.calls.every(call => call[0].cpu_percent === null)).toBe(true);
+  expect(insert.mock.calls.map(call => call[0].status)).toEqual(['erro', 'sem_metricas', 'erro', 'ok']);
+  expect(insert.mock.calls.slice(0, 3).every(call => call[0].cpu_percent === null)).toBe(true);
+  expect(insert.mock.calls[3][0]).toMatchObject({ status: 'ok', cpu_percent: '50.00' });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(1, stored.id, 'indisponivel');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(2, stored.id, 'sem_metricas');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(3, stored.id, 'indisponivel');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(4, stored.id, 'ativo');
 });
 it('dispatcher não sobrepõe nem compensa ciclos e cancela HTTP na parada', async () => {
   vi.useFakeTimers();
@@ -120,4 +129,29 @@ it('observação inválida vira diagnóstico e usa recuperação configurada at�
   await worker.run(); expect(insert.mock.calls[0][0]).toMatchObject({ status: 'erro', cpu_percent: null, collection_interval_seconds: null });
   now = 999; await worker.run(); expect(api.getServiceMetrics).toHaveBeenCalledOnce();
   now = 1000; await worker.run(); expect(insert.mock.calls[1][0].status).toBe('ok');
+});
+it('grava cálculo disponível sem mudar o estado ativo do serviço', async () => {
+  const carbon: CarbonApi = { getIntensity: vi.fn(async () => ({ status: 'ok', source: 'api', fetchedAt: 0,
+    expiresAt: 1, factor: { regionCode: 'br-sudeste', intensityGco2ePerKwh: 85, renewableSharePercent: 83 } })) };
+  worker = new Collector(database, api, 1000, () => now, report, carbon);
+  await worker.run();
+  expect(insert.mock.calls[0][0]).toMatchObject({ status: 'ok', calculation_status: 'disponivel',
+    power_watts: '50.760000', energy_kwh: '0.000028200000', co2e_grams: '0.002397000000' });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenCalledWith(stored.id, 'ativo');
+});
+it('preserva coleta válida quando o fator regional não está disponível', async () => {
+  const carbon: CarbonApi = { getIntensity: vi.fn(async () => ({ status: 'region_not_found', regionCode: 'br-sudeste' })) };
+  worker = new Collector(database, api, 1000, () => now, report, carbon);
+  await worker.run();
+  expect(insert.mock.calls[0][0]).toMatchObject({ status: 'ok', calculation_status: 'indisponivel',
+    carbon_intensity_gco2e_per_kwh: null, energy_kwh: null, co2e_grams: null });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenCalledWith(stored.id, 'ativo');
+});
+it('preserva coleta válida quando a consulta de carbono falha', async () => {
+  const carbon: CarbonApi = { getIntensity: vi.fn(async () => { throw new ExternalApiError('API de carbono indisponível.'); }) };
+  worker = new Collector(database, api, 1000, () => now, report, carbon);
+  await worker.run();
+  expect(insert.mock.calls[0][0]).toMatchObject({ status: 'ok', calculation_status: 'indisponivel',
+    calculation_error_message: 'API de carbono indisponível.' });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenCalledWith(stored.id, 'ativo');
 });

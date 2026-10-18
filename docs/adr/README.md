@@ -13,6 +13,7 @@ Decisões técnicas e de processo que afetam o repositório inteiro são registr
 | [0003](0003-docker-compose-unico-caminho.md) | Docker Compose como único caminho de execução | aceito (frontend substituído em parte pelo 0005) | 2026-10-05 | RP04 · DW07, BD03 |
 | [0004](0004-vite-tailwind-frontend.md) | Vite e Tailwind CSS no frontend | aceito | 2026-10-08 | #67 · RP01, RNF01, RNF05 · DW01, DW04, ES08 |
 | [0005](0005-frontend-nginx-build-producao.md) | Frontend servido por nginx com o build de produção no compose | proposto | 2026-10-08 | #80 · RP04, RNF05 · DW07, DW01, TP02 |
+| [0006](0006-modelo-potencia-fatores-emissao.md) | Modelo de potência e fatores de emissão do cálculo de energia e CO₂e | proposto | 2026-10-16 | #133 · RF07, RF08 · TP01, DW02, BD04 |
 
 ## Como criar um ADR
 
@@ -26,5 +27,4 @@ Decisões técnicas e de processo que afetam o repositório inteiro são registr
 | Tema | Quando | Quem propõe | Requisito / critério |
 |---|---|---|---|
 | Atualização do dashboard: polling HTTP vs Server-Sent Events | Sprint 2, antes de implementar RF11 | Andrea (`@DeaTuribio`) com Lucas | RF11, RNF02 · DW05 |
-| Modelo de potência e fatores de emissão (P_idle/P_max, intensidade por região, fator padrão) | Sprint 2, junto com RF07 e `docs/calculos.md` | Henrique (`@henriqueptbd-cell`) com Lucas | RF07, RF08 · TP01, BD04 |
 | Autenticação JWT: biblioteca, expiração, armazenamento do token no frontend, hash de senha | Sprint 2, antes de implementar RP06 | Lucas (`@LUCASAMR23`) com Vinicius | RP06 · DW06 |

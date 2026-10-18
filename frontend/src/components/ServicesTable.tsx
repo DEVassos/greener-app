@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { MonitoredService, ServiceStatus } from '../services/services.types';
 import { formatNumber, formatTime } from '../utils/format';
+import MissingValue from './MissingValue';
 import StatusBadge from './StatusBadge';
 
 type SortKey = 'name' | 'cpuPercent' | 'energyKwh' | 'emissionsG' | 'lastReadingAt' | 'location' | 'status';
@@ -33,11 +34,13 @@ interface Props {
   services: MonitoredService[];
   /** Período dos valores de energia e emissão (ex.: "última 1 hora"). */
   period: string;
+  /** Clique na linha (ou Enter no nome): abre os detalhes e o histórico do serviço. */
+  onSelect: (service: MonitoredService) => void;
 }
 
 /** Valor de ordenação da coluna: localização por região, país e cidade; status pela gravidade. */
 function sortValue(service: MonitoredService, key: SortKey): string | number | null {
-  if (key === 'location') return [service.region, service.country, service.city ?? ''].join(' ');
+  if (key === 'location') return [service.region, service.country, service.city].filter(Boolean).join(' ') || null;
   if (key === 'status') return STATUS_ORDER[service.status];
   return service[key];
 }
@@ -53,16 +56,8 @@ function compare(a: MonitoredService, b: MonitoredService, key: SortKey, directi
   return ((left as number) - (right as number)) * direction;
 }
 
-function Missing() {
-  return (
-    <span className="text-muted" title="Sem métrica nesta leitura">
-      —<span className="sr-only">sem métrica</span>
-    </span>
-  );
-}
-
-/** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome e ordenação por coluna. */
-export default function ServicesTable({ services, period }: Props) {
+/** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome, ordenação por coluna e clique para os detalhes. */
+export default function ServicesTable({ services, period, onSelect }: Props) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('emissionsG');
   const [direction, setDirection] = useState<1 | -1>(-1);
@@ -103,7 +98,8 @@ export default function ServicesTable({ services, period }: Props) {
       </div>
 
       {/* Rolagem horizontal em telas estreitas: a tabela nunca quebra o layout (RNF01) */}
-      <div className="overflow-x-auto">
+      {/* relative: os textos sr-only (position: absolute) das células ficam dentro da rolagem, sem alargar a página */}
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="whitespace-nowrap text-left text-xs text-muted">
@@ -128,27 +124,52 @@ export default function ServicesTable({ services, period }: Props) {
           </thead>
           <tbody>
             {rows.map((service) => (
-              <tr key={service.id} className="border-t border-border">
+              // O clique vale para a linha toda; o botão do nome dá o mesmo acesso pelo teclado (o clique dele sobe até aqui).
+              // Focar o botão antes de abrir faz o foco voltar para ele ao fechar, mesmo com clique fora do nome.
+              <tr
+                key={service.id}
+                onClick={(event) => {
+                  event.currentTarget.querySelector('button')?.focus();
+                  onSelect(service);
+                }}
+                className="cursor-pointer border-t border-border hover:bg-surface-2"
+              >
                 <th scope="row" className="px-5 py-3 text-left font-medium">
-                  {service.name}
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    title="Ver detalhes e histórico de coletas"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-left font-sans text-sm font-medium text-text underline decoration-border underline-offset-4 hover:decoration-primary"
+                  >
+                    {service.name}
+                  </button>
                 </th>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.cpuPercent === null ? <Missing /> : `${formatNumber(service.cpuPercent, 0)}%`}
+                  {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
                 </td>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.energyKwh === null ? <Missing /> : formatNumber(service.energyKwh, 4)}
+                  {service.energyKwh === null ? <MissingValue /> : formatNumber(service.energyKwh, 4)}
                 </td>
                 <td className="px-5 py-3 text-right font-mono">
-                  {service.emissionsG === null ? <Missing /> : formatNumber(service.emissionsG, 1)}
+                  {service.emissionsG === null ? <MissingValue /> : formatNumber(service.emissionsG, 1)}
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-muted">
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}
                 </td>
                 <td className="px-5 py-3">
-                  <span className="mr-2 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-mono text-xs text-secondary">
-                    {service.region}
+                  {service.region && (
+                    <span className="mr-2 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-mono text-xs text-secondary">
+                      {service.region}
+                    </span>
+                  )}
+                  <span className="text-muted">
+                    {[service.city, service.country].filter(Boolean).join(', ') ||
+                      (!service.region && (
+                        <span title="Localização não informada pelo agregador">
+                          —<span className="sr-only">sem localização</span>
+                        </span>
+                      ))}
                   </span>
-                  <span className="text-muted">{service.city ? `${service.city}, ${service.country}` : service.country}</span>
                 </td>
                 <td className="px-5 py-3">
                   <StatusBadge status={service.status} />

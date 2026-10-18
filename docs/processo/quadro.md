@@ -1,4 +1,4 @@
-# Quadro do time — GitHub Project v2 "GreenER"
+# Quadro do time — GitHub Project v2 "EcoPulse"
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/docs/processo/quadro.md) -->
 

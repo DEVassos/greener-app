@@ -5,6 +5,8 @@ import { ServiceRepository } from '../modules/services/services.repository';
 import { CollectionRepository } from '../modules/collections/collections.repository';
 import type { DiscoveredService, NewCollection, StoredService } from '../shared/persistence.types';
 import { AppError, ValidationError } from '../shared/errors';
+import { CarbonCalculator } from '../domain/carbon-calculator';
+import type { CarbonApi } from '../integrations/carbon-api';
 
 /** A extensão #97 fornece raw e cancelamento; métodos antigos continuam tipáveis. */
 export interface CollectorApi {
@@ -12,6 +14,15 @@ export interface CollectorApi {
   getServiceMetrics(id: string, signal?: AbortSignal): Promise<ServiceMetricsResult & { raw?: Record<string, unknown> }>;
 }
 export interface CollectorLifecycle { start(): void; stop(): Promise<void> }
+
+function notCalculated() {
+  return { calculation_status: 'nao_calculado' as const, carbon_intensity_gco2e_per_kwh: null,
+    power_watts: null, energy_kwh: null, co2e_grams: null, calculation_error_message: null };
+}
+function unavailableCalculation(message: string) {
+  return { calculation_status: 'indisponivel' as const, carbon_intensity_gco2e_per_kwh: null,
+    power_watts: null, energy_kwh: null, co2e_grams: null, calculation_error_message: message };
+}
 
 /** Arredonda à escala da coluna: a API manda resíduo de float (51.248000000000005); o JSON bruto guarda o original. */
 function decimal(value: number, precision: number, scale: number): string {
@@ -42,7 +53,8 @@ export function observation(service: StoredService, result: Awaited<ReturnType<C
   const base = { service_id: service.id, collected_at: at, region_code: service.region_code };
   if (result.status !== 'ok') return { ...base, status: result.status === 'sem_metricas' ? 'sem_metricas' : 'erro',
     collection_interval_seconds: null, cpu_percent: null, memory_gb: null, disk_gb: null, network_gb: null,
-    metrics: {}, error_message: result.status === 'indisponivel' ? 'Serviço indisponível (HTTP 500).' : null };
+    metrics: {}, error_message: result.status === 'indisponivel' ? 'Serviço indisponível (HTTP 500).' : null,
+    ...notCalculated() };
   const m = result.metrics;
   if (!Number.isInteger(m.collectionIntervalSeconds) || m.collectionIntervalSeconds < 1
     || m.collectionIntervalSeconds > 2147483647 || m.cpuPercent < 0 || m.cpuPercent > 100
@@ -53,7 +65,7 @@ export function observation(service: StoredService, result: Awaited<ReturnType<C
   return { ...base, status: 'ok', collection_interval_seconds: m.collectionIntervalSeconds,
     cpu_percent: decimal(m.cpuPercent, 5, 2), memory_gb: decimal(m.memoryGb, 20, 9),
     disk_gb: decimal(m.diskGb, 20, 9), network_gb: decimal(m.networkGb, 20, 9),
-    metrics: result.raw, error_message: null };
+    metrics: result.raw, error_message: null, ...notCalculated() };
 }
 
 /** HTTP fora das transações; memória guarda somente prazos desta execução. */
@@ -66,7 +78,8 @@ export class Collector implements CollectorLifecycle {
   private stopping = false;
   constructor(private readonly db: Database, private readonly api: CollectorApi,
     private readonly pollingMs: number, private readonly now: () => number = Date.now,
-    private readonly report: (message: string) => void = console.error) {
+    private readonly report: (message: string) => void = console.error,
+    private readonly carbonApi?: CarbonApi, private readonly calculator = new CarbonCalculator()) {
     if (!Number.isInteger(pollingMs) || pollingMs < 1 || pollingMs > 2147483647)
       throw new ValidationError('Intervalo do dispatcher inválido.');
   }
@@ -92,6 +105,26 @@ export class Collector implements CollectorLifecycle {
     this.abort.abort();
     await this.active;
   }
+  private async calculate(reading: NewCollection): Promise<NewCollection> {
+    if (reading.status !== 'ok' || !this.carbonApi) return reading;
+    if (!reading.region_code) return { ...reading,
+      ...unavailableCalculation('Não foi possível calcular: região não informada.') };
+    try {
+      const intensity = await this.carbonApi.getIntensity(reading.region_code);
+      if (intensity.status === 'region_not_found') return { ...reading,
+        ...unavailableCalculation('Não há fator de carbono para esta região.') };
+      const calculation = this.calculator.calculate({ collectionIntervalSeconds: reading.collection_interval_seconds,
+        cpuPercent: Number(reading.cpu_percent), memoryGb: Number(reading.memory_gb),
+        diskGb: Number(reading.disk_gb), networkGb: Number(reading.network_gb) }, intensity.factor.intensityGco2ePerKwh);
+      return { ...reading, calculation_status: 'disponivel',
+        carbon_intensity_gco2e_per_kwh: calculation.carbonIntensityGco2ePerKwh,
+        power_watts: calculation.powerWatts, energy_kwh: calculation.energyKwh,
+        co2e_grams: calculation.co2eGrams, calculation_error_message: null };
+    } catch (error) {
+      const message = error instanceof AppError ? error.message : 'Não foi possível calcular as emissões.';
+      return { ...reading, ...unavailableCalculation(message) };
+    }
+  }
   private async collect(): Promise<void> {
     const found = discovery(await this.api.listServices(this.abort.signal));
     if (this.stopping) return;
@@ -113,14 +146,15 @@ export class Collector implements CollectorLifecycle {
       try {
         const result = await this.api.getServiceMetrics(service.external_id, this.abort.signal);
         if (this.stopping) return;
-        reading = observation(service, result, new Date(this.now()));
+        reading = await this.calculate(observation(service, result, new Date(this.now())));
         if (reading.status === 'ok') interval = reading.collection_interval_seconds * 1000;
       } catch (error) {
         if (this.stopping) return;
         reading = { service_id: service.id, collected_at: new Date(this.now()), region_code: service.region_code,
           status: 'erro', collection_interval_seconds: null, cpu_percent: null, memory_gb: null,
           disk_gb: null, network_gb: null, metrics: {},
-          error_message: error instanceof AppError ? error.message : 'Falha externa ao coletar métricas.' };
+          error_message: error instanceof AppError ? error.message : 'Falha externa ao coletar métricas.',
+          ...notCalculated() };
       }
       try {
         await withTransaction(this.db, async tx => {
