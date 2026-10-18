@@ -41,6 +41,31 @@ function readService(service) {
   };
 }
 
+/**
+ * Histórico de um serviço: `limit` coletas a cada 30 s até agora, da mais recente para a mais antiga.
+ * Ativo: CPU variando a cada chamada · indisponível: as 10 coletas mais recentes com erro · sem métricas: vazio.
+ */
+function serviceCollections(service, limit) {
+  if (service.status === 'sem_metricas') return [];
+  const now = Date.now();
+  return Array.from({ length: limit }, (_, index) => {
+    const common = { id: `${service.id}-${index}`, serviceId: service.id, collectedAt: new Date(now - index * 30_000).toISOString() };
+    if (service.status === 'indisponivel' && index < 10) {
+      return { ...common, status: 'erro', cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, errorMessage: 'Serviço indisponível (HTTP 500).' };
+    }
+    const cpu = (service.cpu ?? 30) * (1 + (Math.random() - 0.5) * 0.3);
+    return {
+      ...common,
+      status: 'ok',
+      cpuPercent: Number(Math.min(100, cpu).toFixed(1)),
+      memoryGb: Number((1 + Math.random() * 0.2).toFixed(3)),
+      diskGb: Number((12 + (limit - index) * 0.01).toFixed(3)),
+      networkGb: Number((0.1 + Math.random() * 0.05).toFixed(3)),
+      errorMessage: null,
+    };
+  });
+}
+
 function send(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body === undefined ? '' : JSON.stringify(body));
@@ -52,6 +77,18 @@ const routes = {
     if (SERVICES_SCENARIO === 'erro') return send(res, 500, { error: { code: 'INTERNAL_ERROR', message: 'Falha simulada no backend falso.' } });
     const services = SERVICES_SCENARIO === 'vazio' ? [] : SERVICES.map(readService);
     return send(res, 200, { services, period: 'última 1 hora' });
+  },
+
+  // Detalhes do serviço — histórico de coletas (mesmos erros de docs/api.md § GET /api/collections)
+  'GET /collections': async (req, res) => {
+    const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
+    const limit = query.get('limit') ?? '50';
+    if (!/^[1-9]\d*$/.test(limit) || Number(limit) > 500) {
+      return send(res, 400, { error: { code: 'VALIDATION_ERROR', message: 'limit deve ser inteiro entre 1 e 500.' } });
+    }
+    const service = SERVICES.find((item) => item.id === query.get('service_id'));
+    if (!service) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Serviço não encontrado.' } });
+    return send(res, 200, { collections: serviceCollections(service, Number(limit)), period: { from: null, to: null } });
   },
 };
 

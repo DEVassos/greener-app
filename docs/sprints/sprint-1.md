@@ -86,6 +86,8 @@ A história [#45](https://github.com/DEVassos/greener-app/issues/45) (US04 — d
 | [#118](https://github.com/DEVassos/greener-app/issues/118) | Liberar CORS para o dashboard chamar a API | RF09 | DW03 | @DeaTuribio | mergeado em `develop` | [#119](https://github.com/DEVassos/greener-app/pull/119) |
 | [#120](https://github.com/DEVassos/greener-app/issues/120) | Corrigir rolagem no celular e localização nula | RF09, RF12 | DW04 | @DeaTuribio | mergeado em `develop` | [#121](https://github.com/DEVassos/greener-app/pull/121) |
 | [#103](https://github.com/DEVassos/greener-app/issues/103) | Documentar o cliente da API de carbono | RF07 | DW02, ES08 | @henriqueptbd-cell, @viniciusaugusto1997 | mergeado em `develop` | [#125](https://github.com/DEVassos/greener-app/pull/125) |
+| [#131](https://github.com/DEVassos/greener-app/issues/131) | Janela de detalhes do serviço com histórico de coletas | RF09, RF10 | DW04 | @travensolli | em revisão; entrou em 16/10 (ver Histórico do plano) | [#135](https://github.com/DEVassos/greener-app/pull/135) |
+| [#132](https://github.com/DEVassos/greener-app/issues/132) | Gráfico de CPU no histórico do serviço | RF10 | DW04 | @travensolli | planejada; depende da #131 e vai para a Sprint 2 se não for mergeada até o congelamento | — |
 
 ### 3.3 Processo e gestão
 
