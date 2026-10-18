@@ -10,6 +10,8 @@ export interface ServiceWithLastReading {
   city: string | null;
   last_reading_at: Date | null;
   cpu_percent: string | null;
+  energy_kwh: string | null;
+  co2e_grams: string | null;
 }
 
 export class ServiceRepository {
@@ -23,10 +25,10 @@ export class ServiceRepository {
   async findAllWithLastReading(): Promise<ServiceWithLastReading[]> {
     return (await this.db.query<ServiceWithLastReading>(`
       SELECT s.id, s.name, s.status, s.country, s.region, s.city,
-        latest.collected_at AS last_reading_at, latest.cpu_percent
+        latest.collected_at AS last_reading_at, latest.cpu_percent, latest.energy_kwh, latest.co2e_grams
       FROM services AS s
       LEFT JOIN LATERAL (
-        SELECT collected_at, cpu_percent
+        SELECT collected_at, cpu_percent, energy_kwh, co2e_grams
         FROM collections
         WHERE service_id = s.id
         ORDER BY collected_at DESC, id DESC
