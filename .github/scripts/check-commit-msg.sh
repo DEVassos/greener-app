@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/scripts/check-commit-msg.sh)
 #
-# Valida mensagens de commit do GreenER (ES04/ES05/ES09):
+# Valida mensagens de commit do EcoPulse (ES04/ES05/ES09):
 #   type(scope): descrição no imperativo (#issue) [RFxx]   ≤72 caracteres
 #   referência #n no assunto ou no corpo
 #   Co-authored-by: só integrantes de .github/equipe.json (vazio ou alguém do time)
 #
 # Uso:
 #   check-commit-msg.sh [--local] <arquivo>      # hook commit-msg (arquivo com a mensagem)
-#   check-commit-msg.sh [--local] -               # mensagem pelo stdin (hook do Claude)
+#   check-commit-msg.sh [--local] -               # mensagem pelo stdin (guard dos assistentes de IA)
 #   check-commit-msg.sh --range <A..B>            # todos os commits do intervalo (CI); ignora merges
 # --local aceita prefixos fixup!/squash! (serão esmagados antes do PR).
+# Commits importados de outro repositório (histórico preservado com SHA, autor e data originais) e listados
+# em .github/commits-importados.txt (um SHA completo por linha) têm a validação de mensagem dispensada.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/conventions.sh
@@ -79,7 +81,7 @@ valida_mensagem() {
       done <<< "$trailers"
     fi
   fi
-  if printf '%s\n' "$msg" | grep -iEq '^(co-authored-by|signed-off-by|authored-by):.*(claude|anthropic|copilot|chatgpt|openai|gemini|\[bot\])'; then
+  if printf '%s\n' "$msg" | grep -iEq '^(co-authored-by|signed-off-by|authored-by):.*(claude|anthropic|copilot|chatgpt|openai|codex|gemini|antigravity|cursor|\[bot\])'; then
     err "$rotulo: trailer de autoria atribuído a IA/bot. Remova-o (regra do time: co-autor só humano e do time)."
   fi
 }
@@ -96,9 +98,17 @@ case "$MODE" in
     if [ -z "$SHAS" ]; then info "nenhum commit em $ARG"; finish "check-commit-msg"; fi
     EMAILS_TIME=""
     equipe_disponivel && EMAILS_TIME="$(equipe_emails)"
+    IMPORTADOS=""
+    if [ -f "$ROOT/.github/commits-importados.txt" ]; then
+      IMPORTADOS="$(grep -vE '^[[:space:]]*(#|$)' "$ROOT/.github/commits-importados.txt" | awk '{print $1}' | lower || true)"
+    fi
     while IFS= read -r sha; do
       [ -n "$sha" ] || continue
       short="${sha:0:7}"
+      if [ -n "$IMPORTADOS" ] && printf '%s\n' "$IMPORTADOS" | grep -Fxq "$sha"; then
+        info "$short: commit importado (listado em .github/commits-importados.txt) — mensagem original preservada, validação dispensada"
+        continue
+      fi
       autor_email="$(git -C "$ROOT" log -1 --format=%ae "$sha" | lower)"
       autor_nome="$(git -C "$ROOT" log -1 --format=%an "$sha")"
       if [ -n "$EMAILS_TIME" ] && ! printf '%s\n' "$EMAILS_TIME" | grep -Fxq "$autor_email"; then

@@ -1,8 +1,8 @@
-# Guia de contribuição — GreenER (DEVassos · ABP 2DSM 2026-2)
+# Guia de contribuição — EcoPulse (DEVassos · ABP 2DSM 2026-2)
 
 <!-- gerado pelo agilekit — edite em DEVassos/agilekit (repo/.github/CONTRIBUTING.md) -->
 
-Regras de branch, commit e Pull Request. Todas são **validadas automaticamente**: pelos hooks git locais (instalados pelo agilekit), pelo hook do Claude Code e pelos checks do GitHub (`commits`, `pr`, `docs`). O processo Scrum (papéis, cerimônias, DoR/DoD) está em [docs/processo/README.md](../docs/processo/README.md).
+Regras de branch, commit e Pull Request. Todas são **validadas automaticamente**: pelos hooks git locais (instalados pelo agilekit), pelo guard dos assistentes de IA (Claude Code, Copilot, Codex ou Antigravity) e pelos checks do GitHub (`commits`, `pr`, `docs`). O processo Scrum (papéis, cerimônias, DoR/DoD) está em [docs/processo/README.md](../docs/processo/README.md).
 
 ## 1. Git Flow
 
@@ -17,7 +17,7 @@ release/sprint-1 (develop → main, pelo SM no congelamento)   hotfix/55-crash-c
 - **Nunca** commit ou push direto em `main` ou `develop` (bloqueado por hook e por ruleset).
 - 1 issue = 1 branch = 1 PR (≤400 linhas alteradas). A branch é **apagada automaticamente** no merge.
 - Nome da branch: `tipo/<nº-da-issue>-slug-curto` — tipos `feature fix docs chore test sql`; `slug` em minúsculas, `a-z0-9.-`.
-- Comece sempre de `origin/develop` atualizada: `git fetch && git switch -c feature/12-slug origin/develop` (ou `/tarefa 12` no Claude).
+- Comece sempre de `origin/develop` atualizada: `git fetch && git switch -c feature/12-slug origin/develop` (ou a skill `tarefa` no seu assistente de IA: `/tarefa 12`; no Codex, `$tarefa 12`).
 - `hotfix/<n>-slug` nasce de `main`, vai por PR para `main` **e** por outro PR para `develop`.
 - Mudanças em `.github/workflows` precisam chegar a `main` (os eventos de issues/push usam o workflow da branch padrão): PR para `develop` e PR para `main`.
 
@@ -46,7 +46,7 @@ fix(frontend): mostra estado indisponível no card do serviço (#31) [RF05]
 chore(processo): registra ata da daily de 07/10 (#3)
 ```
 
-Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.gitmessage` com estas regras; `/commitar` no Claude Code monta a mensagem.
+Um commit por intenção; commite ao fim de cada sessão de trabalho (ES05 olha a distribuição ao longo da sprint). `git commit` abre o template `.agilekit/gitmessage` com estas regras; a skill `commitar` do assistente de IA monta a mensagem.
 
 ### Co-autoria
 
@@ -56,7 +56,7 @@ O trailer `Co-authored-by:` é **opcional** e, quando existir, só pode apontar 
 Co-authored-by: Andrea Turibio <139165742+DeaTuribio@users.noreply.github.com>
 ```
 
-Use o `.gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. Quem gera código com apoio de IA explica isso no PR, não no commit.
+Use o `.agilekit/gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. Quem gera código com apoio de IA explica isso no PR, não no commit.
 
 ### E-mail do git
 
@@ -71,6 +71,7 @@ Use o `.gitmessage` (descomente a linha da pessoa) ou `/commitar --par @login`. 
 - Checklist: nenhum `- [ ]` pode ficar pendente; se não se aplica, escreva `N/A — motivo`.
 - Revisão: 1 aprovação de alguém **≠ autor**, com ≥1 comentário substantivo; o revisor **executa** o "Como verificar" e marca os critérios de aceite. Revise em ≤24h.
 - Merge: **merge commit** (preserva a autoria de cada integrante). Squash e rebase estão desabilitados.
+- Sem rodapé de ferramenta ("Generated with …") no PR e sem trailer de IA nos commits: quem usou IA explica isso em texto no corpo do PR. O check `pr` recusa o rodapé, o hook `commit-msg` recusa o trailer e o kit desliga a atribuição automática do Claude Code e do Copilot no VS Code; no Copilot CLI, rode uma vez `/settings includeCoAuthoredBy off`.
 - Rascunho (`--draft`) enquanto não estiver pronto: os checks viram avisos.
 
 ## 4. Release e tags
@@ -86,6 +87,10 @@ No congelamento (domingo 20h antes da review) o SM roda `/sprint N congelar`: cr
 | `docs` | plano de entregas (Concluído com link e responsável), `api.md` quando há rotas, docs vazios/placeholders | `check-docs.sh` |
 
 Rode localmente antes de abrir o PR: `bash .github/scripts/check-forbidden.sh && bash .github/scripts/check-docs.sh`.
+
+### Histórico importado
+
+Commits trazidos de outro repositório do time (por exemplo, o antigo `Projeto-GreenER`) entram por **merge** de um PR dedicado, o que preserva SHA, autor, data e mensagem originais — e, portanto, a autoria de cada integrante no GitHub. Como essas mensagens são anteriores ao padrão, os SHAs completos ficam listados em `.github/commits-importados.txt` (com a origem) e o check `commits` não os valida. Todo commit novo, inclusive os de organização feitos no próprio PR de importação, segue o padrão normalmente.
 
 ## 6. Dúvidas frequentes
 
