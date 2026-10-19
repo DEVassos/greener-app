@@ -8,6 +8,7 @@
 | Cliente / avaliadores | UniLaunch (cliente) e Fatec Jacareí (avaliação da entrega) |
 | Versão demonstrada | branch `release/sprint-1`, cortada de `develop` depois dos PRs de documentação da Sprint 1 (nenhuma funcionalidade entrou após o congelamento de 18/10/2026 20h); roteiro ensaiado em `develop` no commit [`16d520f`](https://github.com/DEVassos/greener-app/commit/16d520f1008c629e4a5f8b5a9f519da1881d3626) |
 | Ambiente | `docker compose up --build` neste clone (containers `ecopulse-*`, PostgreSQL 16); ensaio em 18/10/2026 |
+| Vídeo da demonstração | [EcoPulse - ABP FATEC 2DSM](https://youtu.be/3Hx4kzuudSw) (YouTube, canal DEVassos, cerca de 3 min): o produto como está na Sprint 1, preparado pelo PO (@henriqueptbd-cell) |
 
 ## 1. Objetivo da sprint e resultado
 
