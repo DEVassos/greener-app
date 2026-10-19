@@ -72,7 +72,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **Dashboard em três níveis:** visão executiva (kWh total, gCO₂e, serviços ativos e indisponíveis, com atualização sem recarregar), análise comparativa (ranking e distribuição geográfica) e investigação detalhada (histórico por serviço).
 - **Área de configuração autenticada:** JWT no backend e senhas com bcrypt.
-- **Diferenciais em estudo:** simulação de migração para regiões com matriz mais limpa e exportação de relatórios em PDF/CSV ([proposta](docs/produto/diferenciais-devassos.pdf)).
+- **Diferenciais em estudo:** simulação de migração para regiões com matriz mais limpa ([US12, #53](https://github.com/DEVassos/greener-app/issues/53)) e exportação de relatórios em PDF/CSV ([US13, #54](https://github.com/DEVassos/greener-app/issues/54)), previstas para a Sprint 3.
 
 ## 5. Tecnologias
 
@@ -170,7 +170,7 @@ Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, u
 | [docs/plano-de-entregas.md](docs/plano-de-entregas.md) | Plano das sprints, critérios da rubrica, responsáveis e evidências |
 | [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento ([Sprint 1](docs/sprints/sprint-1/planning.md)), dailies, review, retrospectiva, participação |
 | [docs/pontos-para-discutir.md](docs/pontos-para-discutir.md) | Decisões em aberto e dúvidas para o parceiro |
-| [docs/produto/](docs/produto/) | Proposta de diferenciais, protótipo HTML do dashboard e [protótipo navegável no Figma](docs/produto/prototipo-figma.md) (dashboard, login e cadastro, desktop e celular) |
+| [docs/produto/](docs/produto/) | Protótipo HTML do dashboard e [protótipo navegável no Figma](docs/produto/prototipo-figma.md) (dashboard, login e cadastro, desktop e celular) |
 | [docs/adr/](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [docs/processo/](docs/processo/) | Como o time trabalha |
 | [docs/contexto/](docs/contexto/) | Documentos do desafio (edital, documentação estendida, apresentação do kickoff, rubrica) |
