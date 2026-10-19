@@ -1,8 +1,8 @@
 # Banco de dados
 
-Contribuição local da #14: DML parametrizada em `backend/src/modules/services/services.repository.ts`, `collections/collections.repository.ts` e no módulo existente `usuarios/usuarios.repository.ts`. Transações em `backend/src/db/transaction.repository.ts`, sempre em uma conexão reservada do pool. Schema/UML inalterados; histórico somente por inserção, sem exclusão física ou sobrescrita de coletas. Contratos e fixture de verificação descartável no [README backend](../backend/README.md#repositories--contribuição-local-da-14). Nenhum worker, cálculo ou autenticação implementado nesta contribuição.
+SQL explícito no PostgreSQL, sem ORM (ADR 0002). O schema está em `database/schema.sql` (#5, #77) e o modelo em [`docs/arquitetura/modelagem-uml.md`](../docs/arquitetura/modelagem-uml.md). As consultas DML ficam nos repositories do backend: `services.repository.ts`, `collections.repository.ts`, `usuarios/usuarios.repository.ts` e `health.repository.ts`, com transações em `backend/src/db/transaction.repository.ts` (#14, #94). O worker de coleta grava o histórico só por inserção (#19, #99) e, desde o #139 (#133), preenche os campos de cálculo de energia e CO₂e. A autenticação, que usa a tabela `users`, está prevista para a Sprint 2.
 
-SQL explícito PostgreSQL, sem ORM. O schema de Lucas (#5/#44) foi integrado localmente à UML; implementação e publicação permanecem em revisão. [Modelo](../docs/arquitetura/modelagem-uml.md), [decisões/fontes](../docs/arquitetura/integracao-modelagem-banco.md) e [cálculos](../docs/calculos.md).
+Decisões e fontes do modelo em [`integracao-modelagem-banco.md`](../docs/arquitetura/integracao-modelagem-banco.md); fórmulas e unidades em [`docs/calculos.md`](../docs/calculos.md); contratos dos repositories e fixture dos testes de integração no [README do backend](../backend/README.md#repositories-e-transações-14).
 
 ## Arquivos e ordem
 
@@ -70,7 +70,7 @@ Sem rede/portas/volume, trust fica limitado a esse container temporário; não �
 | users | Credenciais administrativas para configuração e consulta futura das entradas. | E-mail único sem diferenciar caixa; hash bcrypt. Sem quatro perfis ou tenants. |
 | access_entries | IP e instante da primeira entrada por sessão da aba. | IP INET e horário TIMESTAMPTZ obrigatórios; índice temporal; sem FK de usuário ou dados HTTP. |
 
-Os estados e nulabilidade completos constam na UML e nos CHECKs. Falha de carbono preserva métricas válidas; cálculo indisponível exige mensagem própria e não fabrica emissão zero. JSONB contém objeto bruto de /metrics; campos normalizados são a interface do modelo, e JSON não substitui validação no futuro backend.
+Os estados e nulabilidade completos constam na UML e nos CHECKs. Falha de carbono preserva métricas válidas; cálculo indisponível exige mensagem própria e não fabrica emissão zero. JSONB contém objeto bruto de /metrics; campos normalizados são a interface do modelo, e o JSON não substitui a validação feita no backend antes do INSERT.
 
 Energia numeric(20,12) e emissão numeric(24,12) aumentam a resolução para 10⁻¹² sem reduzir a faixa inteira anterior. Exemplos e limites: docs/calculos.md. O schema possui quatro índices explícitos e cinco automáticos (quatro PKs e UNIQUE de services.external_id), totalizando nove. Roteiro reproduzível dos testes: [verificação do schema](../docs/arquitetura/verificacao-schema.md).
 
@@ -82,8 +82,23 @@ Um banco criado com a revisão anterior em GB/escala seis também é recusado pe
 
 Evolução em banco populado exige script database/migrations/NNN-slug.sql conforme ADR 0002, documentação, backup e teste de preservação. Conversão de bytes exige comprovar unidade e origem; o nome da coluna não comprova o fator. Nenhuma conversão silenciosa ou DROP/TRUNCATE foi incluída.
 
-## Responsabilidades futuras
+## Onde ficam as consultas (DML)
 
-DML apenas em backend/src/modules/*/*.repository.ts, driver pg e parâmetros $1…$n. Não há repositories nesta branch. Cada coleta será INSERT novo; FK protege serviços referenciados, mas não torna collections tecnicamente imutável. UPDATEs de services/users deverão atribuir updated_at = now(); o default só atua na inserção.
+Toda DML fica em `backend/src/modules/*/*.repository.ts`, com o driver `pg` e parâmetros `$1…$n`, sem interpolação de valores:
 
-Consulta de entradas será autenticada por JWT no backend, com credenciais administrativas existentes, filtros por período e paginação. IP será obtido da conexão/proxies confiáveis e horário do servidor. Não há registro de polling, worker, tentativas de login ou identificação inequívoca de pessoas. Mecanismo frontend/backend, retenção e issue/sprint ainda não foram entregues; solicitação local registrada no documento de integração.
+| Repository | Consultas |
+|---|---|
+| `services/services.repository.ts` | lista os serviços com a última coleta (métricas, energia e CO₂e), busca por ID, upsert por `external_id`, atualização de estado e marcação de ausentes como `removido` |
+| `collections/collections.repository.ts` | insere a coleta (métricas, JSON bruto e campos de cálculo) e lista o histórico com filtros de serviço, período e limite |
+| `usuarios/usuarios.repository.ts` | busca usuário por e-mail sem distinção de caixa (base da autenticação da Sprint 2) |
+| `health/health.repository.ts` | `SELECT 1` do healthcheck |
+
+Cada coleta é um INSERT novo; não há UPDATE nem DELETE de coletas. A FK `RESTRICT` protege serviços referenciados, mas não torna `collections` imutável tecnicamente. Os UPDATEs em `services` atribuem `updated_at = now()`, porque o default só atua na inserção; `users` ainda não tem UPDATE.
+
+Para consultar o histórico pelo compose:
+
+```bash
+docker compose exec postgres psql -U ecopulse -d ecopulse_db -c "SELECT calculation_status, count(*) FROM collections GROUP BY 1;"
+```
+
+A tabela `access_entries` (IP e horário da primeira entrada por sessão) já existe no schema, mas ainda não é gravada nem consultada. A consulta autenticada por JWT, com filtros por período, entra junto com a área de configuração na Sprint 2.
