@@ -30,7 +30,7 @@ O **EcoPulse** é uma plataforma web de observabilidade socioambiental (**GreenO
 
 Requisitos completos (RF01–RF15, RNF01–RNF05, RP01–RP07): [docs/requisitos.md](docs/requisitos.md).
 
-Setup do backend: [organização e validação](backend/README.md) e [contrato de saúde](docs/api.md). Frontend, backend e PostgreSQL sobem juntos pelo `compose.yaml` (#26, #27).
+Setup do backend: [organização e validação](backend/README.md) e [contrato da API](docs/api.md). Frontend, backend e PostgreSQL sobem juntos pelo `compose.yaml` (#26, #27).
 
 ## 3. Funcionalidades implementadas
 
@@ -38,19 +38,25 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas ou removido, quando o serviço sai da lista do agregador), com busca por nome e ordenação por coluna. A tela consome `GET /api/services` (#115) pela base definida em `VITE_API_URL`; sem ela (variável vazia), o frontend sobe em modo demonstração com dados ilustrativos (`npm run mock`) — como executar em [frontend/README.md](frontend/README.md).
 
-  ![Tabela de serviços monitorados](docs/img/sprint-1-servicos.png)
+  ![Tabela de serviços monitorados com o backend real](docs/img/sprint-1-dashboard-backend-real.png)
+
+  _Tabela ligada ao backend real em 14/10/2026, antes do cálculo de CO₂e (#139): por isso energia e emissão aparecem como "—". Audit Stream estava como Removido porque tinha saído da lista do agregador._
 
 - **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
 
   ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
 
+  _Selo em 09/10/2026, capturado com o backend falso de desenvolvimento (`npm run mock`): os serviços e os valores de energia e emissão desta imagem são ilustrativos._
+
 - **RF11, RNF02 — Atualização automática sem recarregar (#100, #114):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
 
   ![Dashboard depois de uma atualização com falha](docs/img/sprint-1-atualizacao-automatica.png)
 
+  _Falha simulada no backend falso de desenvolvimento: os dados anteriores continuam na tela e o selo fica laranja ("Desatualizado desde …")._
+
 - **RF01, RF02, RF03, RF04 — Descoberta e coleta periódica (#95, #98, #99):** o backend descobre os serviços no agregador de métricas, consulta `/metrics/{id}` e grava o histórico no PostgreSQL; o _worker_ roda em segundo plano e reconcilia serviços que aparecem, ficam indisponíveis ou voltam a exportar métricas.
 
-- **RF10 — API dos serviços e histórico de coletas (#115, #116, #119):** `GET /api/services` devolve os serviços monitorados com a última leitura, e `GET /api/collections?service_id=&from=&to=&limit=` devolve o histórico paginado de coletas, com CORS liberado para o dashboard. Contrato completo em [docs/api.md](docs/api.md).
+- **RF10 — API dos serviços e histórico de coletas (#115, #116, #119):** `GET /api/services` devolve os serviços monitorados com a última leitura, e `GET /api/collections?service_id=&from=&to=&limit=` devolve o histórico de coletas (com `limit` de 1 a 500), com CORS liberado para o dashboard. Contrato completo em [docs/api.md](docs/api.md).
 
 - **RF09, RF10 — Detalhes e histórico do serviço (#135):** clicar num serviço da tabela abre uma janela com status, localização, última leitura, CPU e as 50 coletas mais recentes do serviço (`GET /api/collections`), com o período exibido na legenda. O histórico se atualiza no mesmo intervalo do dashboard; se uma busca falha, as coletas continuam na tela com "Desatualizado desde …". Como verificar em [frontend/README.md](frontend/README.md).
 
@@ -58,7 +64,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
-- **RF07 — Cálculo socioambiental por coleta (#133):** métricas válidas são convertidas em potência, energia e emissão de CO₂e com o fator regional da API de carbono. Se o fator não estiver disponível, a métrica continua registrada e o cálculo fica indisponível, sem criar valor estimado.
+- **RF07 — Cálculo socioambiental por coleta (#133, PR #139):** métricas válidas são convertidas em potência, energia e emissão de CO₂e com o fator regional da API de carbono. Se o fator não estiver disponível, a métrica continua registrada e o cálculo fica indisponível, sem criar valor estimado. As colunas "Energia (kWh)" e "Emissão (g CO₂e)" da tabela mostram o resultado da última coleta, com cerca de 30 s de operação; emissões abaixo de 0,05 g aparecem como 0,0 por causa da casa decimal ([detalhes](frontend/README.md#energia-e-emissão-na-tabela)).
 
 ## 4. Escopo planejado
 
@@ -75,7 +81,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 | Frontend | React + TypeScript (Vite, Tailwind CSS) |
 | Backend | Node.js + TypeScript, API REST em módulos (routes, controllers, services, repositories) |
 | Banco de dados | PostgreSQL com DDL e DML explícitos via driver `pg`, sem ORM |
-| Segurança | JWT no backend e bcrypt para senhas |
+| Segurança | JWT no backend e bcrypt para senhas, previstos para a Sprint 2 com a área de configuração ([#20](https://github.com/DEVassos/greener-app/issues/20)) |
 | Execução | Docker Compose (frontend, backend e PostgreSQL com volume persistente) |
 
 ## 6. Equipe (DEVassos)
@@ -115,7 +121,7 @@ docker compose up --build
 | Backend (API e `/health`) | http://localhost:3000/health | no `compose.yaml`; sobe depois que o PostgreSQL fica saudável |
 | PostgreSQL 16 | `localhost:5433` (`POSTGRES_HOST_PORT`) | no `compose.yaml`, volume `pgdata`; acesso com `docker compose exec postgres psql -U ecopulse -d ecopulse_db` |
 
-Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). Com `VITE_API_URL` apontando para `http://localhost:3000/api` (como no `.env.example`), o dashboard mostra os serviços que o backend coletou: a lista começa vazia e é preenchida pelo coletor que o backend inicia junto com a API (descoberta no agregador a cada `POLLING_INTERVAL_MS`, padrão 30 s); sem acesso ao agregador, a lista para de mudar e mostra o que já está no banco; o aviso "Desatualizado desde …" aparece quando o próprio backend não responde. Deixando `VITE_API_URL` vazia, o frontend sobe em modo demonstração com dados ilustrativos e faixa de aviso; `npm run mock` sobe um backend falso para desenvolvimento. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
+Na primeira subida o PostgreSQL aplica [`database/schema.sql`](database/schema.sql) sozinho; detalhes em [database/README.md](database/README.md). Com `VITE_API_URL` apontando para `http://localhost:3000/api` (como no `.env.example`), o dashboard mostra os serviços que o backend coletou: a lista começa vazia e é preenchida pelo coletor que o backend inicia junto com a API (descoberta no agregador a cada 30 s; no compose vale esse padrão, porque `POLLING_INTERVAL_MS` ainda não é repassado ao container); sem acesso ao agregador, a lista para de mudar e mostra o que já está no banco; o aviso "Desatualizado desde …" aparece quando o próprio backend não responde. Deixando `VITE_API_URL` vazia, o frontend sobe em modo demonstração com dados ilustrativos e faixa de aviso; `npm run mock` sobe um backend falso para desenvolvimento. Detalhes da imagem do frontend em [frontend/README.md](frontend/README.md#execução-em-container).
 
 `docker compose down` para os containers e mantém os dados; `docker compose down -v` também apaga o volume `pgdata` (banco zerado na próxima subida).
 
@@ -125,21 +131,22 @@ Os valores de configuração vivem em um `.env` na raiz do repositório, que **n
 
 São exemplos, não um preset universal: `DATABASE_URL` depende do banco, das credenciais e do host de cada ambiente — dentro de um container, `localhost` aponta para o próprio container, não para a máquina nem para o serviço do PostgreSQL. Revise os valores em cada instalação.
 
-O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](https://github.com/DEVassos/greener-app/issues/27)). Dentro do compose, a `DATABASE_URL` do backend é montada a partir de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` com o host `postgres`; a `DATABASE_URL` do `.env` só vale para rodar o backend fora do Docker. Sem `.env`, o compose usa os mesmos valores de exemplo.
+O `compose.yaml` lê o `.env` e repassa as variáveis aos containers ([#27](https://github.com/DEVassos/greener-app/issues/27)). Dentro do compose, a `DATABASE_URL` do backend é montada a partir de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` com o host `postgres`; a `DATABASE_URL` do `.env` só vale para rodar o backend fora do Docker. O compose repassa só as variáveis declaradas nele, e `POLLING_INTERVAL_MS` ainda não está entre elas. Sem `.env`, o banco e o backend sobem com os padrões do `compose.yaml`, mas o frontend é construído sem `VITE_API_URL` e entra em modo demonstração. Por isso, rode sempre `cp .env.example .env` antes da primeira subida.
 
 | Variável | Exemplo em `.env.example` | Para que serve |
 |---|---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `ecopulse` / `ecopulse` / `ecopulse_db` | usuário, senha e banco criados no PostgreSQL do compose na primeira subida do volume |
 | `POSTGRES_HOST_PORT` | `5433` | porta do host em que o banco do compose fica acessível; dentro do Docker é sempre `postgres:5432`. 5433 evita conflito com um PostgreSQL local; troque se ela estiver em uso |
-| `PORT` | `3000` | porta HTTP em que a API do backend atende |
+| `PORT` | `3000` | porta HTTP da API quando o backend roda fora do Docker; no compose ela é fixa em 3000 |
 | `DATABASE_URL` | `postgresql://ecopulse:ecopulse@localhost:5433/ecopulse_db` | conexão do PostgreSQL usada pelo driver `pg` fora do Docker (no compose ela é montada com `POSTGRES_*`) |
 | `CARBON_API_URL` | `https://carbon.unilaunch.org` | base da API de intensidade de carbono do parceiro |
-| `JWT_SECRET` | `dev-secret-change-me` | chave que assina os tokens JWT da área de configuração |
-| `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login |
+| `JWT_SECRET` | `dev-secret-change-me` | chave que vai assinar os tokens JWT da área de configuração; ainda sem uso, porque a autenticação entra na Sprint 2 |
+| `JWT_EXPIRES_IN` | `8h` | validade do token emitido no login (Sprint 2) |
 | `METRICS_API_URL` | `https://metrics.unilaunch.org` | base da API agregadora de métricas do parceiro |
-| `POLLING_INTERVAL_MS` | `30000` | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta (30 s); o prazo normal vem de `collection_interval_seconds` |
+| `POLLING_INTERVAL_MS` | `30000` | intervalo da descoberta de serviços e prazo inicial/de recuperação da coleta (30 s); o prazo normal vem de `collection_interval_seconds`. Vale para o backend fora do Docker; no compose fica o padrão |
 | `CORS_ORIGIN` | `http://localhost:5173` | origem(ns) do dashboard liberadas pelo backend para chamar a API pelo navegador (CORS), separadas por vírgula |
-| `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard |
+| `VITE_API_URL` | `http://localhost:3000/api` | base da API consumida pelo dashboard; vazia, o frontend entra em modo demonstração |
+| `VITE_REFRESH_INTERVAL_MS` | `30000` | intervalo da atualização automática do dashboard em ms (mínimo 5000); entra no build do frontend |
 
 Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, usuários e segredo próprios, então troque esses valores no `.env` antes de publicar.
 
@@ -168,11 +175,11 @@ Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, u
 | [docs/processo/](docs/processo/) | Como o time trabalha |
 | [docs/contexto/](docs/contexto/) | Documentos do desafio (edital, documentação estendida, apresentação do kickoff, rubrica) |
 
-Documentação técnica de execução (`docs/arquitetura.md`, `docs/api.md`, `docs/calculos.md`, READMEs de `frontend/`, `backend/` e `database/`) é criada junto com o código correspondente.
+Documentação técnica: [arquitetura](docs/arquitetura.md), [API](docs/api.md), [cálculos](docs/calculos.md) e os READMEs de [`frontend/`](frontend/README.md), [`backend/`](backend/README.md) e [`database/`](database/README.md). Cada uma é atualizada no mesmo PR do código que descreve.
 
 ## 11. Status
 
-**Sprint 1** (29/09 → 19/10/2026): em fechamento — congelamento em 18/10/2026 às 20h e review em 19/10/2026 às 19h30. `develop` reúne 40 Pull Requests mergeados entre 06/10 e 15/10, cobrindo os itens do [plano de entregas](docs/plano-de-entregas.md) previstos para a sprint (18 itens, 79 pontos): 13 concluídos; ES05 (distribuição), ES06 (review) e ES09 (participação) fecham com a review de 19/10 e o fechamento; ES07 está **parcial** (#60 e #110 mergeados sem revisão, #82 com mudanças pedidas) e ES08 também — os READMEs de [`backend/`](backend/README.md) e [`database/`](database/README.md) e o [`docs/api.md`](docs/api.md) ainda tratam entregas já mergeadas como "em revisão". Situação por critério, verificações realizadas e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+**Sprint 1** (29/09 → 19/10/2026): em fechamento. O congelamento foi em 18/10/2026 às 20h (depois dele só entra documentação) e a review com o cliente é em 19/10/2026 às 19h30. `develop` reúne 48 Pull Requests mergeados entre 06/10 e 17/10. Pelo [plano de entregas](docs/plano-de-entregas.md), estão concluídos os critérios técnicos da sprint (DW01–DW04, DW07, BD01–BD03 e TP02) e ES01–ES04. ES07 está **parcial** (#60, #82 e #110 entraram sem aprovação válida), e ES08 é conferido no fechamento, depois desta revisão da documentação (#146). ES05, ES06 e ES09 fecham com a review e o registro de participação. Situação por critério, verificações e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
 
 ---
 

@@ -41,6 +41,11 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Durante uma busca o botão fica com `aria-disabled` (não `disabled`), para quem navega pelo teclado não perder o foco a cada ciclo. O selo não é `role="status"`: o horário não é anunciado a cada ciclo, e a falha é anunciada pelo aviso de erro.
 - Se uma atualização falhar, os dados anteriores continuam na tela, o selo fica laranja ("Desatualizado desde…") e aparece o erro com **Tentar novamente**.
 
+## Energia e emissão na tabela
+
+- As colunas "Energia (kWh)" e "Emissão (g CO₂e)" mostram o resultado da **última coleta** de cada serviço (cerca de 30 s de operação), calculado pelo backend desde o #139. Sem cálculo disponível (por exemplo, com a API de carbono fora), aparece "—", nunca zero.
+- A energia sai com 4 casas e a emissão com 1 casa decimal. Por isso, emissões abaixo de 0,05 g por coleta, comuns em regiões de matriz limpa, aparecem como **0,0**; o valor exato está em `GET /api/services`. A formatação será revista na Sprint 2.
+
 ## Detalhes e histórico do serviço
 
 - Clicar numa linha da tabela abre `ServiceDetailsDialog`, um `<dialog>` nativo aberto com `showModal()`. Pelo teclado, o nome do serviço é um botão. O `<dialog>` já prende o foco na janela, fecha com Esc e escurece o fundo; ela fecha também pelo botão × ou por um clique fora, e o foco volta para a tabela.
@@ -65,7 +70,7 @@ docker compose up --build      # frontend em http://localhost:5173
 
 ## Backend falso (`npm run mock`)
 
-Enquanto a API do backend não existe, `mock/server.mjs` (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do EcoPulse.)
+O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #112), e o caminho oficial é o compose. O `mock/server.mjs` continua como atalho de desenvolvimento sem Docker: (Node puro, sem dependências) responde em `http://localhost:3000` o **contrato provisório** que o frontend espera, com ou sem o prefixo `/api`. É a referência para o backend implementar a rota de verdade; quando ela estiver documentada, o contrato aqui é ajustado. (`docs/especificacao-api.md` descreve as APIs **externas** — agregador e intensidade de carbono —, não a API do EcoPulse.)
 
 | Rota | Pedido | Resposta |
 |---|---|---|
@@ -107,7 +112,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 
 1. `npm ci && npm run build` → termina sem erros de TypeScript.
 2. Sem `.env`: `npm run dev` e abrir http://localhost:5173 → faixa "demonstração com dados ilustrativos" e a tabela **Serviços monitorados** com 7 serviços; o link **Configuração** abre `/configuracao`.
-3. Estreitar a janela para menos de 960 px (ou usar o modo dispositivo do navegador) → o menu continua visível, numa segunda linha abaixo da marca, e só a tabela rola na horizontal: a página não ganha rolagem lateral, nem com energia e emissão vazias (dados reais até a Sprint 2).
+3. Estreitar a janela para menos de 960 px (ou usar o modo dispositivo do navegador) → o menu continua visível, numa segunda linha abaixo da marca, e só a tabela rola na horizontal: a página não ganha rolagem lateral, nem com energia e emissão vazias (serviço sem cálculo disponível).
 4. Na raiz, `cp .env.example .env`. Em um terminal `npm run mock`; em outro `npm run dev` → a faixa some e a tabela mostra os serviços de `GET /api/services` (o terminal do mock registra a chamada como `GET /services`, sem o prefixo `/api`).
 5. Na tabela: cada serviço aparece com região, cidade/país e status (Ativo, Indisponível, Sem métricas); sem métrica aparece "—". Localização mostra só as partes informadas (sem ", null"); sem nenhuma, aparece "—" e o serviço fica no fim ao ordenar por Localização. Com o backend real há um quarto status, **Removido**: o serviço saiu da lista de `GET /services` do agregador na última descoberta do worker e volta a Ativo quando reaparece. O backend falso não tem esse caso.
 6. Digitar "check" na busca → só **Checkout Worker**; buscar algo inexistente → "Nenhum serviço com … no nome".
