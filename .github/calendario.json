@@ -16,6 +16,7 @@
       "numero": 1,
       "milestone": "Sprint 1",
       "inicio": "2026-09-29",
+      "burndown_base": "2026-10-05",
       "fim": "2026-10-19",
       "checkpoint": "2026-10-09",
       "congelamento": "2026-10-18T20:00",
