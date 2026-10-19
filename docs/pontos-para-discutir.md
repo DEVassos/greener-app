@@ -1,4 +1,4 @@
-# Pontos para Discutir em Grupo — GreenER
+# Pontos para Discutir em Grupo — EcoPulse
 
 > Documento vivo com **dúvidas em aberto, decisões pendentes e assuntos que precisam de fechamento coletivo** (ou de resposta do parceiro UniLaunch). Atualizar conforme os itens forem resolvidos. Cada item tem um marcador de status.
 
@@ -10,7 +10,7 @@
 
 ### 1.1 🟢 Como o usuário inicial existe no ambiente
 
-- **Decisão tomada:** **Opção (A)** — usuário admin pré-criado via seed SQL (`database/seed.sql`) com senha hasheada (bcrypt). Já refletido como tarefa **DB-03** e história **US07** da Sprint 1.
+- **Decisão tomada:** **Opção (A)** — usuário admin pré-criado via seed SQL (`database/seed.sql`) com senha hasheada (bcrypt). Refletido na tarefa **DB-03** ([#6](https://github.com/DEVassos/greener-app/issues/6)) e na história **US07** ([#48](https://github.com/DEVassos/greener-app/issues/48)), que no replanejamento de 05/10 ficaram na Sprint 2; `database/seed.sql` ainda não existe.
 - **Contexto:** RP06 exige autenticação JWT na área de configuração. Em ambiente Docker, cada instalação sobe um banco **vazio**, então o usuário inicial precisa nascer junto com o schema.
 - _Endpoints de registro (`/auth/register`) ficaram fora do MVP; a gestão de usuários é evolução pós-MVP._
 
@@ -43,10 +43,11 @@
 - **Contexto:** o schema define o enum `ServiceStatus` (`available`, `unavailable`, `metrics_missing`), mas o campo **não aparece** no retorno real de `/services`.
 - **Perguntar ao parceiro:** é intencional (status sempre inferido no cliente) ou falta implementar/documentar?
 
-### 2.3 🔴 Carbon Intensity API não validada
+### 2.3 🟢 Carbon Intensity API não validada
 
 - **Contexto:** só a Metrics API foi confirmada via `/openapi.json`. Os endpoints do Carbon em `especificacao-api.md` são **assumidos**.
 - **Ação:** testar `https://carbon.unilaunch.org/openapi.json` e validar o schema.
+- **Resolvido (08/10):** contrato conferido no `/openapi.json`; cliente em `backend/src/integrations/carbon-api.ts`, com testes ([#17](https://github.com/DEVassos/greener-app/issues/17), PR #92).
 
 ### 2.4 🟡 Autenticação e rate limit das APIs
 
@@ -56,34 +57,39 @@
 
 ## 3. Modelagem de Dados
 
-### 3.1 🟡 Nomes e estrutura das tabelas
+### 3.1 🟢 Nomes e estrutura das tabelas
 
 - O backlog cita `servicos`, `coletas`, `usuarios`; o doc técnico (`abp-2026-2.md`) sugere `services` e `service_readings`.
 - **Decisão a tomar:** padronizar nomenclatura (PT vs EN) e o número de tabelas.
 - **Dúvida:** `service_readings` é **somente inserção** (histórico imutável) — confirmar essa regra.
+- **Resolvido no schema (#5, PR #77):** tabelas em inglês `services`, `collections`, `users` e `access_entries`; `collections` só recebe INSERT (nenhum UPDATE ou DELETE de coleta nos repositories).
 
-### 3.2 🟡 Cálculo e armazenamento de Potência/Energia/CO₂e
+### 3.2 🟢 Cálculo e armazenamento de Potência/Energia/CO₂e
 
 - **Decisão a tomar:** potência e energia são **calculadas na hora** ou **persistidas** na coleta? Isso impacta reprocessamento e queries de análise (Sprint 2).
+- **Resolvido na [ADR 0006](adr/0006-modelo-potencia-fatores-emissao.md) (#133, PR #139):** calculados na coleta e persistidos em `collections`, junto com a intensidade usada.
 
-### 3.3 🟡 Uso de query builder (ex: Knex) vs. SQL puro
+### 3.3 🟢 Uso de query builder (ex: Knex) vs. SQL puro
 
 - RP03 diz "sem ORM". **Dúvida:** query builder é aceitável ou tem que ser SQL puro via driver `pg`? (consta nas perguntas do kickoff).
+- **Resolvido na [ADR 0002](adr/0002-postgresql-pg-sem-orm.md):** SQL puro via driver `pg`, sem ORM nem query builder.
 
 ---
 
 ## 4. Escopo e Divisão do Trabalho
 
-### 4.1 🟡 Divisão das 25 tarefas da Sprint 1 entre integrantes
+### 4.1 🟢 Divisão das 25 tarefas da Sprint 1 entre integrantes
 
 - O backlog está fechado (**25 tarefas / 82 SP**, ver `sprints/sprint-1.md`), mas falta **atribuir responsáveis**.
 - **Atualização:** a **autenticação JWT** foi antecipada para a Sprint 1 (tarefas `FE-06`, `BE-07`, `DB-03`, `DEVOPS-03`; história `US07`), alinhando a tabela `usuarios` ao seu uso real.
 - **Ação:** vincular cada issue do GitHub a um membro.
+- **Resolvido:** no replanejamento de 05/10 a Sprint 1 ficou com 19 tarefas (79 pontos), e a autenticação JWT voltou para a Sprint 2. Os responsáveis foram atribuídos na [#65](https://github.com/DEVassos/greener-app/issues/65) (PR #85). Ver o [plano de entregas](plano-de-entregas.md).
 
-### 4.2 🟡 Regra de nomenclatura de branch/commit
+### 4.2 🟢 Regra de nomenclatura de branch/commit
 
 - Padrão definido pelo parceiro ou livre? (DoD sugere `feat(frontend): ... #FE-05`).
 - **Decisão a tomar:** formalizar no repositório.
+- **Resolvido:** [ADR 0001](adr/0001-gitflow-commits-coautoria.md) e [`.github/CONTRIBUTING.md`](../.github/CONTRIBUTING.md), com validação automática nos hooks e no CI.
 
 ### 4.3 🟡 O que conta como "evidência documental" (RP05)
 
@@ -93,9 +99,10 @@
 
 - Confirmar se entra no MVP mínimo ou é evolução futura.
 
-### 4.5 🟡 Histórico de coletas: só salvar ou já virar gráfico no MVP?
+### 4.5 🟢 Histórico de coletas: só salvar ou já virar gráfico no MVP?
 
 - Define se consultas SQL analíticas (Sprint 2) antecipam algo.
+- **Resolvido:** na Sprint 1 o histórico aparece em tabela, na janela de detalhes do serviço ([#131](https://github.com/DEVassos/greener-app/issues/131), PR #135). O gráfico de CPU ([#132](https://github.com/DEVassos/greener-app/issues/132)) ficou para a Sprint 2.
 
 ---
 
@@ -104,6 +111,7 @@
 ### 5.1 🟡 Datas oficiais das cerimônias
 
 - Confirmar: sprint reviews (19/10, 09/11, 23/11) e data da **apresentação final**.
+- **Atualização (18/10):** review da Sprint 1 confirmada com o cliente para 19/10 às 19h30; calendário em [`.github/calendario.json`](../.github/calendario.json). Falta confirmar as reviews das Sprints 2 e 3 e a apresentação final.
 
 ### 5.2 🟡 Como funciona a avaliação de cada sprint review
 
