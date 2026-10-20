@@ -240,7 +240,7 @@ Ata completa: [review.md](sprint-1/review.md). Roteiro e ensaio de 18/10: [#134]
 
 ### 7.1 Demonstrado
 
-- **Formato:** videochamada de cerca de 7 min, às 19h30, com Otávio Abreu dos Santos Silva (UniLaunch, cliente) e o Prof. Arley (Fatec Jacareí).
+- **Formato:** videochamada de cerca de 7 min, às 19h30, com Otávio Abreu dos Santos Silva (UniLaunch, cliente) e o Prof. Arley Souza (Fatec Jacareí).
 - **Roteiro:** a equipe se apresentou, exibiu o [vídeo de 3 min](https://youtu.be/3Hx4kzuudSw) com o produto como entregue na Sprint 1, preparado por @henriqueptbd-cell, e respondeu às perguntas.
 - **Verificação:** o roteiro ao vivo por requisito não foi executado. A verificação de ponta a ponta desta versão é o ensaio de 18/10 ([review.md § 2.1](sprint-1/review.md#21-resultado-observado-no-ensaio-de-18102026)).
 
