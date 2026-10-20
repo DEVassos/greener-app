@@ -57,7 +57,31 @@ Registro do SM (@travensolli) a partir da reunião, com as falas resumidas.
 | Produto da Sprint 1 como um todo | Para uma primeira sprint está bom: mesmo sem JWT e login inicial, já há algo para manusear e usar no dia a dia | aceito | nenhuma; a autenticação JWT (DW06) segue planejada para a Sprint 2 |
 | RF09, RF11, RF12: interface | Gostou da interface e ficou curioso para ver as próximas implementações | aceito | nenhuma |
 | Direção do produto (RF14, RF15) | O intuito é trabalhar com o que já temos; o foco principal é poder comparar serviços para ver o que compensa fazer; a intenção é analisar dados | nova prioridade | [#159](https://github.com/DEVassos/greener-app/issues/159) |
-| Repositório | O cliente vai analisar o repositório e enviar apontamentos até 20/10. Eles não descontam pontos na Sprint 1, mas o cumprimento será exigido a partir da Sprint 2 | ajustar (apontamentos a receber) | seção 5 |
+| Repositório | O cliente ia analisar o repositório e enviar apontamentos até 20/10. Eles não descontam pontos na Sprint 1, mas o cumprimento será exigido a partir da Sprint 2 | ajustar | recebidos em 20/10: seção 3.1 |
+
+### 3.1 Apontamentos escritos do cliente (20/10/2026)
+
+Depois da reunião, o cliente analisou o repositório e enviou os apontamentos por escrito em 20/10. Eles não descontam pontos na Sprint 1 e passam a ser exigidos a partir da Sprint 2.
+
+| Tema | Apontamento (resumo) | Classificação | Ação |
+|---|---|---|---|
+| Design | Simples, técnico, claro e competente. Acha a interface "verde demais", mas, por ser subjetivo, diz que não é necessário mudar | aceito | nenhuma |
+| Design e produto | As visualizações trazem o estado atual, mas "parecem meio vazias de significado": agregar valor ao dado para que vire informação e a interface ajude na tomada de decisão, olhando o problema pelos olhos do usuário. Autenticação, indicadores consolidados e comparação entre serviços devem aproximar a implementação do protótipo no Figma | nova prioridade | complemento na [#159](https://github.com/DEVassos/greener-app/issues/159) |
+| Design | As dúvidas do time sobre o objetivo da aplicação devem ir ao cliente de forma estruturada, por e-mail | ajustar | [#166](https://github.com/DEVassos/greener-app/issues/166) |
+| Qualidade de código | Destaque para a cobertura de testes: até agora, o grupo que mais se atentou a isso | aceito | nenhuma |
+| Qualidade de código | O frontend tem typecheck e build, mas não tem lint (ESLint) | ajustar | [#160](https://github.com/DEVassos/greener-app/issues/160) |
+| Qualidade de código | O cliente HTTP do frontend converte `response.json()` direto para o tipo esperado; validar as respostas nas fronteiras da aplicação | ajustar | [#161](https://github.com/DEVassos/greener-app/issues/161) |
+| Qualidade de código | Sete testes de integração ficam pulados no CI por falta de PostgreSQL; rodar os testes de repositories e do coletor com um *service container* | ajustar | [#162](https://github.com/DEVassos/greener-app/issues/162) |
+| Qualidade de código | O `npm audit` aponta alertas no Vitest, que é dependência de desenvolvimento (as de produção não têm alertas); atualizar o Vitest | ajustar | [#163](https://github.com/DEVassos/greener-app/issues/163) |
+| Processos | Processo "extremamente organizado": Git Flow documentado, convenção de branches, rulesets, template de PR, entrega integrada pelo [#154](https://github.com/DEVassos/greener-app/pull/154), ADRs e exceções registradas | aceito | nenhuma |
+| Processos | A tag `sprint-1` ainda não existia | ajustar | tag e GitHub Release criadas no fechamento, pela [#153](https://github.com/DEVassos/greener-app/issues/153) |
+| Processos | Os rulesets exigem só os checks `commits`, `pr` e `docs`; exigir também os jobs `backend`, `frontend`, `compose` e `schema` | ajustar | [#164](https://github.com/DEVassos/greener-app/issues/164) |
+| Processos | [#60](https://github.com/DEVassos/greener-app/pull/60) e [#110](https://github.com/DEVassos/greener-app/pull/110) entraram sem revisão e [#82](https://github.com/DEVassos/greener-app/pull/82) com pedido de mudanças: manter a validação cruzada em todos os PRs | ajustar | [#164](https://github.com/DEVassos/greener-app/issues/164): rulesets sem bypass de admin e com aprovação do último push |
+| Documentação | Documentação "excelente e muito acima do esperado" para a primeira sprint | aceito | nenhuma |
+| Documentação | Usar permalinks com SHA na Evidência do plano (o `check-docs.sh` dava 13 avisos) e manter uma fonte principal por assunto, com links nos demais documentos | ajustar | [#165](https://github.com/DEVassos/greener-app/issues/165) |
+| Documentação | Finalizar os itens "Em andamento" ou "Parcial" e registrar o feedback da review | ajustar | feito no fechamento ([#153](https://github.com/DEVassos/greener-app/issues/153)): Situação final de cada critério no plano, com ES07 `Parcial` e o motivo, e o feedback nesta ata |
+| Produto | Base de lógica de negócio sólida e propósito bem compreendido; gostou do cuidado com disponibilidade, histórico, estados incompletos e atualização sem apagar os dados anteriores | aceito | nenhuma |
+| Produto | Manter visível a distinção entre o que já funciona e o que está planejado, porque o protótipo tem funções ainda não implementadas | aceito | prática mantida: nada é anunciado antes do merge |
 
 ## 4. Decisões e alterações no backlog
 
@@ -72,14 +96,14 @@ Registrado no "Histórico de alterações do plano" em 20/10/2026, no fechamento
 
 | Pendência | Quem | Prazo |
 |---|---|---|
-| Receber os apontamentos do cliente sobre o repositório e transformá-los em issues `feedback-cliente` na milestone Sprint 2 | @travensolli e @henriqueptbd-cell | apontamentos prometidos para 20/10; issues em até 24h depois do recebimento |
-| Atender os apontamentos a partir da Sprint 2, quando passam a ser exigidos | time | Sprint 2 |
+| Atender os apontamentos escritos do cliente (seção 3.1), exigidos a partir da Sprint 2: [#160](https://github.com/DEVassos/greener-app/issues/160), [#161](https://github.com/DEVassos/greener-app/issues/161), [#162](https://github.com/DEVassos/greener-app/issues/162), [#163](https://github.com/DEVassos/greener-app/issues/163), [#164](https://github.com/DEVassos/greener-app/issues/164), [#165](https://github.com/DEVassos/greener-app/issues/165) e [#166](https://github.com/DEVassos/greener-app/issues/166) | responsável de cada issue | Sprint 2 |
 | Decidir a priorização de ranking e comparação ([#159](https://github.com/DEVassos/greener-app/issues/159)) | @henriqueptbd-cell | 21/10 |
 
 ## 6. Encaminhamentos pós-review (≤24h)
 
 - [x] Feedback, decisões e pendências registrados nas seções 3 a 5 (@travensolli, 20/10)
 - [x] Issue `feedback-cliente` criada na milestone Sprint 2: [#159](https://github.com/DEVassos/greener-app/issues/159) (20/10)
+- [x] Apontamentos escritos do cliente registrados na seção 3.1 e transformados em issues `feedback-cliente` na milestone Sprint 2 (@travensolli, 20/10)
 - [x] Seção Review de `docs/sprints/sprint-1.md` e "Histórico de alterações do plano" atualizados (@travensolli, 20/10), com a Situação de cada critério verificada pelo PO na revisão do PR de fechamento
 - [x] Participação consolidada em [contribuicao.md](contribuicao.md) e backlog e burndown finais exportados (20/10)
 

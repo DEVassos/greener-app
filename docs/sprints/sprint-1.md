@@ -250,7 +250,7 @@ Ata completa: [review.md](sprint-1/review.md). Roteiro e ensaio de 18/10: [#134]
 - Para uma primeira sprint está bom: mesmo sem JWT e login inicial, já há algo para manusear e usar no dia a dia.
 - Gostou da interface e ficou curioso para ver as próximas implementações.
 - O intuito é trabalhar com o que já temos; o foco principal é poder comparar serviços para ver o que compensa fazer, e a intenção é analisar dados → [#159](https://github.com/DEVassos/greener-app/issues/159) (`feedback-cliente`).
-- O cliente vai analisar o repositório e enviar apontamentos até 20/10. Eles não descontam pontos na Sprint 1, mas serão exigidos a partir da Sprint 2. Entram como issues `feedback-cliente` quando chegarem ([review.md § 5](sprint-1/review.md#5-pendências-e-perguntas-em-aberto)).
+- Os apontamentos escritos do cliente sobre o repositório chegaram em 20/10 e estão em [review.md § 3.1](sprint-1/review.md#31-apontamentos-escritos-do-cliente-20102026). Os pontos a melhorar viraram as issues `feedback-cliente` [#160](https://github.com/DEVassos/greener-app/issues/160), [#161](https://github.com/DEVassos/greener-app/issues/161), [#162](https://github.com/DEVassos/greener-app/issues/162), [#163](https://github.com/DEVassos/greener-app/issues/163), [#164](https://github.com/DEVassos/greener-app/issues/164), [#165](https://github.com/DEVassos/greener-app/issues/165) e [#166](https://github.com/DEVassos/greener-app/issues/166), na milestone Sprint 2, e os de produto complementam a [#159](https://github.com/DEVassos/greener-app/issues/159). Não descontam pontos na Sprint 1 e passam a ser exigidos a partir da Sprint 2.
 
 ### 7.3 Decisões e alterações no backlog
 
