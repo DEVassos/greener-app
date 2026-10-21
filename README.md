@@ -34,7 +34,9 @@ Setup do backend: [organização e validação](backend/README.md) e [contrato d
 
 ## 3. Funcionalidades implementadas
 
-O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. O que está previsto para a Sprint 1 (review em 19/10/2026) está em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta lista quando o Pull Request correspondente é mergeado, com o requisito e o número do PR. A Sprint 1 foi encerrada em 20/10/2026 e está publicada na tag [`sprint-1`](https://github.com/DEVassos/greener-app/releases/tag/sprint-1); o registro completo, com a review e o retorno do cliente, está em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+
+**Vídeo da Sprint 1 (cerca de 3 min):** [EcoPulse - ABP FATEC 2DSM](https://youtu.be/3Hx4kzuudSw), com o produto como foi entregue na Sprint 1.
 
 - **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas ou removido, quando o serviço sai da lista do agregador), com busca por nome e ordenação por coluna. A tela consome `GET /api/services` (#115) pela base definida em `VITE_API_URL`; sem ela (variável vazia), o frontend sobe em modo demonstração com dados ilustrativos (`npm run mock`) — como executar em [frontend/README.md](frontend/README.md).
 
@@ -72,6 +74,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **Dashboard em três níveis:** visão executiva (kWh total, gCO₂e, serviços ativos e indisponíveis, com atualização sem recarregar), análise comparativa (ranking e distribuição geográfica) e investigação detalhada (histórico por serviço).
 - **Área de configuração autenticada:** JWT no backend e senhas com bcrypt.
+- **Prioridade apontada pelo cliente na review da Sprint 1:** comparar serviços e analisar os dados já coletados, para ver o que compensa fazer ([#159](https://github.com/DEVassos/greener-app/issues/159)).
 - **Diferenciais em estudo:** simulação de migração para regiões com matriz mais limpa ([US12, #53](https://github.com/DEVassos/greener-app/issues/53)) e exportação de relatórios em PDF/CSV ([US13, #54](https://github.com/DEVassos/greener-app/issues/54)), previstas para a Sprint 3.
 
 ## 5. Tecnologias
@@ -96,11 +99,11 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 ## 7. Sprints
 
-| Sprint | Período | Review (a confirmar) | Objetivo |
-|---|---|---|---|
-| 1 | 29/09 → 19/10/2026 | 19/10 às 19h30 | Pipeline de coleta persistido em Docker e primeira tela do dashboard (serviços com estado e localização, atualizando sem recarregar) |
-| 2 | 20/10 → 09/11/2026 | 09/11 às 19h30 | Dashboard completo com energia, CO₂e, tolerância a falhas e área de configuração protegida por JWT |
-| 3 | 10/11 → 23/11/2026 | 23/11 às 19h30 | Ranking de impacto, comparação entre serviços, mapa e repositório pronto como portfólio |
+| Sprint | Período | Review | Objetivo | Situação |
+|---|---|---|---|---|
+| 1 | 29/09 → 19/10/2026 | 19/10 às 19h30 (realizada) | Pipeline de coleta persistido em Docker e primeira tela do dashboard (serviços com estado e localização, atualizando sem recarregar) | Concluída: tag [`sprint-1`](https://github.com/DEVassos/greener-app/releases/tag/sprint-1) |
+| 2 | 20/10 → 09/11/2026 | 09/11 às 19h30 (a confirmar) | Dashboard completo com energia, CO₂e, tolerância a falhas e área de configuração protegida por JWT | Começa em 20/10 |
+| 3 | 10/11 → 23/11/2026 | 23/11 às 19h30 (a confirmar) | Ranking de impacto, comparação entre serviços, mapa e repositório pronto como portfólio | Planejada |
 
 Critérios previstos, responsáveis e evidências de cada sprint: [docs/plano-de-entregas.md](docs/plano-de-entregas.md).
 
@@ -169,7 +172,6 @@ Nenhum segredo real entra no repositório (RP06): cada instalação tem banco, u
 | [docs/backlog/historias-de-usuario.md](docs/backlog/historias-de-usuario.md) | Histórias de usuário US01–US14 com critérios de aceite |
 | [docs/plano-de-entregas.md](docs/plano-de-entregas.md) | Plano das sprints, critérios da rubrica, responsáveis e evidências |
 | [docs/sprints/](docs/sprints/) | Registro de cada sprint: planejamento ([Sprint 1](docs/sprints/sprint-1/planning.md)), dailies, review, retrospectiva, participação |
-| [docs/pontos-para-discutir.md](docs/pontos-para-discutir.md) | Decisões em aberto e dúvidas para o parceiro |
 | [docs/produto/](docs/produto/) | Protótipo HTML do dashboard e [protótipo navegável no Figma](docs/produto/prototipo-figma.md) (dashboard, login e cadastro, desktop e celular) |
 | [docs/adr/](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [docs/processo/](docs/processo/) | Como o time trabalha |
@@ -179,7 +181,15 @@ Documentação técnica: [arquitetura](docs/arquitetura.md), [API](docs/api.md),
 
 ## 11. Status
 
-**Sprint 1** (29/09 → 19/10/2026): em fechamento. O congelamento foi em 18/10/2026 às 20h (depois dele só entra documentação) e a review com o cliente é em 19/10/2026 às 19h30. `develop` reúne 48 Pull Requests mergeados entre 06/10 e 17/10. Pelo [plano de entregas](docs/plano-de-entregas.md), estão concluídos os critérios técnicos da sprint (DW01–DW04, DW07, BD01–BD03 e TP02) e ES01–ES04. ES07 está **parcial** (#60, #82 e #110 entraram sem aprovação válida), e ES08 é conferido no fechamento, depois desta revisão da documentação (#146). ES05, ES06 e ES09 fecham com a review e o registro de participação. Situação por critério, verificações e pendências em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+**Sprint 1** (29/09 → 19/10/2026): **concluída** em 20/10/2026, tag [`sprint-1`](https://github.com/DEVassos/greener-app/releases/tag/sprint-1).
+
+- **Entrega:** 56 Pull Requests mergeados em `develop` entre 06/10 e 18/10, levados a `main` pela `release/sprint-1`.
+- **Review (19/10, videochamada):** o cliente aprovou a coleta, a persistência dos dados e a interface. Ele reforçou que o foco é comparar serviços e analisar os dados ([#159](https://github.com/DEVassos/greener-app/issues/159)).
+- **Critérios** (pelo [plano de entregas](docs/plano-de-entregas.md)): concluídos ES01–ES06, ES08, ES09, DW01–DW04, DW07, BD01–BD03 e TP02. ES07 está **parcial**, porque #60, #82 e #110 entraram sem aprovação válida e houve aprovações de uma linha.
+
+Situação por critério, verificações, feedback e participação estão em [docs/sprints/sprint-1.md](docs/sprints/sprint-1.md).
+
+**Sprint 2** (20/10 → 09/11/2026): começa em 20/10.
 
 ---
 

@@ -2,11 +2,13 @@
 
 | Campo | Valor |
 |---|---|
-| Período | 29/09 a 19/10/2026 · checkpoint 09/10 · congelamento 18/10 20h · review 19/10 19h30 (confirmada com o cliente) |
+| Período | 29/09 a 19/10/2026 · checkpoint 09/10 · congelamento 18/10 20h · review 19/10 19h30 (realizada por videochamada) · fechamento 20/10 |
+| Situação | **Sprint encerrada em 20/10/2026** |
+| Versão entregue | tag [`sprint-1`](https://github.com/DEVassos/greener-app/releases/tag/sprint-1) em `main`, criada depois do merge da `release/sprint-1`: entrega em 19/10 (PR [#154](https://github.com/DEVassos/greener-app/pull/154), [`1f5cf18`](https://github.com/DEVassos/greener-app/commit/1f5cf18)) e registro pós-review em 20/10 ([#153](https://github.com/DEVassos/greener-app/issues/153)) |
 | Milestone | [Sprint 1](https://github.com/DEVassos/greener-app/milestone/1) |
 | Critérios previstos | ES01–ES09, DW01 + DW02, DW03, DW04, DW07, BD01, BD02, BD03, TP02 — denominador **79** |
 | Plano | [docs/plano-de-entregas.md § Sprint 1](../plano-de-entregas.md#sprint-1) |
-| Planejamento | [sprint-1/planning.md](sprint-1/planning.md) |
+| Atas | [planejamento](sprint-1/planning.md) · [dailies](sprint-1/dailies/) · [review](sprint-1/review.md) · [participação](sprint-1/contribuicao.md) |
 | Burndown | [sprint-1/burndown.md](sprint-1/burndown.md) — Story Points por dia, gerado por `.github/scripts/burndown.sh 1` |
 | Daily | issue fixada [#74 Daily — Sprint 1](https://github.com/DEVassos/greener-app/issues/74); atas em PR semanal pelas issues [#72](https://github.com/DEVassos/greener-app/issues/72) e [#73](https://github.com/DEVassos/greener-app/issues/73) |
 
@@ -37,22 +39,22 @@ Responsáveis conforme o [plano de entregas](../plano-de-entregas.md#sprint-1), 
 
 Gatilhos de replanejamento (plano § Sprint 1): `GET /services` e `GET /collections` em `develop` até 11/10, senão DW02 vai para a Sprint 2 (denominador 74); tela de serviços em `develop` até 14/10, senão DW04 vai para a Sprint 2 (denominador 75).
 
-## 3. Itens da milestone e situação em 18/10/2026 (congelamento)
+## 3. Itens da milestone e situação no fechamento (20/10/2026)
 
 ### 3.1 Histórias
 
-| Issue | Título | Requisitos | Responsável | Situação em 18/10/2026 |
+| Issue | Título | Requisitos | Responsável | Situação no fechamento |
 |---|---|---|---|---|
-| [#42](https://github.com/DEVassos/greener-app/issues/42) | US01 — Descoberta e ingestão dinâmica de serviços | RF01–RF06, RNF04 | @LUCASAMR23 | sub-issues entregues: cliente de métricas ([#95](https://github.com/DEVassos/greener-app/pull/95)), JSON bruto ([#98](https://github.com/DEVassos/greener-app/pull/98)), worker ([#99](https://github.com/DEVassos/greener-app/pull/99)), tratamento de erros ([#124](https://github.com/DEVassos/greener-app/pull/124)) e rota de serviços ([#115](https://github.com/DEVassos/greener-app/pull/115)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/42#issuecomment-6257081953); aceite do PO pendente |
-| [#44](https://github.com/DEVassos/greener-app/issues/44) | US03 — Modelagem e persistência em PostgreSQL (SQL puro) | RF10 | @viniciusaugusto1997 | sub-issues entregues: schema ([#77](https://github.com/DEVassos/greener-app/pull/77)), UML ([#57](https://github.com/DEVassos/greener-app/pull/57)), repositories ([#94](https://github.com/DEVassos/greener-app/pull/94)) e histórico de coletas ([#116](https://github.com/DEVassos/greener-app/pull/116)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/44#issuecomment-6257082212); aceite do PO pendente |
-| [#46](https://github.com/DEVassos/greener-app/issues/46) | US05 — Infraestrutura e dockerização total | RNF05 | @travensolli | sub-issues entregues: Dockerfiles ([#91](https://github.com/DEVassos/greener-app/pull/91)), compose com Postgres e backend ([#113](https://github.com/DEVassos/greener-app/pull/113)) e frontend com nginx ([#81](https://github.com/DEVassos/greener-app/pull/81)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/46#issuecomment-6257082458); aceite do PO pendente |
-| [#47](https://github.com/DEVassos/greener-app/issues/47) | US06 — Gestão e documentação da sprint | RNF05 | @henriqueptbd-cell | fechada pelo PR [#123](https://github.com/DEVassos/greener-app/pull/123) em 16/10; o critério do `contribuicao.md` é cumprido no fechamento |
+| [#42](https://github.com/DEVassos/greener-app/issues/42) | US01 — Descoberta e ingestão dinâmica de serviços | RF01–RF06, RNF04 | @LUCASAMR23 | sub-issues entregues: cliente de métricas ([#95](https://github.com/DEVassos/greener-app/pull/95)), JSON bruto ([#98](https://github.com/DEVassos/greener-app/pull/98)), worker ([#99](https://github.com/DEVassos/greener-app/pull/99)), tratamento de erros ([#124](https://github.com/DEVassos/greener-app/pull/124)) e rota de serviços ([#115](https://github.com/DEVassos/greener-app/pull/115)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/42#issuecomment-6257081953); [aceita pelo PO](https://github.com/DEVassos/greener-app/issues/42#issuecomment-6279647830) e fechada em 19/10 |
+| [#44](https://github.com/DEVassos/greener-app/issues/44) | US03 — Modelagem e persistência em PostgreSQL (SQL puro) | RF10 | @viniciusaugusto1997 | sub-issues entregues: schema ([#77](https://github.com/DEVassos/greener-app/pull/77)), UML ([#57](https://github.com/DEVassos/greener-app/pull/57)), repositories ([#94](https://github.com/DEVassos/greener-app/pull/94)) e histórico de coletas ([#116](https://github.com/DEVassos/greener-app/pull/116)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/44#issuecomment-6257082212); [aceita pelo PO](https://github.com/DEVassos/greener-app/issues/44#issuecomment-6279647777) e fechada em 19/10 |
+| [#46](https://github.com/DEVassos/greener-app/issues/46) | US05 — Infraestrutura e dockerização total | RNF05 | @travensolli | sub-issues entregues: Dockerfiles ([#91](https://github.com/DEVassos/greener-app/pull/91)), compose com Postgres e backend ([#113](https://github.com/DEVassos/greener-app/pull/113)) e frontend com nginx ([#81](https://github.com/DEVassos/greener-app/pull/81)); [verificação de 18/10](https://github.com/DEVassos/greener-app/issues/46#issuecomment-6257082458); [aceita pelo PO](https://github.com/DEVassos/greener-app/issues/46#issuecomment-6279647785) e fechada em 19/10 |
+| [#47](https://github.com/DEVassos/greener-app/issues/47) | US06 — Gestão e documentação da sprint | RNF05 | @henriqueptbd-cell | fechada pelo PR [#123](https://github.com/DEVassos/greener-app/pull/123) em 16/10; o [`contribuicao.md`](sprint-1/contribuicao.md) foi gerado no fechamento, em 20/10 |
 
 A história [#45](https://github.com/DEVassos/greener-app/issues/45) (US04 — dashboard executivo e operacional) saiu da Sprint 1 no replanejamento: está na milestone `Sprint 2` (§3.4).
 
 ### 3.2 Tarefas técnicas
 
-| Issue | Título | Requisito | Critério | Responsável | Situação em 18/10/2026 | PR |
+| Issue | Título | Requisito | Critério | Responsável | Situação no fechamento | PR |
 |---|---|---|---|---|---|---|
 | [#5](https://github.com/DEVassos/greener-app/issues/5) | Script DDL `schema.sql` para PostgreSQL | RF10 | BD01 | @LUCASAMR23 | mergeado em `develop` | [#77](https://github.com/DEVassos/greener-app/pull/77) |
 | [#9](https://github.com/DEVassos/greener-app/issues/9) | Setup do projeto React com TypeScript, Vite e Tailwind | RNF01 | DW01, DW04 | @travensolli | mergeado em `develop` | [#62](https://github.com/DEVassos/greener-app/pull/62) |
@@ -78,7 +80,7 @@ A história [#45](https://github.com/DEVassos/greener-app/issues/45) (US04 — d
 
 #### Tarefas abertas durante a sprint (criadas depois do planejamento)
 
-| Issue | Título | Requisito | Critério | Responsável | Situação em 18/10/2026 | PR |
+| Issue | Título | Requisito | Critério | Responsável | Situação no fechamento | PR |
 |---|---|---|---|---|---|---|
 | [#80](https://github.com/DEVassos/greener-app/issues/80) | Containerizar o frontend com nginx no compose | RNF05 | DW07 | @travensolli | mergeado em `develop` | [#81](https://github.com/DEVassos/greener-app/pull/81) |
 | [#87](https://github.com/DEVassos/greener-app/issues/87) | Aplicar a paleta em tons de verde-escuro | RNF01 | — | @DeaTuribio | mergeado em `develop` | [#88](https://github.com/DEVassos/greener-app/pull/88) |
@@ -95,13 +97,13 @@ A história [#45](https://github.com/DEVassos/greener-app/issues/45) (US04 — d
 | [#132](https://github.com/DEVassos/greener-app/issues/132) | Gráfico de CPU no histórico do serviço | RF10 | DW04 | @travensolli | **movida para a Sprint 2** no congelamento: sem branch nem PR até 18/10 20h, pela regra do plano de 16/10 | — |
 | [#129](https://github.com/DEVassos/greener-app/issues/129) | Documentar o status Removido da tabela de serviços | RF02 | ES08 | @DeaTuribio | mergeado em `develop` (16/10) | [#130](https://github.com/DEVassos/greener-app/pull/130) |
 | [#133](https://github.com/DEVassos/greener-app/issues/133) | Gravar energia e CO₂e na coleta e expor em `GET /api/services` (adiantada da Sprint 2) | RF07 | DW02, DW03 | @LUCASAMR23 | mergeado em `develop` (16/10); milestone corrigida para a Sprint 1 em 18/10 | [#139](https://github.com/DEVassos/greener-app/pull/139) |
-| [#134](https://github.com/DEVassos/greener-app/issues/134) | Registrar o adiantamento do cálculo de CO₂e: plano, ADR 0006 e roteiro da review | RF07 | ES06, ES08 | @henriqueptbd-cell | parte 1 mergeada (17/10); roteiro da review em revisão | [#136](https://github.com/DEVassos/greener-app/pull/136), [#141](https://github.com/DEVassos/greener-app/pull/141) |
-| [#146](https://github.com/DEVassos/greener-app/issues/146) | Alinhar a documentação ao código entregue (ES08) | RNF05 | ES08, DW03 | @travensolli | em revisão (aberta no congelamento) | [#147](https://github.com/DEVassos/greener-app/pull/147) |
+| [#134](https://github.com/DEVassos/greener-app/issues/134) | Registrar o adiantamento do cálculo de CO₂e: plano, ADR 0006 e roteiro da review | RF07 | ES06, ES08 | @henriqueptbd-cell | mergeado em `develop`: plano e ADR 0006 em 17/10, roteiro da review em 18/10 | [#136](https://github.com/DEVassos/greener-app/pull/136), [#141](https://github.com/DEVassos/greener-app/pull/141) |
+| [#146](https://github.com/DEVassos/greener-app/issues/146) | Alinhar a documentação ao código entregue (ES08) | RNF05 | ES08, DW03 | @travensolli | mergeado em `develop` (18/10) | [#147](https://github.com/DEVassos/greener-app/pull/147) |
 | [#140](https://github.com/DEVassos/greener-app/issues/140) | Histórico de coletas marca buracos de coleta | RF04, RF10 | — | @henriqueptbd-cell | **fica na Sprint 2**: funcionalidade iniciada em 18/10, sem PR antes do congelamento | — |
 
 ### 3.3 Processo e gestão
 
-| Issue | Título | Responsável | Situação em 18/10/2026 | PR |
+| Issue | Título | Responsável | Situação no fechamento | PR |
 |---|---|---|---|---|
 | [#1](https://github.com/DEVassos/greener-app/issues/1) | Processo ágil, templates e automação do repositório (agilekit) | @travensolli | mergeado em `develop` | [#2](https://github.com/DEVassos/greener-app/pull/2), [#30](https://github.com/DEVassos/greener-app/pull/30), [#33](https://github.com/DEVassos/greener-app/pull/33), [#34](https://github.com/DEVassos/greener-app/pull/34) |
 | [#3](https://github.com/DEVassos/greener-app/issues/3) | Plano de entregas e matriz de rastreabilidade | @henriqueptbd-cell | mergeado em `develop` | [#32](https://github.com/DEVassos/greener-app/pull/32) |
@@ -112,15 +114,17 @@ A história [#45](https://github.com/DEVassos/greener-app/issues/45) (US04 — d
 | [#72](https://github.com/DEVassos/greener-app/issues/72) | Atas das dailies — semana 1 | @travensolli | mergeado em `develop` | [#107](https://github.com/DEVassos/greener-app/pull/107) |
 | [#73](https://github.com/DEVassos/greener-app/issues/73) | Atas das dailies — semana 2 | @travensolli | mergeado em `develop` | [#108](https://github.com/DEVassos/greener-app/pull/108) |
 | [#78](https://github.com/DEVassos/greener-app/issues/78) | Publicar o registro da Sprint 1 (este documento) | @travensolli | mergeado em `develop`; revisado em 15/10 | [#79](https://github.com/DEVassos/greener-app/pull/79) |
-| [#58](https://github.com/DEVassos/greener-app/issues/58) | Checklist de início por integrante | todos | **aberta** | — |
-| [#74](https://github.com/DEVassos/greener-app/issues/74) | Daily — Sprint 1 (issue fixada) | @travensolli | **aberta** — fecha com o fim da sprint | — |
-| [#102](https://github.com/DEVassos/greener-app/issues/102) | Atas das dailies — semana 3 | @travensolli | em revisão: atas de 13 a 16/10 (16/10 com registro parcial; 12/10, feriado, sem registro) | [#142](https://github.com/DEVassos/greener-app/pull/142) |
-| [#117](https://github.com/DEVassos/greener-app/issues/117) | Burndown da Sprint 1 | @travensolli | em revisão: burndown até 18/10 | [#143](https://github.com/DEVassos/greener-app/pull/143) |
+| [#58](https://github.com/DEVassos/greener-app/issues/58) | Checklist de início por integrante | todos | fechada em 20/10 com os 38 itens marcados; as permissões do repositório ficam como estão, por decisão do SM | — |
+| [#74](https://github.com/DEVassos/greener-app/issues/74) | Daily — Sprint 1 (issue fixada) | @travensolli | fechada em 19/10 | — |
+| [#102](https://github.com/DEVassos/greener-app/issues/102) | Atas das dailies — semana 3 | @travensolli | mergeado em `develop` (18/10): atas de 13 a 16/10 (12/10, feriado, sem registro); a de 16/10 foi completada pelo PR [#152](https://github.com/DEVassos/greener-app/pull/152). A ata de 19/10, dia da review, entra no fechamento | [#142](https://github.com/DEVassos/greener-app/pull/142) |
+| [#117](https://github.com/DEVassos/greener-app/issues/117) | Burndown da Sprint 1 | @travensolli | mergeado em `develop` (18/10); versão final, até 19/10, gerada no fechamento | [#143](https://github.com/DEVassos/greener-app/pull/143) |
 | [#68](https://github.com/DEVassos/greener-app/issues/68) | Aplicar o nome EcoPulse a docs e configurações (repositório mantido) | @travensolli | mergeado em `develop` (16/10; antecipada da Sprint 2 em 15/10) | [#126](https://github.com/DEVassos/greener-app/pull/126) |
 | [#127](https://github.com/DEVassos/greener-app/issues/127) | Descontinuar e arquivar o Projeto-GreenER e o Project 5 | @travensolli | mergeado em `develop` (16/10) | [#128](https://github.com/DEVassos/greener-app/pull/128) |
-| [#144](https://github.com/DEVassos/greener-app/issues/144) | Retirar do repositório a proposta interna de diferenciais | @travensolli | em revisão (aberta no congelamento) | [#145](https://github.com/DEVassos/greener-app/pull/145) |
-| [#148](https://github.com/DEVassos/greener-app/issues/148) | Exportar o backlog e alinhar as histórias no fechamento | @travensolli | em revisão (aberta no congelamento) | [#149](https://github.com/DEVassos/greener-app/pull/149) |
-| [#150](https://github.com/DEVassos/greener-app/issues/150) | Atualizar este registro e o plano no congelamento | @travensolli | em revisão | [#151](https://github.com/DEVassos/greener-app/pull/151) |
+| [#144](https://github.com/DEVassos/greener-app/issues/144) | Retirar do repositório a proposta interna de diferenciais | @travensolli | mergeado em `develop` (18/10) | [#145](https://github.com/DEVassos/greener-app/pull/145) |
+| [#148](https://github.com/DEVassos/greener-app/issues/148) | Exportar o backlog e alinhar as histórias no fechamento | @travensolli | mergeado em `develop` (18/10); export final no fechamento | [#149](https://github.com/DEVassos/greener-app/pull/149) |
+| [#150](https://github.com/DEVassos/greener-app/issues/150) | Atualizar este registro e o plano no congelamento | @travensolli | mergeado em `develop` (18/10) | [#151](https://github.com/DEVassos/greener-app/pull/151) |
+| [#153](https://github.com/DEVassos/greener-app/issues/153) | Entrega da Sprint 1: release, registro pós-review, tag e sincronização da `develop` | @travensolli | entrega mergeada em `main` em 19/10; registro pós-review em 20/10 | [#154](https://github.com/DEVassos/greener-app/pull/154) |
+| [#158](https://github.com/DEVassos/greener-app/issues/158) | Respostas individuais da retrospectiva | @travensolli | aberta até a retrospectiva (prazo 21/10); fecha com o PR de `retrospectiva.md` | — |
 
 ### 3.4 Itens movidos no replanejamento de 05/10
 
@@ -159,6 +163,13 @@ Pela autoria dos 48 PRs mergeados em `develop` até o congelamento (06/10 a 17/1
 | Histórias [#42](https://github.com/DEVassos/greener-app/issues/42), [#44](https://github.com/DEVassos/greener-app/issues/44) e [#46](https://github.com/DEVassos/greener-app/issues/46) abertas com todas as sub-issues entregues | ES03 e ES07: aceite formal pendente | verificação registrada nas três issues em 18/10; o PO decide o fechamento | Henrique |
 | Emissões abaixo de 0,05 g por coleta aparecem como "0,0" na tabela (1 casa decimal) | a demo pode sugerir valor zero | explicar a unidade na review mostrando `GET /api/services`; formatação na Sprint 2 | Henrique, Andrea |
 | `review.md` sem feedback e `contribuicao.md` inexistente | ES06 e ES09 só fecham depois da review de 19/10 | feedback registrado até 20/10 23h59; `evidencias.sh 1` no fechamento | Gabriel, Henrique |
+
+**Desfecho em 20/10/2026:**
+
+- Os PRs de documentação foram revisados e mergeados em `develop` na noite de 18/10, antes do corte da release.
+- As histórias #42, #44 e #46 foram aceitas pelo PO em 19/10.
+- `review.md` e `contribuicao.md` foram completados no fechamento.
+- A formatação de emissões pequenas segue prevista para a Sprint 2.
 
 ## 6. Verificações realizadas
 
@@ -206,6 +217,11 @@ Uma linha por item concluído: o que foi verificado, por quem e com que resultad
 | [#134](https://github.com/DEVassos/greener-app/issues/134) · PR [#136](https://github.com/DEVassos/greener-app/pull/136) | "DoD verificada": passos 1–6 em `26e6091`, com a ADR 0006 conferida contra o código do #139 | @DeaTuribio | aprovado em 17/10 |
 | [#133](https://github.com/DEVassos/greener-app/issues/133) · PR [#139](https://github.com/DEVassos/greener-app/pull/139) | aprovação de uma linha ("dod revisado e aprovado"), 66 s depois do pedido. Verificação de fato em 18/10: ensaio da review por @henriqueptbd-cell ([#141](https://github.com/DEVassos/greener-app/pull/141), § 2.1) e reexecução por @travensolli, com 8 serviços com `energyKwh`/`emissionsG` numéricos e, com a API de carbono fora, coletas `indisponivel` com `NULL` e o serviço `ativo` | @henriqueptbd-cell; reexecução @travensolli | aprovado em 16/10; verificado em 18/10 |
 | Congelamento (`develop` em `16d520f`) | `bash .agilekit/scripts/teste-avaliador.sh --ref develop` (clone limpo), `check-forbidden.sh`, `check-docs.sh` e compose local com `/health`, `/api/services` e `/api/collections` | @travensolli | 18/10: compose no ar, `/health` 200, 4 tabelas, persistência de 15 → 22 linhas após restart, schema em banco vazio; checks sem erros |
+| [#134](https://github.com/DEVassos/greener-app/issues/134) · PR [#141](https://github.com/DEVassos/greener-app/pull/141) | "DoD verificada": "Como verificar" executado em 18/10, das 20h30 às 20h55, no clone atualizado | @travensolli | aprovado e mergeado em 18/10 |
+| PRs de documentação pós-congelamento: [#142](https://github.com/DEVassos/greener-app/pull/142), [#143](https://github.com/DEVassos/greener-app/pull/143), [#147](https://github.com/DEVassos/greener-app/pull/147), [#149](https://github.com/DEVassos/greener-app/pull/149), [#151](https://github.com/DEVassos/greener-app/pull/151) e [#152](https://github.com/DEVassos/greener-app/pull/152) | aprovações de uma linha ("dod revisado") ou sem texto (#152) | @henriqueptbd-cell | mergeados em 18/10, entre 21h39 e 22h31 |
+| [#144](https://github.com/DEVassos/greener-app/issues/144) · PR [#145](https://github.com/DEVassos/greener-app/pull/145) | aprovação sem texto | @DeaTuribio | mergeado em 18/10 |
+| Entrega · PR [#154](https://github.com/DEVassos/greener-app/pull/154) (`release/sprint-1` → `main`) | "DoD verificada (conteúdo da release)": o ensaio de ponta a ponta de 18/10, os PRs pós-congelamento revisados, o vídeo linkado e a CI de `develop` verde | @henriqueptbd-cell | aprovado e mergeado em 19/10 às 12h04 |
+| Fechamento (`main` em [`1f5cf18`](https://github.com/DEVassos/greener-app/commit/1f5cf18)) | `bash .agilekit/scripts/teste-avaliador.sh --ref main` (clone limpo de `main`, seguindo o README: `.env` a partir do `.env.example` e `docker compose up --build`), `check-forbidden.sh` e `check-docs.sh` | @travensolli | 20/10: compose no ar, `/health` 200, 4 tabelas, persistência de 8 → 16 linhas após restart, schema aplicado em banco vazio; checks sem erros (13 avisos de permalink no plano) |
 
 **Exceções à DoD-PR**, registradas porque não há como corrigi-las depois do merge:
 
@@ -213,10 +229,53 @@ Uma linha por item concluído: o que foi verificado, por quem e com que resultad
 - [#82](https://github.com/DEVassos/greener-app/pull/82): mergeado com pedido de mudanças pendente; as variáveis apagadas no merge foram restauradas no [#105](https://github.com/DEVassos/greener-app/pull/105).
 - [#113](https://github.com/DEVassos/greener-app/pull/113): aprovado por @henriqueptbd-cell, que é co-autor do PR.
 - Aprovações de uma linha, sem descrever o que foi executado: [#71](https://github.com/DEVassos/greener-app/pull/71), [#76](https://github.com/DEVassos/greener-app/pull/76), [#83](https://github.com/DEVassos/greener-app/pull/83), [#84](https://github.com/DEVassos/greener-app/pull/84), [#114](https://github.com/DEVassos/greener-app/pull/114), [#123](https://github.com/DEVassos/greener-app/pull/123), [#126](https://github.com/DEVassos/greener-app/pull/126), [#128](https://github.com/DEVassos/greener-app/pull/128), [#130](https://github.com/DEVassos/greener-app/pull/130) e [#139](https://github.com/DEVassos/greener-app/pull/139). No [#139](https://github.com/DEVassos/greener-app/pull/139), a verificação foi complementada em 18/10, como mostra a tabela.
+- Aprovações de uma linha ou sem texto nos PRs de documentação mergeados depois do congelamento: #142, #143, #145, #147, #149, #151 e #152.
 - As aprovações vieram quase todas do PO @henriqueptbd-cell, e não do **par de revisão** nominal de `.github/equipe.json` (Gabriel ↔ Henrique, Andrea → Lucas, Lucas → Vinicius, Vinicius → Andrea).
 
 Ação para a Sprint 2: aprovação só com "DoD verificada" e o que foi executado, pelo par de revisão.
 
-## 7. Review
+## 7. Review (19/10/2026)
 
-A Sprint Review é em **19/10/2026 às 19h30**, confirmada com o cliente, depois do congelamento de 18/10 às 20h. O roteiro de demonstração, por requisito e com quem demonstra cada item, e o resultado do ensaio de 18/10 estão em [`sprint-1/review.md`](sprint-1/review.md) ([#134](https://github.com/DEVassos/greener-app/issues/134), PR [#141](https://github.com/DEVassos/greener-app/pull/141)). O feedback do cliente, as decisões e as mudanças de backlog entram no `review.md` e nesta seção até 20/10, às 23h59.
+Ata completa: [review.md](sprint-1/review.md). Roteiro e ensaio de 18/10: [#134](https://github.com/DEVassos/greener-app/issues/134), PR [#141](https://github.com/DEVassos/greener-app/pull/141).
+
+### 7.1 Demonstrado
+
+- **Formato:** videochamada de cerca de 7 min, às 19h30, com Otávio Abreu dos Santos Silva (UniLaunch, cliente) e o Prof. Arley Souza (Fatec Jacareí).
+- **Roteiro:** a equipe se apresentou, exibiu o [vídeo de 3 min](https://youtu.be/3Hx4kzuudSw) com o produto como entregue na Sprint 1, preparado por @henriqueptbd-cell, e respondeu às perguntas.
+- **Verificação:** o roteiro ao vivo por requisito não foi executado. A verificação de ponta a ponta desta versão é o ensaio de 18/10 ([review.md § 2.1](sprint-1/review.md#21-resultado-observado-no-ensaio-de-18102026)).
+
+### 7.2 Feedback do cliente
+
+- Gostou de já ver o consumo e a persistência dos dados da API dele (RF01, RF03, RF10).
+- Para uma primeira sprint está bom: mesmo sem JWT e login inicial, já há algo para manusear e usar no dia a dia.
+- Gostou da interface e ficou curioso para ver as próximas implementações.
+- O intuito é trabalhar com o que já temos; o foco principal é poder comparar serviços para ver o que compensa fazer, e a intenção é analisar dados → [#159](https://github.com/DEVassos/greener-app/issues/159) (`feedback-cliente`).
+- Os apontamentos escritos do cliente sobre o repositório chegaram em 20/10 e estão em [review.md § 3.1](sprint-1/review.md#31-apontamentos-escritos-do-cliente-20102026). Os pontos a melhorar viraram as issues `feedback-cliente` [#160](https://github.com/DEVassos/greener-app/issues/160), [#161](https://github.com/DEVassos/greener-app/issues/161), [#162](https://github.com/DEVassos/greener-app/issues/162), [#163](https://github.com/DEVassos/greener-app/issues/163), [#164](https://github.com/DEVassos/greener-app/issues/164), [#165](https://github.com/DEVassos/greener-app/issues/165) e [#166](https://github.com/DEVassos/greener-app/issues/166), na milestone Sprint 2, e os de produto complementam a [#159](https://github.com/DEVassos/greener-app/issues/159). Não descontam pontos na Sprint 1 e passam a ser exigidos a partir da Sprint 2.
+
+### 7.3 Decisões e alterações no backlog
+
+- **Priorização:** a comparação entre serviços e a análise dos dados passam a ser a prioridade do backlog ([#159](https://github.com/DEVassos/greener-app/issues/159), Sprint 2). Na planning da Sprint 2, o PO decide se antecipa a US09, ranking ([#50](https://github.com/DEVassos/greener-app/issues/50)), e a US11, comparação ([#52](https://github.com/DEVassos/greener-app/issues/52)).
+- **Critérios:** nenhum muda de sprint. O denominador da Sprint 1 continua 79, e a autenticação JWT (DW06) segue na Sprint 2. Registrado no "Histórico de alterações do plano" em 20/10.
+
+## 8. Participação
+
+Relatório ES09 gerado por `evidencias.sh 1`: [contribuicao.md](sprint-1/contribuicao.md).
+
+- **Sem lacunas:** os cinco integrantes têm contribuição verificável por login, com PRs mergeados, revisões e commits em `develop`.
+- **Ausência programada:** a ausência de @viniciusaugusto1997 a partir de 13/10 está registrada na § 4; as entregas dele estão no relatório.
+- **Correção no script:** o relatório foi gerado com uma correção local no script do kit, que parava num e-mail com maiúsculas. Os detalhes estão em contribuicao.md § Observações.
+
+## 9. Métricas
+
+| Métrica | Valor |
+|---|---|
+| Issues da milestone | 19 no replanejamento de 05/10; 67 em 20/10, das quais 65 fechadas (abertas: #153, a entrega, e #158, a retrospectiva) |
+| Story Points: escopo inicial / final / concluídos | 66 / 108 / 107 até 19/10 ([burndown](sprint-1/burndown.md)); o ponto restante é a #58, fechada em 20/10 |
+| PRs mergeados em `develop` | 56, de 06/10 a 18/10, mais a entrega em `main` (#154) |
+| Merges por dia em `develop` | 06/10: 1 · 07/10: 5 · 08/10: 7 · 09/10: 6 · 12/10: 2 · 13/10: 5 · 14/10: 12 · 15/10: 2 · 16/10: 6 · 17/10: 2 · 18/10: 8, todos de documentação |
+| Merges por integrante (05–11/10 · 12–18/10) | Andrea 4 · 8 · Gabriel 11 · 14 · Henrique 2 · 6 · Lucas 0 · 6 · Vinicius 2 · 3 |
+| PRs com primeira revisão em mais de 24h | 7: #30, #32, #33, #57, #89, #91 e #136 |
+| PRs mergeados sem revisão | 2: #60 e #110 |
+| Atas de daily / dias úteis | 14 / 15. Falta 12/10 (feriado); 19/10 foi o dia da review |
+| Regressões (`regressao`) | 0 |
+| Nota estimada (`/auditar 1`, 18/10) | 71 a 74 de 79 (9,0 a 9,4), com o fechamento executado |
