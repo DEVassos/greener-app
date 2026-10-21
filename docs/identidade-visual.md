@@ -66,6 +66,16 @@ No Tailwind, os tokens viram classes: `bg-bg`, `bg-surface`, `bg-surface-2`, `bg
 * Utilizam a cor de superfície (`#131C2E`) sobre o fundo azul-noite (`#0B1220`) para criar profundidade e hierarquia visual.
 * Bordas sutis e cantos arredondados para manter uma aparência limpa e profissional.
 
+### Botões
+* **Botão cheio** (ação principal da tela, ex.: "Entrar"): fundo `--accent`, texto `--on-accent`. O texto fica escuro porque o branco sobre o verde dá 2,5:1 e reprova no AA.
+* **Botão vazado** (ações secundárias, ex.: "Tentar novamente", "Atualizar agora"): classe `.btn-outline` (`frontend/src/styles/controls.css`), fundo transparente, borda e texto `--accent`; no hover, `--accent` a 10% no fundo e texto `--accent-hover`.
+
+### Item ativo (menu do topo e abas)
+* Fundo `--accent` a 15%, borda `--accent` e texto `--accent-hover` em negrito. Os demais itens ficam em `--muted` e passam a `--text` no hover.
+
+### Barras de ranking e de proporção
+* Trilho em `--border`, barra em `--accent-hover` e o 1º lugar em `--neon` (com `--neon-glow` de brilho). É o padrão do ranking (US09) e de qualquer barra de proporção.
+
 ### Tipografia
 * Tipografia limpa e sem serifa otimizada para painéis de dados (Dashboards), em três famílias do Google Fonts carregadas em `frontend/index.html`:
 
