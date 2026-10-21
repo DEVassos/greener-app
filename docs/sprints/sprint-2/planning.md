@@ -10,7 +10,7 @@
 
 ## 1. Objetivo da sprint
 
-Dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. Tudo o que foi aceito na Sprint 1 continua funcionando.
+Dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. A identidade visual volta ao fundo azul-escuro, com verde só em ações e destaques, e o logo pulsa a cada atualização (feedback da Review 1). Tudo o que foi aceito na Sprint 1 continua funcionando.
 
 ## 2. Capacidade
 
@@ -31,7 +31,7 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 | Issue | Título | Requisito | Critério | Responsável | Estimativa | DoR |
 |---|---|---|---|---|---|---|
 | #43 | US02 — Motor de cálculo ambiental | RF07, RF12 | TP01, DW03 | @LUCASAMR23 | 5 | ok (quebrada em #18) |
-| #45 | US04 — Dashboard executivo e operacional | RF08, RF09, RF11, RNF01, RNF02 | DW05 | @DeaTuribio | 13 | ok (quebrada em #21, #25, #132, #140, #175, #176) |
+| #45 | US04 — Dashboard executivo e operacional | RF08, RF09, RF11, RNF01, RNF02 | DW05 | @DeaTuribio | 13 | ok (quebrada em #21, #25, #132, #140, #175, #176, #180) |
 | #48 | US07 — Autenticação segura JWT | RNF05 | DW06 | @LUCASAMR23 | 8 | ok (quebrada em #6, #20, #25) |
 | #49 | US08 — Histórico de coletas e SQL de análise | RF04, RF10 | BD04 (apoio), DW03 | @LUCASAMR23 | 8 | **atenção**: 8 pontos e só a #140 como tarefa; quebrar até 23/10 |
 | #50 | US09 — Ranking de impacto e eficiência | RF14 | BD04, DW05 | @DeaTuribio | 5 | ok |
@@ -53,6 +53,7 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 | #174 | Erros tipados e middleware (TP03) | RNF04, RF02, RF05, RF06 | TP03 | @viniciusaugusto1997 | 3 | ok |
 | #175 | Painel de indicadores agregados | RF08 | DW05, BD04 | @DeaTuribio, @LUCASAMR23 | 3 | ok |
 | #176 | Intervalo configurável e estados destacados | RF05, RF06, RF11 | DW05, DW06 | @DeaTuribio | 3 | ok |
+| #180 | Fundo azul, verde nos destaques e logo pulsante | RNF01 | DW04 (apoio), ES08 | @DeaTuribio | 2 | ok |
 
 ### Processo e qualidade (feedback da Review 1)
 
@@ -71,7 +72,7 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 | #169 | Daily por texto no mesmo dia | ES09 | ES09 | @travensolli | — | ok |
 | #178 | Planejamento da Sprint 2 | ES02 | ES02 | @travensolli | — | ok |
 
-**Total de código:** 34 pontos em tarefas + 18 em histórias sem tarefas (#50 5, #52 8, #51 5 could) + 6 restantes da #49 (8 − 2 da #140) = **58 pontos** (53 sem a #51, que é `could`). As histórias #43, #45 e #48 são roll-ups e não entram na soma. Itens de processo não entram no total.
+**Total de código:** 36 pontos em tarefas + 18 em histórias sem tarefas (#50 5, #52 8, #51 5 could) + 6 restantes da #49 (8 − 2 da #140) = **60 pontos** (55 sem a #51, que é `could`). As histórias #43, #45 e #48 são roll-ups e não entram na soma. Itens de processo não entram no total.
 
 ## 4. Critérios da rubrica previstos e denominador
 
@@ -95,6 +96,7 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 | #49 e #52 com 8 pontos e sem tarefas suficientes (DoR) | médio | PO quebra em tarefas até 23/10 e atualiza a milestone | @henriqueptbd-cell |
 | #52 depende de #49 e #50 | médio | implementar a comparação depois do ranking e do histórico; não bloquear o início da sprint | @DeaTuribio |
 | Frontend com #45, #50, #52 e #51 (could) | alto | priorizar #45 e #50; #51 só se sobrar capacidade | @DeaTuribio |
+| Paleta e animação do logo podem desatualizar prints/docs e falhar em acessibilidade | médio | refazer `docs/identidade-visual.md` e prints no mesmo PR (#180); testar falha de atualização e `prefers-reduced-motion`; usar tokens, sem hex solto | @DeaTuribio |
 | 02/11 (feriado) reduz um dia útil | baixo | daily assíncrona por texto, com ata | @travensolli |
 | Rulesets dependem de acesso admin à org | médio | #164 com o SM; se o acesso faltar, registrar o bloqueio na issue e no plano | @travensolli |
 
@@ -105,13 +107,15 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 - #51 (mapa) permanece `could`: só é puxada se as histórias `must` estiverem concluídas até 06/11.
 - Par de revisão da sprint: @DeaTuribio ↔ @LUCASAMR23; @LUCASAMR23 ↔ @viniciusaugusto1997; @viniciusaugusto1997 ↔ @DeaTuribio; @henriqueptbd-cell ↔ @travensolli.
 - Nenhum critério muda de sprint nesta planning; o denominador continua 61.
+- A tarefa #180 (fundo azul-escuro, verde só em ações/destaques e logo pulsante, RNF01, 2 pts) entra na Sprint 2 a partir do feedback da Review 1; é uma entrega parcial de RNF01, cuja revisão final de responsividade continua na Sprint 3. O denominador segue 61.
 
 ## 7. Encaminhamentos
 
 - [x] Issue fixada "Daily — Sprint 2" (#172) criada e fixada (@travensolli)
 - [x] `docs/sprints/sprint-2.md` inicial criado (@travensolli)
 - [x] Issues #173–#176 criadas e atribuídas (@henriqueptbd-cell)
-- [ ] Linhas da Sprint 2 no plano de entregas revisadas (@henriqueptbd-cell)
-- [x] `docs/backlog/product-backlog.md` regenerado (@travensolli) — 107 issues, incluído neste PR
+- [x] Issue #180 criada e atribuída (@DeaTuribio)
+- [x] Linhas da Sprint 2 no plano de entregas revisadas, incluindo #180 (@henriqueptbd-cell)
+- [x] `docs/backlog/product-backlog.md` regenerado (@travensolli) — 108 issues, incluído neste PR
 - [ ] #49 e #52 quebradas em tarefas até 23/10 (@henriqueptbd-cell)
 - [ ] `docs/calculos.md` com o exemplo numérico conferido (@henriqueptbd-cell)

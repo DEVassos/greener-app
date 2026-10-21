@@ -10,7 +10,7 @@
 
 ## 1. Objetivo da sprint
 
-Dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. Tudo o que foi aceito na Sprint 1 continua funcionando.
+Dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. A identidade visual volta ao fundo azul-escuro, com verde só em ações e destaques, e o logo pulsa a cada atualização (feedback da Review 1). Tudo o que foi aceito na Sprint 1 continua funcionando.
 
 ## 2. Itens selecionados e situação
 
@@ -34,6 +34,7 @@ Dashboard completo com energia e CO₂e por serviço e indicadores agregados, to
 | #174 | Erros tipados e middleware (TP03) | RNF04, RF02, RF05, RF06 | TP03 | @viniciusaugusto1997 | planejado |
 | #175 | Painel de indicadores agregados | RF08 | DW05, BD04 | @DeaTuribio, @LUCASAMR23 | planejado |
 | #176 | Intervalo configurável e estados destacados | RF05, RF06, RF11 | DW05, DW06 | @DeaTuribio | planejado |
+| #180 | Fundo azul, verde nos destaques e logo pulsante | RNF01 | DW04 (apoio), ES08 | @DeaTuribio | planejado |
 
 Itens de processo e qualidade (12): #159, #160, #161, #162, #163, #164, #165, #166, #167, #168, #169 e #178 — detalhes e responsáveis no [planning](sprint-2/planning.md).
 
@@ -46,5 +47,6 @@ Itens de processo e qualidade (12): #159, #160, #161, #162, #163, #164, #165, #1
 | #49 e #52 com 8 pontos e sem tarefas suficientes (DoR) | médio | PO quebra em tarefas até 23/10 e atualiza a milestone | @henriqueptbd-cell |
 | #52 depende de #49 e #50 | médio | implementar a comparação depois do ranking e do histórico | @DeaTuribio |
 | Frontend com #45, #50, #52 e #51 (could) | alto | priorizar #45 e #50; #51 só se sobrar capacidade | @DeaTuribio |
+| Paleta e animação do logo podem desatualizar prints/docs e falhar em acessibilidade | médio | refazer `docs/identidade-visual.md` e prints no mesmo PR (#180); testar falha e `prefers-reduced-motion` | @DeaTuribio |
 | 02/11 (feriado) reduz um dia útil | baixo | daily assíncrona por texto, com ata | @travensolli |
 | Rulesets dependem de acesso admin à org | médio | #164 com o SM; registrar o bloqueio se o acesso faltar | @travensolli |

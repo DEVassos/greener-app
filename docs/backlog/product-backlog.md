@@ -1,6 +1,6 @@
 # Product Backlog — EcoPulse
 
-_Exportado das issues de [DEVassos/greener-app](https://github.com/DEVassos/greener-app/issues) em 20/10/2026 21:40 por `.github/scripts/backlog-export.sh`. A fonte da verdade é o GitHub Issues; este arquivo é um retrato versionado para a avaliação (ES01)._
+_Exportado das issues de [DEVassos/greener-app](https://github.com/DEVassos/greener-app/issues) em 20/10/2026 22:14 por `.github/scripts/backlog-export.sh`. A fonte da verdade é o GitHub Issues; este arquivo é um retrato versionado para a avaliação (ES01)._
 
 Legenda — Prioridade: **must** (obrigatório), **should** (importante), **could** (desejável, ex.: RF13). Estado: aberta/fechada.
 
@@ -98,6 +98,7 @@ Legenda — Prioridade: **must** (obrigatório), **should** (importante), **coul
 | [#167](https://github.com/DEVassos/greener-app/issues/167) | [processo] Contrato de integração na issue antes do primeiro commit |  | processo | Sprint 2 | aberta | @DeaTuribio |
 | [#168](https://github.com/DEVassos/greener-app/issues/168) | [processo] Revisão cruzada em todo PR |  | processo | Sprint 2 | aberta | @travensolli |
 | [#169](https://github.com/DEVassos/greener-app/issues/169) | [processo] Daily por texto respondida no mesmo dia |  | processo | Sprint 2 | aberta | @travensolli |
+| [#180](https://github.com/DEVassos/greener-app/issues/180) | [tarefa] Fundo azul com verde nos destaques e logo que pulsa a cada atualização | RNF01 | tarefa | Sprint 2 | aberta | @DeaTuribio |
 
 ## Prioridade could
 
@@ -150,7 +151,7 @@ Legenda — Prioridade: **must** (obrigatório), **should** (importante), **coul
 | RF13 | #51, #38 |
 | RF14 | #159, #50, #39 |
 | RF15 | #159, #53, #52, #39 |
-| RNF01 | #120, #87, #66, #45, #38, #11, #10, #9 |
+| RNF01 | #180, #120, #87, #66, #45, #38, #11, #10, #9 |
 | RNF02 | #176, #106, #104, #45, #38, #23, #12, #7 |
 | RNF03 | #55, #41 |
 | RNF04 | #174, #162, #161, #97, #42, #41, #19, #16 |
