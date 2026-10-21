@@ -26,7 +26,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <AppHeader>
+      <AppHeader updatedAt={updatedAt}>
         <LastUpdated updatedAt={updatedAt} intervalSeconds={refreshIntervalMs / 1000} stale={error !== ''}>
           <button
             type="button"

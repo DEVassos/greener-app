@@ -14,7 +14,9 @@ O EcoPulse adota um **tema escuro (Dark Theme)** com uma estética moderna volta
 
 ### Logotipo
 
-Ícone de folha na cor Primária (`#10B981`) seguido do nome em Space Grotesk 700, 24 px: "Eco" na cor do texto (`#E2E8F0`) e "Pulse" no amarelo da marca (`#FACC15`). Implementado no componente `Brand` (`frontend/src/components/Brand.tsx`), usado no cabeçalho (`AppHeader`). As telas de acesso (login) chegam com a autenticação da Sprint 2.
+Ícone de folha na cor Primária (`#10B981`) seguido do nome em Space Grotesk 700, 24 px: "Eco" na cor do texto (`#E2E8F0`) e "Pulse" no amarelo da marca (`#FACC15`). Implementado no componente `Brand` (`frontend/src/components/Brand.tsx`), usado no cabeçalho (`AppHeader`).
+
+**Pulso de "ao vivo"** (#180): a cada atualização dos dados, a folha se desfaz, o cabinho vira uma linha de batimento com um brilho `--neon` correndo por ela e a folha volta. A animação leva 2,4 s, em SVG (SMIL), sem biblioteca. O `Brand` recebe `pulseKey` com o horário da última atualização e toca uma vez a cada valor novo: o `DashboardPage` repassa o `updatedAt` do `useServices` pelo `AppHeader`. O logo fica parado quando a atualização falha (o horário não muda), nas páginas sem polling (ex.: `/configuracao`) e com `prefers-reduced-motion: reduce`. As telas de acesso (login) chegam com a autenticação da Sprint 2.
 
 ---
 
