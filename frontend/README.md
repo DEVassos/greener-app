@@ -92,6 +92,8 @@ O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #1
   </section>
   ```
 
+- **Controles comuns** ficam em `src/styles/controls.css`: `.btn-outline` é o botão vazado das ações secundárias (ex.: **Tentar novamente**, **Atualizar agora**). O verde fica só em ações e destaques, e o `--neon` só no que pede atenção (#180; regras no guia).
+
 - **Preflight desligado:** `global.css` importa só `tailwindcss/theme.css` e `tailwindcss/utilities.css` (e não o `preflight.css`), para o reset do Tailwind não alterar os componentes que têm CSS próprio. O reset mínimo do projeto fica na camada `base`.
 - **Camadas:** a prioridade é `theme < base < components < utilities`. O CSS de componentes e de layout fica dentro de `@layer components { … }`, então uma classe utilitária (`p-4`, `text-muted`) sempre vence o CSS do componente. CSS fora de camada venceria as utilities; por isso todo CSS novo entra numa camada.
 - `main.tsx` importa `global.css` antes do `App`, porque é ele que declara a ordem das camadas.
@@ -119,7 +121,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 7. Clicar nos títulos das colunas (Serviço, CPU, Energia, Emissão, Última leitura, Localização, Status) → ordena; clicar de novo inverte; serviços sem métrica ficam sempre no fim. Localização ordena pela região (depois país e cidade); Status começa pelo mais grave (Indisponível, Sem métricas, Ativo, Removido).
 8. `MOCK_SERVICES=vazio npm run mock` e recarregar → "Nenhum serviço monitorado ainda".
 9. `MOCK_SERVICES=erro npm run mock` e recarregar → aviso "Falha simulada no backend falso." (a mensagem vem do corpo do erro) com **Tentar novamente**.
-10. Com dados carregados, o cabeçalho mostra o selo **"Última atualização: dd/mm HH:MM:SS"** com um ponto verde pulsando (sistema ativo); com "reduzir movimento" ligado no sistema, o ponto fica parado.
+10. Com dados carregados, o cabeçalho mostra o selo **"Última atualização: dd/mm HH:MM:SS"** com um ponto verde pulsando (sistema ativo); com "reduzir movimento" ligado no sistema, o ponto fica parado. A cada horário novo no selo, o logo pulsa uma vez: a folha vira uma linha de batimento com brilho neon e volta (cerca de 2,4 s). Ele não pulsa quando a atualização falha, em **Configuração** (sem polling) nem com "reduzir movimento".
 11. Com o mock no ar, carregar o dashboard e depois subir o mock com `MOCK_SERVICES=erro` e clicar em **Tentar novamente** → os dados continuam na tela e o selo fica laranja: **"Desatualizado desde …"**.
 12. Com `VITE_REFRESH_INTERVAL_MS=5000` no `.env` e o mock no ar: a cada 5 s o horário do selo muda e o terminal do mock registra um novo `GET /services`; os valores de CPU e energia mudam na tabela **sem recarregar a página**. O selo mostra "intervalo: 5 s".
 13. Clicar em **Atualizar agora** (ícone ao lado do selo) → busca na hora, sem esperar o intervalo.
