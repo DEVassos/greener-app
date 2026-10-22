@@ -56,3 +56,13 @@ Itens de processo e qualidade (12): #159, #160, #161, #162, #163, #164, #165, #1
 | Paleta e animação do logo podem desatualizar prints/docs e falhar em acessibilidade | médio | refazer `docs/identidade-visual.md` e prints no mesmo PR (#180); testar falha e `prefers-reduced-motion` | @DeaTuribio |
 | 02/11 (feriado) reduz um dia útil | baixo | daily assíncrona por texto, com ata | @travensolli |
 | Rulesets dependem de acesso admin à org | médio | #164 com o SM; registrar o bloqueio se o acesso faltar | @travensolli |
+
+## 4. Verificações realizadas (aplicação da DoD)
+
+| Item | Como foi verificado | Quem | Resultado |
+|---|---|---|---|
+| #164 / PRs [#191](https://github.com/DEVassos/greener-app/pull/191) e [#192](https://github.com/DEVassos/greener-app/pull/192) | Depois do merge, `bash .agilekit/scripts/gh-bootstrap.sh --rulesets`; `gh api repos/DEVassos/greener-app/rulesets/24529098` (`develop`) e `.../24529100` (`main`) mostram os sete checks obrigatórios (`commits`, `pr`, `docs`, `backend`, `frontend`, `compose`, `schema`), `bypass_actors` vazio e `require_last_push_approval: true`, iguais aos JSON versionados, e `current_user_can_bypass: never` para admin | @travensolli | aplicado em 22/10 |
+
+**Exceções à DoD-PR**, registradas porque não há como corrigi-las depois do merge:
+
+- [#191](https://github.com/DEVassos/greener-app/pull/191) e [#192](https://github.com/DEVassos/greener-app/pull/192) (#164): mergeados sem aprovação, por bypass de admin, por decisão de @travensolli (SM) em 22/10, para cumprir o prazo da #164 (23/10) com o PO ausente. Foram os últimos merges possíveis com bypass, porque a própria #164 o removeu.
