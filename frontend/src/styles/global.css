@@ -50,10 +50,12 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
   --color-secondary: var(--sky);
   --color-brand: var(--yellow);
   --color-warning: var(--warning);
   --color-error: var(--error);
+  --color-danger: var(--danger);
   --font-sans: var(--sans);
   --font-mono: var(--mono);
   --font-display: var(--display);
