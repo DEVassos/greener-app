@@ -40,21 +40,21 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RF09, RF12 — Tabela operacional de serviços (#69):** dashboard com cada serviço monitorado, CPU, energia, emissão, última leitura, localização (região, cidade e país) e status (ativo, indisponível, sem métricas ou removido, quando o serviço sai da lista do agregador), com busca por nome e ordenação por coluna. A tela consome `GET /api/services` (#115) pela base definida em `VITE_API_URL`; sem ela (variável vazia), o frontend sobe em modo demonstração com dados ilustrativos (`npm run mock`) — como executar em [frontend/README.md](frontend/README.md).
 
-  ![Tabela de serviços monitorados com o backend real](docs/img/sprint-1-dashboard-backend-real.png)
+  ![Tabela de serviços monitorados com o backend real](docs/img/sprint-2-dashboard-backend-real.png)
 
-  _Tabela ligada ao backend real em 14/10/2026, antes do cálculo de CO₂e (#139): por isso energia e emissão aparecem como "—". Audit Stream estava como Removido porque tinha saído da lista do agregador._
+  _Tabela ligada ao backend real (`docker compose`) em 21/10/2026, com energia e emissão da última coleta (#139) e a paleta azul (#180)._
 
 - **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
 
-  ![Selo de última atualização no cabeçalho](docs/img/sprint-1-ultima-atualizacao.png)
+  ![Selo de última atualização no cabeçalho](docs/img/sprint-2-ultima-atualizacao.png)
 
-  _Selo em 09/10/2026, capturado com o backend falso de desenvolvimento (`npm run mock`): os serviços e os valores de energia e emissão desta imagem são ilustrativos._
+  _Selo em 21/10/2026, com o backend real (`docker compose`)._
 
 - **RF11, RNF02 — Atualização automática sem recarregar (#100, #114):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
 
-  ![Dashboard depois de uma atualização com falha](docs/img/sprint-1-atualizacao-automatica.png)
+  ![Dashboard depois de uma atualização com falha](docs/img/sprint-2-atualizacao-automatica.png)
 
-  _Falha simulada no backend falso de desenvolvimento: os dados anteriores continuam na tela e o selo fica laranja ("Desatualizado desde …")._
+  _Backend parado com `docker compose stop backend` em 21/10/2026: os dados anteriores continuam na tela e o selo fica laranja ("Desatualizado desde …")._
 
 - **RF01, RF02, RF03, RF04 — Descoberta e coleta periódica (#95, #98, #99):** o backend descobre os serviços no agregador de métricas, consulta `/metrics/{id}` e grava o histórico no PostgreSQL; o _worker_ roda em segundo plano e reconcilia serviços que aparecem, ficam indisponíveis ou voltam a exportar métricas.
 
@@ -62,7 +62,9 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RF09, RF10 — Detalhes e histórico do serviço (#135):** clicar num serviço da tabela abre uma janela com status, localização, última leitura, CPU e as 50 coletas mais recentes do serviço (`GET /api/collections`), com o período exibido na legenda. O histórico se atualiza no mesmo intervalo do dashboard; se uma busca falha, as coletas continuam na tela com "Desatualizado desde …". Como verificar em [frontend/README.md](frontend/README.md).
 
-  ![Janela de detalhes de um serviço com o histórico de coletas](docs/img/sprint-1-detalhe-servico.png)
+  ![Janela de detalhes de um serviço com o histórico de coletas](docs/img/sprint-2-detalhe-servico.png)
+
+  _Janela da Billing API em 21/10/2026, com o backend real (`docker compose`)._
 
 - **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
