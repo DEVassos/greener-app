@@ -14,9 +14,9 @@ O EcoPulse adota um **tema escuro (Dark Theme)** com uma estética moderna volta
 
 ### Logotipo
 
-Ícone de folha na cor Primária (`#10B981`) seguido do nome em Space Grotesk 700, 24 px: "Eco" na cor do texto (`#E2E8F0`) e "Pulse" no amarelo da marca (`#FACC15`). Implementado no componente `Brand` (`frontend/src/components/Brand.tsx`), usado no cabeçalho (`AppHeader`).
+Ícone de folha na cor Primária (`#10B981`) seguido do nome em Space Grotesk 700, 24 px: "Eco" na cor do texto (`#E2E8F0`) e "Pulse" no amarelo da marca (`#FACC15`). Implementado no componente `Brand` (`frontend/src/components/Brand.tsx`), usado no cabeçalho (`AppHeader`). As telas de acesso (login) chegam com a autenticação da Sprint 2.
 
-**Pulso de "ao vivo"** (#180): a cada atualização dos dados, a folha se desfaz, o cabinho vira uma linha de batimento com um brilho `--neon` correndo por ela e a folha volta. A animação leva 2,4 s, em SVG (SMIL), sem biblioteca. O `Brand` recebe `pulseKey` com o horário da última atualização e toca uma vez a cada valor novo: o `DashboardPage` repassa o `updatedAt` do `useServices` pelo `AppHeader`. O logo fica parado quando a atualização falha (o horário não muda), nas páginas sem polling (ex.: `/configuracao`) e com `prefers-reduced-motion: reduce`. As telas de acesso (login) chegam com a autenticação da Sprint 2.
+**Pulso de "ao vivo"** (#180): a cada busca bem-sucedida de `/services` (no primeiro carregamento, a cada intervalo e no **Atualizar agora**), a folha se desfaz, o cabinho vira uma linha de batimento com um brilho `--neon` correndo por ela e a folha volta. A animação leva 2,4 s, em SVG (SMIL), sem biblioteca. O pulso diz que o dashboard buscou os dados de novo, não que chegou uma coleta nova: ele toca mesmo quando os valores não mudaram. O `Brand` recebe `pulseKey` com o horário da busca (o `updatedAt` do `useServices`, no relógio do navegador) e toca uma vez a cada valor novo; o `DashboardPage` repassa esse valor pelo `AppHeader`. Uma busca que termina no meio do pulso não o reinicia. O logo fica parado quando a busca falha (o horário não muda), nas páginas sem polling (ex.: `/configuracao`) e com `prefers-reduced-motion: reduce`.
 
 ---
 
@@ -52,13 +52,13 @@ Variações usadas pelos componentes para camadas, bordas, hierarquia de texto e
 | `--text-2` | `#CBD5E1` | Texto secundário, como avisos e parágrafos de apoio | 12,6:1 |
 | `--muted` | `#94A3B8` | Rótulos, legendas, rodapé e metadados; a cor mais apagada permitida para texto pequeno | 7,3:1 |
 | `--faint` | `#64748B` | Só elementos decorativos ou texto grande; não serve para texto pequeno | 3,9:1 |
-| `--accent-hover` | `#34D399` | Hover de elementos na cor Primária, texto do item ativo e barras de ranking | 9,7:1 |
+| `--accent-hover` | `#34D399` | Hover de elementos na cor Primária, texto do item ativo e do selo "Ativo", barras de ranking | 9,7:1 |
 | `--on-accent` | `#04120C` | Texto e ícones sobre fundo na cor Primária (ex.: botão principal) | 7,6:1 sobre `#10B981` |
 | `--sky-hover` | `#7DD3FC` | Hover de links | 11,2:1 |
 | `--danger` | `#F87171` | Texto pequeno de erro; o `#EF4444` fica para ícones, bordas e fundos, porque sobre a superfície chega só a 4,5:1 | 6,8:1 |
 | `--neon-glow` | `rgb(92 255 184 / 0.35)` | Brilho do neon (`box-shadow` / `drop-shadow`); nunca sozinho | — |
 
-No Tailwind, os tokens viram classes: `bg-bg`, `bg-surface`, `bg-surface-2`, `bg-surface-3`, `border-border`, `text-text`, `text-muted`, `text-faint`, `text-primary` (`--accent`), `text-secondary` (`--sky`), `text-brand` (`--yellow`), `text-warning` e `text-error`, além das variantes `bg-*` e `border-*` de cada uma. Os demais tokens de apoio são usados pelo CSS dos componentes, com `var(--token)`.
+No Tailwind, os tokens viram classes: `bg-bg`, `bg-surface`, `bg-surface-2`, `bg-surface-3`, `border-border`, `text-text`, `text-muted`, `text-faint`, `text-primary` (`--accent`), `text-primary-hover` (`--accent-hover`), `text-secondary` (`--sky`), `text-brand` (`--yellow`), `text-warning`, `text-error` e `text-danger` (`--danger`), além das variantes `bg-*` e `border-*` de cada uma. Os demais tokens de apoio são usados pelo CSS dos componentes, com `var(--token)`.
 
 ---
 
@@ -72,11 +72,15 @@ No Tailwind, os tokens viram classes: `bg-bg`, `bg-surface`, `bg-surface-2`, `bg
 * **Botão cheio** (ação principal da tela, ex.: "Entrar"): fundo `--accent`, texto `--on-accent`. O texto fica escuro porque o branco sobre o verde dá 2,5:1 e reprova no AA.
 * **Botão vazado** (ações secundárias, ex.: "Tentar novamente", "Atualizar agora"): classe `.btn-outline` (`frontend/src/styles/controls.css`), fundo transparente, borda e texto `--accent`; no hover, `--accent` a 10% no fundo e texto `--accent-hover`.
 
-### Item ativo (menu do topo e abas)
-* Fundo `--accent` a 15%, borda `--accent` e texto `--accent-hover` em negrito. Os demais itens ficam em `--muted` e passam a `--text` no hover.
+### Item ativo (menu do topo)
+* Fundo `--accent` a 15%, borda `--accent` e texto `--accent-hover` em negrito. Os demais itens ficam em `--muted` e passam a `--text` no hover. A borda é uma `border` de 1 px (transparente nos itens inativos), para continuar visível no alto contraste do sistema.
+* Ainda não há abas na interface; quando houver, o item selecionado segue este mesmo padrão.
+
+### Selos de estado
+* Texto e cor juntos (o estado nunca é mostrado só pela cor), sempre com tokens: **Ativo**/**OK** em `--accent-hover` sobre `--accent` a 10%; **Indisponível**/**Erro** em `--danger` sobre `--error` a 10%; **Sem métricas** em `--warning` sobre `--warning` a 10%; **Removido** em `--muted` sobre `--surface-3`. Sobre a superfície, o pior caso é 5,4:1 (Sem métricas), acima do AA para texto pequeno.
 
 ### Barras de ranking e de proporção
-* Trilho em `--border`, barra em `--accent-hover` e o 1º lugar em `--neon` (com `--neon-glow` de brilho). É o padrão do ranking (US09) e de qualquer barra de proporção.
+* Trilho em `--border`, barra em `--accent-hover` e o 1º lugar em `--neon` (com `--neon-glow` de brilho). Ainda não há componente de barras: é o padrão que o ranking da US09 (#50) e qualquer barra de proporção vão seguir. Como o neon e o `--accent-hover` ficam a 1,5:1 um do outro, o 1º lugar também precisa de rótulo ou posição, não só da cor.
 
 ### Tipografia
 * Tipografia limpa e sem serifa otimizada para painéis de dados (Dashboards), em três famílias do Google Fonts carregadas em `frontend/index.html`:
