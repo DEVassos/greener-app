@@ -28,7 +28,7 @@ Feriados sem aula: 12/10, 15/10, 02/11 e 20/11 (daily assíncrona). Fonte: [`.gi
 | Sprint | Critérios além de ES01–ES09 + DW01 | Denominador (pontos máximos) | Requisitos cobertos |
 |---|---|---|---|
 | 1 | DW02, DW03, DW04, DW07, BD01, BD02, BD03, TP02 | **79** | RF01, RF03, RF04, RF10, RF12, RF09 (parcial: estado e localização); could RF02, RF05, RF06 |
-| 2 | DW05, DW06, TP01, TP03 | **61** | RF02, RF05, RF06, RF07, RF08, RF09 (completo), RF11, RNF02, RNF04, RP06 |
+| 2 | DW05, DW06, TP01, TP03 | **61** | RF02, RF05, RF06, RF07, RF08, RF09 (completo), RF11, RNF02, RNF04, RP06, RNF01 (parcial: identidade visual) |
 | 3 | BD04 | **46** | RF14, RF15, RF13 (could), RNF01, RNF03; revisão final de regressões e portfólio |
 
 ## Sprint 1
@@ -77,7 +77,7 @@ Entregas de apoio sem critério próprio na Sprint 1: ADRs 0001–0003 em `docs/
 
 **Período:** 20/10 → 09/11/2026 (checkpoint 30/10, congelamento 08/11 20h, review 09/11 19h30 — a confirmar). **Milestone:** `Sprint 2`. **Registro:** `docs/sprints/sprint-2.md`.
 
-**Objetivo:** dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. Tudo o que foi aceito na Sprint 1 continua funcionando.
+**Objetivo:** dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. A identidade visual volta ao fundo azul-escuro, com verde só em ações e destaques, e o logo pulsa a cada atualização. Tudo o que foi aceito na Sprint 1 continua funcionando.
 
 **Critérios previstos:** ES01–ES09, DW01 (43) + DW05 (3), DW06 (3), TP01 (6), TP03 (6) = **denominador 61**.
 
@@ -96,9 +96,9 @@ Entregas de apoio sem critério próprio na Sprint 1: ADRs 0001–0003 em `docs/
 | DW05 | RF08, RF09, RF11, RNF02, RF05, RF06 | Dashboard com cards por serviço (estado, localização, métricas, energia, CO₂e), painel de indicadores agregados, intervalo de atualização configurável e "Última atualização: hh:mm:ss"; estados "indisponível" e "sem métricas" destacados | Abrir o dashboard; aguardar o intervalo e ver a hora mudar sem recarregar; derrubar um serviço e ver o estado; comparar valores com `GET /collections` | Andrea (frontend) | a registrar no fechamento | Planejado |
 | DW06 | RP06 | Módulo `auth` com `POST /auth/login` (JWT), middleware de autenticação, rotas `/monitoring-settings` protegidas, senha com hash (`bcrypt`), segredo via variável de ambiente; tabela `users` em `schema.sql` | `PUT /monitoring-settings` sem token → `401`; com token → `200`; segredo ausente do repositório; senha não aparece em texto puro no banco | Lucas (backend), Vinicius (db) | a registrar no fechamento | Planejado |
 | TP01 | RF07, RF02 | Classes de domínio em `backend/src/domain/` (`Service`, `Collection`, `EnergyEstimate`, `CarbonCalculator`, `MonitoringStatus`) com encapsulamento, usadas pelos services e pelo coletor | Ler as classes e os pontos de uso nos services; testes unitários do cálculo passam | Lucas (backend) | a registrar no fechamento | Planejado |
-| TP03 | RNF04, RF02, RF05, RF06 | `backend/src/shared/errors.ts` (erros tipados), `middlewares/error-handler.ts`, `try/catch` com mensagens compreensíveis nas integrações e repositories; falhas de API/banco viram estado visível, nunca resultado válido | Simular API fora do ar e banco parado: backend responde erro padronizado, frontend mostra aviso, processo segue vivo; `grep` de `catch` vazio retorna nada | Lucas (backend), Andrea (frontend) | a registrar no fechamento | Planejado |
+| TP03 | RNF04, RF02, RF05, RF06 | `backend/src/shared/errors.ts` (erros tipados), `middlewares/error-handler.ts`, `try/catch` com mensagens compreensíveis nas integrações e repositories; falhas de API/banco viram estado visível, nunca resultado válido | Simular API fora do ar e banco parado: backend responde erro padronizado, frontend mostra aviso, processo segue vivo; `grep` de `catch` vazio retorna nada | Vinicius (db) | a registrar no fechamento | Planejado |
 
-Entregas de apoio sem critério próprio na Sprint 2: `docs/arquitetura.md`, `docs/calculos.md` (PO com o dev backend), ADR sobre polling vs SSE, ADR sobre o modelo de potência e fatores de emissão, ADR sobre a autenticação JWT.
+Entregas de apoio sem critério próprio na Sprint 2: `docs/arquitetura.md`, `docs/calculos.md` (PO com o dev backend), ADR sobre polling vs SSE, ADR sobre o modelo de potência e fatores de emissão, ADR sobre a autenticação JWT, e a identidade visual com fundo azul-escuro, verde nos destaques e logo pulsante ([#180](https://github.com/DEVassos/greener-app/issues/180), RNF01 parcial, Andrea).
 
 ## Sprint 3
 
@@ -122,7 +122,7 @@ Entregas de apoio sem critério próprio na Sprint 2: `docs/arquitetura.md`, `do
 | DW01 | RP01, RP02 | Módulos frontend e backend em TypeScript estrito mantidos e separados de `docs/` e `database/` | `npm run build` nos dois módulos; estrutura do repositório | Andrea (frontend), Lucas (backend) | a registrar no fechamento | Planejado |
 | BD04 | RF14, RF15, RF08, RF04, RNF03 | Consultas em `collections.repository.ts` e `analytics.repository.ts` com `SUM`, `AVG`, `GROUP BY service_id`, `ORDER BY` por energia ou CO₂e, filtros `collected_at BETWEEN $1 AND $2` e `service_id = ANY($3)`; endpoints `GET /ranking?metric=&period=` e `GET /comparison?serviceIds=&period=`; índices que sustentam o período | Executar as consultas com dados conhecidos e conferir totais contra `SELECT` manual; mudar o período e ver o resultado mudar; `EXPLAIN` usa o índice | Vinicius (db), Lucas (backend) | a registrar no fechamento | Planejado |
 
-Entregas de apoio sem critério próprio na Sprint 3: telas de ranking e comparação (Andrea, RF14/RF15 — cobertas por DW03/DW04/DW05 cumulativos), mapa com coordenadas quando a API fornecer (Andrea, RF13 could), revisão de responsividade (RNF01) e desempenho (RNF03), limpeza final do repositório para portfólio.
+Entregas de apoio sem critério próprio na Sprint 3: telas de ranking e comparação (Andrea, RF14/RF15 — cobertas por DW03/DW04/DW05 cumulativos), mapa com coordenadas quando a API fornecer (Andrea, RF13 could), revisão de responsividade (RNF01; a identidade visual foi antecipada em #180, S2) e desempenho (RNF03), limpeza final do repositório para portfólio.
 
 ## Rastreabilidade dos requisitos não funcionais e do projeto
 
@@ -130,10 +130,10 @@ Os RNF e RP não têm linha própria de pontuação; são comprovados pelos crit
 
 | Requisito | Comprovado por | Sprint | Responsáveis |
 |---|---|---|---|
-| RNF01 — Usabilidade e responsividade | DW04 (revisão final de layout) | 3 | Andrea |
+| RNF01 — Usabilidade e responsividade | DW04 (revisão final de layout; identidade visual antecipada em #180, S2) | 3 | Andrea |
 | RNF02 — Atualização em tempo real | DW05 (intervalo e "Última atualização") | 2 | Andrea |
 | RNF03 — Desempenho | DW05, BD04 (consultas por período com índice) | 3 | Vinicius, Andrea |
-| RNF04 — Tolerância a falhas | DW02 (falha de API tratada), TP03 (exceções) | 1 (backend não cai), 2 (visível na interface) | Lucas, Andrea |
+| RNF04 — Tolerância a falhas | DW02 (falha de API tratada), TP03 (exceções) | 1 (backend não cai), 2 (visível na interface) | Lucas, Vinicius, Andrea |
 | RNF05 — Documentação técnica | ES08, DW07 | todas | Henrique, Gabriel, devs (docs do próprio PR) |
 | RP01 — React + TypeScript | DW01, DW04 | todas | Gabriel, Andrea |
 | RP02 — Node.js + TypeScript | DW01, DW03 | todas | Lucas |
@@ -174,3 +174,4 @@ A participação é registrada por sprint em `docs/sprints/sprint-N/contribuicao
 | 18/10/2026 | `docs/produto/diferenciais-devassos.pdf` sai do repositório (#144). As ideias de diferencial seguem como histórias do backlog (US12 #53 e US13 #54, Sprint 3) | O documento interno, num repositório público, orientava a não citar o recomendador no backlog das reviews, o que contraria a transparência do backlog (ES01) | Gabriel (SM) com o time; revisão de @DeaTuribio, autora |
 | 19/10/2026 | Sprint Review por videochamada, de cerca de 7 min, com Otávio Abreu dos Santos Silva (UniLaunch) e o Prof. Arley Souza: a equipe apresentou o vídeo da Sprint 1 e respondeu às perguntas. O cliente aprovou a coleta, a persistência e a interface, e reforçou que o foco é comparar serviços e analisar os dados que já coletamos; o registro está na issue `feedback-cliente` [#159](https://github.com/DEVassos/greener-app/issues/159), na milestone Sprint 2. Nenhum critério muda de sprint | Registro da review ([review.md](sprints/sprint-1/review.md)) | Gabriel (SM), escriba; Henrique (PO) |
 | 20/10/2026 | Fechamento da Sprint 1. ES05, ES06, ES08 e ES09 passam a `Concluído`, com permalinks para a tag `sprint-1`; ES07 fica `Parcial` pelas exceções à DoD-PR registradas em `sprint-1.md` § 6. A antecipação de ranking e comparação (RF14, RF15, BD04), pedida pelo feedback, é decidida pelo PO na planning da Sprint 2 (#159). Os apontamentos escritos do cliente sobre o repositório, recebidos em 20/10, viraram as issues `feedback-cliente` #160, #161, #162, #163, #164, #165 e #166, na milestone Sprint 2 ([review.md § 3.1](sprints/sprint-1/review.md#31-apontamentos-escritos-do-cliente-20102026)); nenhum critério muda de sprint | DoD-Sprint e registro pós-review em até 24h | Gabriel (SM); Situação verificada pelo PO no PR de fechamento |
+| 20/10/2026 | A tarefa #180 (fundo azul-escuro, verde só em ações/destaques e logo pulsante, RNF01, 2 pts) entra na Sprint 2 a partir do feedback da Review 1; é uma entrega parcial de RNF01 e a revisão final de responsividade continua na Sprint 3. O denominador da Sprint 2 permanece 61 | O cliente achou a interface "verde demais" e pediu uma tela que ajude a decidir; a mudança é de identidade visual e não cria critério novo | Henrique (PO); implementação de Andrea (frontend) |
