@@ -26,7 +26,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <AppHeader>
+      <AppHeader updatedAt={updatedAt}>
         <LastUpdated updatedAt={updatedAt} intervalSeconds={refreshIntervalMs / 1000} stale={error !== ''}>
           <button
             type="button"
@@ -37,7 +37,7 @@ export default function DashboardPage() {
             aria-disabled={loading}
             aria-label="Atualizar agora"
             title="Atualizar agora"
-            className="grid size-9 cursor-pointer place-items-center rounded-lg border border-border bg-transparent text-muted hover:border-muted hover:text-text aria-disabled:cursor-wait aria-disabled:opacity-60"
+            className="btn-outline grid size-9 place-items-center"
           >
             <svg
               viewBox="0 0 24 24"

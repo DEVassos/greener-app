@@ -29,8 +29,10 @@
     overflow-x: auto;
   }
 
+  /* Borda transparente em todos os itens: o ativo só troca a cor dela, sem mudar de tamanho */
   .nav a {
-    padding: 8px 14px;
+    padding: 7px 13px;
+    border: 1px solid transparent;
     border-radius: 8px;
     color: var(--muted);
     text-decoration: none;
@@ -41,10 +43,13 @@
     color: var(--text);
   }
 
+  /* Item ativo: verde a 15%, borda e texto em verde. Borda de verdade (não box-shadow) para continuar
+     visível no alto contraste do sistema (forced-colors) */
   .nav a.active {
-    background: var(--surface-3);
-    color: var(--text);
-    font-weight: 500;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border-color: var(--accent);
+    color: var(--accent-hover);
+    font-weight: 600;
   }
 
   .topbar-actions {
