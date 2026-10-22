@@ -105,7 +105,7 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 - Comparação entre serviços (#52) e ranking (#50) entram na Sprint 2 para responder ao feedback da Review 1 (#159); BD04 continua previsto formalmente na Sprint 3, mas as consultas de análise são entregues já na S2 em #49, #50 e #175.
 - TP01 (#173) e TP03 (#174) entram na Sprint 2 como tarefas explícitas, com donos nomeados, para não depender de "sobra" das histórias.
 - #51 (mapa) permanece `could`: só é puxada se as histórias `must` estiverem concluídas até 06/11.
-- Par de revisão da sprint: @DeaTuribio ↔ @LUCASAMR23; @LUCASAMR23 ↔ @viniciusaugusto1997; @viniciusaugusto1997 ↔ @DeaTuribio; @henriqueptbd-cell ↔ @travensolli.
+- Par de revisão da sprint: a dupla que desenvolve cada frente revisa os PRs um do outro, mesmo quando o revisor é co-autor, porque é quem acompanha o que está sendo feito. Frontend: @DeaTuribio ↔ @travensolli; backend e banco/infra: @LUCASAMR23 ↔ @viniciusaugusto1997; processos: @henriqueptbd-cell ↔ @travensolli. A aprovação começa com "DoD verificada" e descreve o que foi executado. Fonte: `.github/equipe.json` (#185).
 - Nenhum critério muda de sprint nesta planning; o denominador continua 61.
 - A tarefa #180 (fundo azul-escuro, verde só em ações/destaques e logo pulsante, RNF01, 2 pts) entra na Sprint 2 a partir do feedback da Review 1; é uma entrega parcial de RNF01, cuja revisão final de responsividade continua na Sprint 3. O denominador segue 61.
 
