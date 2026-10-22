@@ -117,5 +117,5 @@ Feriados no período: 02/11 (daily assíncrona por texto, com ata). Capacidade t
 - [x] Issue #180 criada e atribuída (@DeaTuribio)
 - [x] Linhas da Sprint 2 no plano de entregas revisadas, incluindo #180 (@henriqueptbd-cell)
 - [x] `docs/backlog/product-backlog.md` regenerado (@travensolli) — 108 issues, incluído neste PR
-- [ ] #49 e #52 quebradas em tarefas até 23/10 (@henriqueptbd-cell)
+- [x] #49 e #52 quebradas em tarefas até 23/10 (@henriqueptbd-cell) — feito em 22/10 por @travensolli, como backup do PO: #188, #189 e #190 na #49; #193 e #194 na #52 (#198)
 - [ ] `docs/calculos.md` com o exemplo numérico conferido (@henriqueptbd-cell)
