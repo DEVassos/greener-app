@@ -13,11 +13,11 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/main.tsx` | ponto de entrada: carrega os estilos globais e monta o React com o `BrowserRouter` |
 | `src/App.tsx` | rotas: `/` (dashboard, público), `/emissoes` (emissões por estação, pública) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
 | `src/pages/` | telas (`DashboardPage`, `EmissionsPage`, `SettingsPage`) |
-| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
+| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
 | `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
 | `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useEmissions` (série de emissões, com tempo real opcional) |
-| `src/utils/` | funções puras: formatação pt-BR (`format.ts`); trechos do gráfico da CPU (`cpu-chart.ts`); datas do filtro, agrupamento, resumo e formatação das emissões (`emissions.ts`) |
+| `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`), trechos do gráfico da CPU (`cpu-chart.ts`) e datas do filtro, agrupamento, resumo e formatação das emissões (`emissions.ts`) |
 | `src/styles/global.css` | ordem das camadas de CSS, Tailwind, tokens de cor e fonte e reset mínimo |
 | `src/styles/layout.css` | estrutura comum das páginas (`.page`, `.content`, `.panel`) |
 | `mock/server.mjs` | **backend falso** só para desenvolvimento e revisão (ver abaixo); não vai para produção |
@@ -40,6 +40,15 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - O cabeçalho mostra "Última atualização: dd/mm HH:MM:SS · intervalo: N s" e o botão **Atualizar agora**; antes da primeira busca bem-sucedida (inclusive se ela falhar), mostra "Aguardando a primeira atualização" com o intervalo e o botão.
 - Durante uma busca o botão fica com `aria-disabled` (não `disabled`), para quem navega pelo teclado não perder o foco a cada ciclo. O selo não é `role="status"`: o horário não é anunciado a cada ciclo, e a falha é anunciada pelo aviso de erro.
 - Se uma atualização falhar, os dados anteriores continuam na tela, o selo fica laranja ("Desatualizado desde…") e aparece o erro com **Tentar novamente**.
+
+## Cards de estado
+
+- Acima da tabela, `KpiPanel` mostra quatro cards `MetricTile`: **Total**, **Ativos**, **Indisponíveis** e **Sem métricas**. As contagens vêm de `summarizeStatus` (`src/utils/summary.ts`), sobre a mesma lista de `GET /api/services` da tabela, e mudam no mesmo ciclo do polling.
+- Os removidos não entram no total, porque saíram da lista do agregador. Quando há algum, o card do total diz "sem contar N removidos".
+- Cada estado tem rótulo, ícone e a cor do `StatusBadge`: a cor nunca é a única pista. A cor só aparece com contagem maior que zero; com zero, o card fica neutro e sem nota, para não criar falso alarme. Com contagem, a nota ao lado do número dá a proporção ("14% do total").
+- Os cards são compactos (cerca de 89 px de altura), para sobrar espaço para a tabela em telas de notebook.
+- Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, com os números apagados (`--muted`), junto com o erro e o selo "Desatualizado desde…".
+- `MetricTile` é genérico (rótulo, valor, unidade, nota, ícone e tom), para os cards de energia e CO₂e do painel de indicadores agregados.
 
 ## Energia e emissão na tabela
 
@@ -148,8 +157,11 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 22. Na janela de **Fraud Detector**, acima da tabela → gráfico **CPU (%)** com eixo de 0 a 100% e os horários da primeira e da última coleta da legenda; "última" é a CPU da primeira linha da tabela. Passar o mouse sobre o gráfico → linha vertical e caixa com a CPU e o horário da coleta mais próxima, iguais aos da tabela. Com Tab até o gráfico, as setas, Home e End percorrem as coletas.
 23. Na janela de **Email Dispatcher** → a linha para onde começam os erros, as coletas com erro aparecem como × abaixo do eixo e a legenda diz "A linha é interrompida nas coletas sem CPU: N com erro". Com o cursor sobre um ×, a caixa mostra "Erro na coleta" e a observação da coleta.
 24. Com 375 px de largura → o gráfico ocupa a largura da janela, sem rolagem lateral, e os rótulos continuam legíveis.
-25. Sem `.env`, clicar em **Emissões** no menu → abre `/emissoes?…` na primeira estação, com hoje, "Automático (15 min)" e o resumo do dia; **Email Dispatcher** mostra coletas "com falha" no card **Coletas**, e **Inventory Sync**, "Nenhuma coleta desta estação no período escolhido".
-26. Trocar a estação e clicar em ◀ → a URL muda (`servico`, `de`, `ate`) e o resumo é do dia anterior; o botão voltar do navegador volta ao filtro anterior. Abrir o link copiado numa aba nova → mesmo filtro.
-27. Em **Agrupar por**, escolher **Cada coleta** → o total de emissão e de coletas é o mesmo do agrupamento por 15 min; o pico passa a mostrar o horário exato da coleta.
-28. Com o mock no ar (`npm run mock`), abrir `/emissoes` → o terminal do mock registra `GET /collections/series`; com **Cada coleta**, registra `GET /collections` (várias páginas para um dia inteiro). Abrir `/emissoes?de=lixo` → cai em hoje.
-29. **Tempo real** com `VITE_REFRESH_INTERVAL_MS=5000` → o horário "Atualizado às" muda a cada 5 s e o logo pulsa; trocar de aba pausa as chamadas no terminal do mock.
+25. Sem `.env` → acima da tabela, os cards mostram **Total 7**, **Ativos 5** (71% do total), **Indisponíveis 1** e **Sem métricas 1** (14% do total cada), em verde, vermelho e laranja, as mesmas contagens da coluna Status. Com 375 px, ficam em 2 colunas, sem rolagem lateral.
+26. Com o backend real: `curl -s http://localhost:3000/api/services | jq '.services | group_by(.status) | map({(.[0].status): length}) | add'` → cada card bate com a contagem do seu status, e o total é a soma sem os `removido`. Com todos ativos, **Indisponíveis** e **Sem métricas** mostram 0 sem cor e sem nota.
+27. Com o dashboard aberto, `docker compose stop backend` e esperar um intervalo → os cards continuam com os últimos números, apagados, com o erro e o selo "Desatualizado desde…". Recarregar a página com o backend parado → nenhum card, só o erro. `docker compose start backend` → no ciclo seguinte, os cards e o selo voltam ao normal.
+28. Sem `.env`, clicar em **Emissões** no menu → abre `/emissoes?…` na primeira estação, com hoje, "Automático (15 min)" e o resumo do dia; **Email Dispatcher** mostra coletas "com falha" no card **Coletas**, e **Inventory Sync**, "Nenhuma coleta desta estação no período escolhido".
+29. Trocar a estação e clicar em ◀ → a URL muda (`servico`, `de`, `ate`) e o resumo é do dia anterior; o botão voltar do navegador volta ao filtro anterior. Abrir o link copiado numa aba nova → mesmo filtro.
+30. Em **Agrupar por**, escolher **Cada coleta** → o total de emissão e de coletas é o mesmo do agrupamento por 15 min; o pico passa a mostrar o horário exato da coleta.
+31. Com o mock no ar (`npm run mock`), abrir `/emissoes` → o terminal do mock registra `GET /collections/series`; com **Cada coleta**, registra `GET /collections` (várias páginas para um dia inteiro). Abrir `/emissoes?de=lixo` → cai em hoje.
+32. **Tempo real** com `VITE_REFRESH_INTERVAL_MS=5000` → o horário "Atualizado às" muda a cada 5 s e o logo pulsa; trocar de aba pausa as chamadas no terminal do mock.
