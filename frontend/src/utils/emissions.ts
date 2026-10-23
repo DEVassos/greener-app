@@ -147,20 +147,21 @@ export function summarize(points: EmissionPoint[], totals: EmissionsTotals): Emi
 }
 
 /**
- * Tempo sem coleta no período. Agrupado: intervalos que não vieram. Por coleta: o que passou do intervalo típico
- * nos trechos parados por mais de 3× esse intervalo. É ausência de registro, não indisponibilidade.
+ * Tempo sem coleta no período, com a mesma regra em qualquer agrupamento: soma dos trechos sem nenhuma coleta
+ * registrada (com falha ou não) entre a primeira e a última coleta do período. O tempo antes da primeira e depois da
+ * última não conta: pode ser só o sistema desligado ou o período ainda em curso. Os trechos têm o tamanho do
+ * agrupamento automático do período (15 min até 1 dia; 1 hora acima disso), ou o do agrupamento escolhido, se for
+ * maior, e são alinhados como o `date_bin` da #189; por isso "Cada coleta" e "15 min" dão o mesmo número.
+ * É ausência de registro, não indisponibilidade.
  */
 export function missingTimeMs(points: EmissionPoint[], bucket: EmissionsBucket, fromMs: number, toMs: number): number {
-  // Sem nenhuma coleta a tela já diz "Nenhuma coleta no período"
-  if (points.length === 0) return 0;
-  if (bucket !== 'coleta') {
-    const expected = Math.ceil((toMs - fromMs) / BUCKET_MS[bucket]);
-    return Math.max(0, expected - points.length) * BUCKET_MS[bucket];
-  }
-  const deltas = points.slice(1).map((point, i) => point.t - points[i].t);
-  if (deltas.length === 0) return 0;
-  const typical = [...deltas].sort((a, b) => a - b)[Math.floor(deltas.length / 2)];
-  return deltas.reduce((missing, delta) => (delta > typical * 3 ? missing + delta - typical : missing), 0);
+  const stepMs = Math.max(BUCKET_MS[autoBucket(fromMs, toMs) === '1h' ? '1h' : '15min'], BUCKET_MS[bucket]);
+  const slots = [
+    ...new Set(points.filter((point) => point.collections > 0).map((point) => Math.floor(point.t / stepMs) * stepMs)),
+  ].sort((a, b) => a - b);
+  let missing = 0;
+  for (let i = 1; i < slots.length; i += 1) missing += slots[i] - slots[i - 1] - stepMs;
+  return missing;
 }
 
 /** Quantas vezes o pico ficou acima da média; null sem cálculo. */
