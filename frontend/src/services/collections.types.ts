@@ -3,6 +3,9 @@
 /** Resultado de uma coleta: métricas lidas, falha na chamada ou serviço sem métricas. */
 export type CollectionStatus = 'ok' | 'erro' | 'sem_metricas';
 
+/** Estado do cálculo de energia/CO₂e da coleta (`collections.calculation_status`). */
+export type CalculationStatus = 'nao_calculado' | 'disponivel' | 'indisponivel';
+
 export interface ServiceCollection {
   id: string;
   serviceId: string;
@@ -16,6 +19,14 @@ export interface ServiceCollection {
   networkGb: number | null;
   /** Motivo da falha quando `status` é `erro`. */
   errorMessage: string | null;
+  // Campos de cálculo (#188): opcionais até a rota passar a devolvê-los
+  calculationStatus?: CalculationStatus;
+  /** Energia estimada da coleta, em kWh; null sem cálculo. */
+  energyKwh?: number | null;
+  /** Emissão estimada da coleta, em g CO₂e; null sem cálculo. */
+  co2eGrams?: number | null;
+  /** Intensidade de carbono usada no cálculo, em g CO₂e/kWh. */
+  carbonIntensityGco2ePerKwh?: number | null;
 }
 
 export interface CollectionsResponse {
