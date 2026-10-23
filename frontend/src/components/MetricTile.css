@@ -1,0 +1,79 @@
+@layer components {
+  .metric {
+    --tone: var(--sky);
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  /* Mesmas cores do StatusBadge (docs/identidade-visual.md), sempre com o texto do rótulo */
+  .metric--success {
+    --tone: var(--accent-hover);
+  }
+
+  .metric--danger {
+    --tone: var(--danger);
+  }
+
+  .metric--warning {
+    --tone: var(--warning);
+  }
+
+  .metric--success,
+  .metric--danger,
+  .metric--warning {
+    border-left: 3px solid var(--tone);
+  }
+
+  .metric-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .metric-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .metric-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tone) 12%, transparent);
+    color: var(--tone);
+  }
+
+  .metric-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Número grande isolado: sans semibold com algarismos proporcionais (sem fonte de título nem tabular-nums) */
+  .metric-value {
+    margin-top: 6px;
+    font-family: var(--sans);
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .metric-unit {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .metric-note {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+}
