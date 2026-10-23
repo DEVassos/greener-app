@@ -56,11 +56,13 @@ export default function EmissionsPage() {
   const today = todayInput();
   const services = useMemo(() => servicesData?.services ?? [], [servicesData]);
 
-  // Filtro aplicado (vem da URL; valor inválido ou ausente cai no padrão: hoje e a primeira estação)
+  // Filtro aplicado (vem da URL; valor inválido ou ausente cai no padrão: hoje e a primeira estação).
+  // `ate` fora do que o formulário aceita (antes de `de`, no futuro ou a mais de 31 dias) vale como inválida.
   const urlStart = params.get('de');
   const urlEnd = params.get('ate');
   const start = isInputDate(urlStart) && urlStart <= today ? urlStart : today;
-  const end = isInputDate(urlEnd) && urlEnd >= start && urlEnd <= today ? urlEnd : start;
+  const end =
+    isInputDate(urlEnd) && urlEnd >= start && urlEnd <= today && spanDays(start, urlEnd) <= MAX_SPAN_DAYS ? urlEnd : start;
   const urlService = params.get('servico');
   const service = services.find((item) => item.id === urlService) ?? services[0] ?? null;
 
