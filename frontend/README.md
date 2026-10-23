@@ -13,11 +13,11 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/main.tsx` | ponto de entrada: carrega os estilos globais e monta o React com o `BrowserRouter` |
 | `src/App.tsx` | rotas: `/` (dashboard, público) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
 | `src/pages/` | telas (`DashboardPage`, `SettingsPage`) |
-| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
+| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
 | `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço); `demo-data.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
 | `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling) |
-| `src/utils/` | funções puras: formatação pt-BR (`format.ts`) |
+| `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`) e trechos do gráfico da CPU (`cpu-chart.ts`) |
 | `src/styles/global.css` | ordem das camadas de CSS, Tailwind, tokens de cor e fonte e reset mínimo |
 | `src/styles/layout.css` | estrutura comum das páginas (`.page`, `.content`, `.panel`) |
 | `mock/server.mjs` | **backend falso** só para desenvolvimento e revisão (ver abaixo); não vai para produção |
@@ -41,6 +41,15 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Durante uma busca o botão fica com `aria-disabled` (não `disabled`), para quem navega pelo teclado não perder o foco a cada ciclo. O selo não é `role="status"`: o horário não é anunciado a cada ciclo, e a falha é anunciada pelo aviso de erro.
 - Se uma atualização falhar, os dados anteriores continuam na tela, o selo fica laranja ("Desatualizado desde…") e aparece o erro com **Tentar novamente**.
 
+## Cards de estado
+
+- Acima da tabela, `KpiPanel` mostra quatro cards `MetricTile`: **Total**, **Ativos**, **Indisponíveis** e **Sem métricas**. As contagens vêm de `summarizeStatus` (`src/utils/summary.ts`), sobre a mesma lista de `GET /api/services` da tabela, e mudam no mesmo ciclo do polling.
+- Os removidos não entram no total, porque saíram da lista do agregador. Quando há algum, o card do total diz "sem contar N removidos".
+- Cada estado tem rótulo, ícone e a cor do `StatusBadge`: a cor nunca é a única pista. A cor só aparece com contagem maior que zero; com zero, o card fica neutro e sem nota, para não criar falso alarme. Com contagem, a nota ao lado do número dá a proporção ("14% do total").
+- Os cards são compactos (cerca de 89 px de altura), para sobrar espaço para a tabela em telas de notebook.
+- Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, com os números apagados (`--muted`), junto com o erro e o selo "Desatualizado desde…".
+- `MetricTile` é genérico (rótulo, valor, unidade, nota, ícone e tom), para os cards de energia e CO₂e do painel de indicadores agregados.
+
 ## Energia e emissão na tabela
 
 - As colunas "Energia (kWh)" e "Emissão (g CO₂e)" mostram o resultado da **última coleta** de cada serviço (cerca de 30 s de operação), calculado pelo backend desde o #139. Sem cálculo disponível (por exemplo, com a API de carbono fora), aparece "—", nunca zero.
@@ -50,6 +59,7 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 - Clicar numa linha da tabela abre `ServiceDetailsDialog`, um `<dialog>` nativo aberto com `showModal()`. Pelo teclado, o nome do serviço é um botão. O `<dialog>` já prende o foco na janela, fecha com Esc e escurece o fundo; ela fecha também pelo botão × ou por um clique fora, e o foco volta para a tabela.
 - A janela mostra os dados da linha (status, região, cidade/país, última leitura, CPU) e as 50 coletas mais recentes de `GET /collections?service_id=<id>&limit=50`, da mais recente para a mais antiga, com o período exibido na legenda.
+- Acima da tabela, `CpuHistoryChart` desenha a CPU (%) dessas coletas numa linha, da mais antiga para a mais recente, com eixo de 0 a 100% e os horários de início e fim. É SVG puro, sem biblioteca, e o componente recebe as coletas por props, sem HTTP. A linha é interrompida nas coletas com erro (×) ou sem métricas (anel), marcadas abaixo do eixo e contadas na legenda. Passar o mouse, tocar ou usar as setas, Home e End com o gráfico em foco mostra o valor, o horário e o erro de cada coleta. Com menos de 2 coletas com CPU, aparece um texto no lugar do gráfico. A lógica dos trechos fica em `src/utils/cpu-chart.ts`.
 - O histórico usa o mesmo `usePolling` e o mesmo intervalo do dashboard, com selo "Última atualização" próprio. Se uma busca falhar, as coletas anteriores continuam na tela com "Desatualizado desde…" e **Tentar novamente**. Um serviço sem coletas mostra um aviso no lugar da tabela.
 - A janela só fica montada enquanto está aberta: fechar cancela o polling do histórico.
 
@@ -134,3 +144,9 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 19. Fechar a janela com Esc, com o botão × e com um clique fora → as três formas fecham. Com Tab até o nome de um serviço e Enter → a janela abre; ao fechar, o foco volta para o nome.
 20. Com o mock no ar e `VITE_REFRESH_INTERVAL_MS=5000`, abrir um serviço → o terminal do mock registra `GET /collections` a cada 5 s, e o selo da janela e a CPU das coletas mudam sem recarregar. Parar o mock → a janela mostra o erro e "Desatualizado desde …" e mantém as coletas.
 21. Estreitar a janela do navegador para 375 px com os detalhes abertos → a página não ganha rolagem lateral; só a tabela do histórico rola na horizontal.
+22. Na janela de **Fraud Detector**, acima da tabela → gráfico **CPU (%)** com eixo de 0 a 100% e os horários da primeira e da última coleta da legenda; "última" é a CPU da primeira linha da tabela. Passar o mouse sobre o gráfico → linha vertical e caixa com a CPU e o horário da coleta mais próxima, iguais aos da tabela. Com Tab até o gráfico, as setas, Home e End percorrem as coletas.
+23. Na janela de **Email Dispatcher** → a linha para onde começam os erros, as coletas com erro aparecem como × abaixo do eixo e a legenda diz "A linha é interrompida nas coletas sem CPU: N com erro". Com o cursor sobre um ×, a caixa mostra "Erro na coleta" e a observação da coleta.
+24. Com 375 px de largura → o gráfico ocupa a largura da janela, sem rolagem lateral, e os rótulos continuam legíveis.
+25. Sem `.env` → acima da tabela, os cards mostram **Total 7**, **Ativos 5** (71% do total), **Indisponíveis 1** e **Sem métricas 1** (14% do total cada), em verde, vermelho e laranja, as mesmas contagens da coluna Status. Com 375 px, ficam em 2 colunas, sem rolagem lateral.
+26. Com o backend real: `curl -s http://localhost:3000/api/services | jq '.services | group_by(.status) | map({(.[0].status): length}) | add'` → cada card bate com a contagem do seu status, e o total é a soma sem os `removido`. Com todos ativos, **Indisponíveis** e **Sem métricas** mostram 0 sem cor e sem nota.
+27. Com o dashboard aberto, `docker compose stop backend` e esperar um intervalo → os cards continuam com os últimos números, apagados, com o erro e o selo "Desatualizado desde…". Recarregar a página com o backend parado → nenhum card, só o erro. `docker compose start backend` → no ciclo seguinte, os cards e o selo voltam ao normal.

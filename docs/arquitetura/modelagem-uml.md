@@ -4,7 +4,7 @@ Modelo integrado pelo PR #77 (08/10/2026), a partir da modelagem versionada (#28
 
 ## Fontes e sprints
 
-Foram lidos os três PDFs e o DOCX originais em `docs/contexto/`. Matriz e divergências: [registro da integração](integracao-modelagem-banco.md). O edital confirma métricas em GB e JWT na configuração. Plano atual: coleta/persistência na Sprint 1; cálculo/OO/JWT na Sprint 2; ranking/comparação/exportação na Sprint 3. Auditoria simples solicitada por Vinicius: issue e sprint pendentes. Preparar colunas não implementa funcionalidades futuras.
+Foram lidos os três PDFs e o DOCX originais em `docs/contexto/`. Matriz e divergências: [registro da integração](integracao-modelagem-banco.md). O edital confirma métricas em GB e JWT na configuração. Plano atual: coleta/persistência na Sprint 1; cálculo/OO/JWT na Sprint 2; ranking e comparação na Sprint 2 (#159); exportação na Sprint 3. Auditoria simples solicitada por Vinicius: issue e sprint pendentes. Preparar colunas não implementa funcionalidades futuras.
 
 `database/schema.sql` é a fonte física de tipos, constraints e índices. Esta visão a espelha; o modelo OO é separado e conceitual.
 
