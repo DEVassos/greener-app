@@ -11,13 +11,13 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | Pasta / arquivo | Responsabilidade |
 |---|---|
 | `src/main.tsx` | ponto de entrada: carrega os estilos globais e monta o React com o `BrowserRouter` |
-| `src/App.tsx` | rotas: `/` (dashboard, público) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
-| `src/pages/` | telas (`DashboardPage`, `SettingsPage`) |
+| `src/App.tsx` | rotas: `/` (dashboard, público), `/emissoes` (emissões por estação, pública) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
+| `src/pages/` | telas (`DashboardPage`, `EmissionsPage`, `SettingsPage`) |
 | `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
-| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço); `demo-data.ts` com os dados ilustrativos do modo demonstração |
+| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
-| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling) |
-| `src/utils/` | funções puras: formatação pt-BR (`format.ts`) |
+| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useEmissions` (série de emissões, com tempo real opcional) |
+| `src/utils/` | funções puras: formatação pt-BR (`format.ts`); datas do filtro, agrupamento, resumo e formatação das emissões (`emissions.ts`) |
 | `src/styles/global.css` | ordem das camadas de CSS, Tailwind, tokens de cor e fonte e reset mínimo |
 | `src/styles/layout.css` | estrutura comum das páginas (`.page`, `.content`, `.panel`) |
 | `mock/server.mjs` | **backend falso** só para desenvolvimento e revisão (ver abaixo); não vai para produção |
@@ -45,6 +45,15 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 - As colunas "Energia (kWh)" e "Emissão (g CO₂e)" mostram o resultado da **última coleta** de cada serviço (cerca de 30 s de operação), calculado pelo backend desde o #139. Sem cálculo disponível (por exemplo, com a API de carbono fora), aparece "—", nunca zero.
 - A energia sai com 4 casas e a emissão com 1 casa decimal. Por isso, emissões abaixo de 0,05 g por coleta, comuns em regiões de matriz limpa, aparecem como **0,0**; o valor exato está em `GET /api/services`. A formatação será revista na Sprint 2.
+
+## Página Emissões (#190)
+
+- **Emissões**, no menu do topo, abre `/emissoes`: a emissão estimada de CO₂e de uma estação (serviço) ao longo do tempo. A estação e o período ficam na URL (`/emissoes?servico=<id>&de=<AAAA-MM-DD>&ate=<AAAA-MM-DD>`), então o link abre no mesmo filtro e o "voltar" do navegador desfaz a última troca. Sem `servico`, abre na primeira estação; data inválida ou no futuro cai em hoje.
+- Filtros: estação, datas (até 31 dias), ◀ ▶ (período anterior/seguinte, do mesmo tamanho), **Atualizar**, **Tempo real** (período de hoje, buscado de novo no intervalo do `MonitoringProvider` e pausado com a aba oculta) e **Agrupar por**.
+- Agrupamento automático pelo tamanho do período: até 2 h, **cada coleta**, por `GET /api/collections` (#188, paginado de 500 em 500); até 1 dia, **15 min**; mais que isso, **1 hora**, por `GET /api/collections/series` (#189), que soma no banco. A pessoa pode trocar.
+- Resumo: emissão e energia no período, média por coleta calculada, pico de uma coleta (com horário e quantas vezes a média), intensidade da região e coletas (com falha, sem cálculo e tempo sem coleta), mais a **Leitura do período** em frases. Sem cálculo, os valores aparecem como "—", nunca zero.
+- A resposta é conferida em tempo de execução: envelope fora do formato vira erro amigável; item fora do formato fica de fora e a tela avisa quantos.
+- O gráfico entra num segundo PR da #190.
 
 ## Detalhes e histórico do serviço
 
@@ -75,7 +84,8 @@ O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #1
 | Rota | Pedido | Resposta |
 |---|---|---|
 | `GET /api/services` | — | `200 { "services": [...], "period" }` (campos em `src/services/services.types.ts`); CPU e energia variam a cada chamada |
-| `GET /api/collections` | `service_id` (id do serviço no mock, ex.: `fraud-detector`) e `limit` (1 a 500; padrão 50) | `200 { "collections": [...], "period" }` (campos em `src/services/collections.types.ts`), uma coleta a cada 30 s até agora; serviço indisponível tem as 10 mais recentes com erro e serviço sem métricas devolve lista vazia; `service_id` desconhecido → 404, `limit` inválido → 400 |
+| `GET /api/collections` | `service_id` (id do serviço no mock, ex.: `fraud-detector`), `limit` (1 a 500; padrão 50) e `from`/`to` opcionais (ISO 8601 com hora) | `200 { "collections": [...], "period" }` (campos em `src/services/collections.types.ts`, com os de cálculo da #188), uma coleta a cada 30 s até `to` (padrão: agora), com números fixos por horário; serviço indisponível tem as 10 mais recentes com erro e serviço sem métricas devolve lista vazia; `service_id` desconhecido → 404, `limit` inválido → 400 |
+| `GET /api/collections/series` | `service_id`, `from`, `to` (ISO 8601 com hora, até 31 dias) e `bucket` (`15min`, `1h` ou `1d`) | `200 { serviceId, from, to, bucket, buckets: [...], totals }` (contrato da #189), com as mesmas coletas da rota acima somadas por intervalo; período fechado em `from` e aberto em `to`; parâmetro inválido → 400, serviço desconhecido → 404 |
 
 - `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /api/services` devolver lista vazia ou HTTP 500 com `{ "error": { "code", "message" } }`, o formato de erro do backend (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
 - O terminal do mock mostra cada requisição recebida.
@@ -134,3 +144,8 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 19. Fechar a janela com Esc, com o botão × e com um clique fora → as três formas fecham. Com Tab até o nome de um serviço e Enter → a janela abre; ao fechar, o foco volta para o nome.
 20. Com o mock no ar e `VITE_REFRESH_INTERVAL_MS=5000`, abrir um serviço → o terminal do mock registra `GET /collections` a cada 5 s, e o selo da janela e a CPU das coletas mudam sem recarregar. Parar o mock → a janela mostra o erro e "Desatualizado desde …" e mantém as coletas.
 21. Estreitar a janela do navegador para 375 px com os detalhes abertos → a página não ganha rolagem lateral; só a tabela do histórico rola na horizontal.
+22. Sem `.env`, clicar em **Emissões** no menu → abre `/emissoes?…` na primeira estação, com hoje, "Automático (15 min)" e o resumo do dia; **Email Dispatcher** mostra coletas "com falha" no card **Coletas**, e **Inventory Sync**, "Nenhuma coleta desta estação no período escolhido".
+23. Trocar a estação e clicar em ◀ → a URL muda (`servico`, `de`, `ate`) e o resumo é do dia anterior; o botão voltar do navegador volta ao filtro anterior. Abrir o link copiado numa aba nova → mesmo filtro.
+24. Em **Agrupar por**, escolher **Cada coleta** → o total de emissão e de coletas é o mesmo do agrupamento por 15 min; o pico passa a mostrar o horário exato da coleta.
+25. Com o mock no ar (`npm run mock`), abrir `/emissoes` → o terminal do mock registra `GET /collections/series`; com **Cada coleta**, registra `GET /collections` (várias páginas para um dia inteiro). Abrir `/emissoes?de=lixo` → cai em hoje.
+26. **Tempo real** com `VITE_REFRESH_INTERVAL_MS=5000` → o horário "Atualizado às" muda a cada 5 s e o logo pulsa; trocar de aba pausa as chamadas no terminal do mock.
