@@ -163,6 +163,30 @@
 
 
 
+  /* Por coleta (ou intervalo) / Acumulado: botões colados, o escolhido em destaque */
+  .emissions__segmented {
+    margin-left: auto;
+    gap: 0;
+  }
+
+  .emissions__segmented .emissions__btn {
+    border-radius: 0;
+  }
+
+  .emissions__segmented .emissions__btn:first-child {
+    border-radius: 8px 0 0 8px;
+  }
+
+  .emissions__segmented .emissions__btn:last-child {
+    border-radius: 0 8px 8px 0;
+    border-left: none;
+  }
+
+  .emissions__segmented .emissions__btn[aria-pressed='true'] {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+
   .emissions__form-error {
     flex-basis: 100%;
     margin: 0;
@@ -303,6 +327,13 @@
     color: var(--text-2);
   }
 
+  .emissions__chart {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
   .emissions__empty {
     margin: 0;
     padding: 48px 16px;
@@ -334,6 +365,10 @@
   }
 
   @media (max-width: 600px) {
+    .emissions__segmented {
+      margin-left: 0;
+    }
+
     .emissions__field:not(.emissions__field--station) {
       flex: 1 1 140px;
     }

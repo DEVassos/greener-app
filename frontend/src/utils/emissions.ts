@@ -157,10 +157,12 @@ export function missingTimeMs(points: EmissionPoint[], bucket: EmissionsBucket, 
     const expected = Math.ceil((toMs - fromMs) / BUCKET_MS[bucket]);
     return Math.max(0, expected - points.length) * BUCKET_MS[bucket];
   }
-  const deltas = points.slice(1).map((point, i) => point.t - points[i].t);
-  if (deltas.length === 0) return 0;
-  const typical = [...deltas].sort((a, b) => a - b)[Math.floor(deltas.length / 2)];
-  return deltas.reduce((missing, delta) => (delta > typical * 3 ? missing + delta - typical : missing), 0);
+  const typical = typicalIntervalMs(points);
+  if (typical === null) return 0;
+  return points.slice(1).reduce((missing, point, i) => {
+    const delta = point.t - points[i].t;
+    return delta > typical * 3 ? missing + delta - typical : missing;
+  }, 0);
 }
 
 /** Quantas vezes o pico ficou acima da média; null sem cálculo. */
@@ -197,6 +199,69 @@ export function describePeriod(summary: EmissionsSummary, bucket: EmissionsBucke
     lines.push(`${formatDuration(missingMs)} sem coleta no período: esses trechos não entram no total.`);
   }
   return lines;
+}
+
+// ── Gráfico ─────────────────────────────────────────────────────────────────
+
+/** Soma acumulada ao longo do período; trechos sem cálculo não somam nada e ficam null. */
+export function cumulative(values: Array<number | null>): Array<number | null> {
+  let sum = 0;
+  return values.map((value) => {
+    if (value === null) return null;
+    sum += value;
+    return sum;
+  });
+}
+
+/** Intervalo típico entre pontos (mediana), em ms; null com menos de 2 pontos. */
+export function typicalIntervalMs(points: EmissionPoint[]): number | null {
+  const deltas = points.slice(1).map((point, i) => point.t - points[i].t);
+  if (deltas.length === 0) return null;
+  return [...deltas].sort((a, b) => a - b)[Math.floor(deltas.length / 2)];
+}
+
+/** Marcas "redondas" do eixo Y, de 0 até cobrir `max`. */
+export function niceTicks(max: number, count = 5): number[] {
+  if (!(max > 0)) return [0, 1];
+  const rough = max / count;
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((s) => s >= rough) ?? 10 * power;
+  const ticks: number[] = [];
+  for (let value = 0; value <= max + step * 0.999; value += step) ticks.push(Number(value.toPrecision(12)));
+  return ticks;
+}
+
+const TIME_STEPS_MIN = [5, 10, 15, 30, 60, 120, 180, 360, 720, 1440, 2880, 10080];
+
+/** Marcas do eixo do tempo alinhadas à meia-noite local (00:00, 03:00, 06:00…). */
+export function timeTicks(fromMs: number, toMs: number, maxTicks: number): { ticks: number[]; stepMs: number } {
+  const span = toMs - fromMs;
+  const stepMin = TIME_STEPS_MIN.find((m) => span / (m * 60_000) <= maxTicks) ?? TIME_STEPS_MIN[TIME_STEPS_MIN.length - 1];
+  const stepMs = stepMin * 60_000;
+  const midnight = new Date(fromMs);
+  midnight.setHours(0, 0, 0, 0);
+  const ticks: number[] = [];
+  // Avança dia a dia quando o passo é de um dia ou mais, para não escorregar no horário de verão
+  for (let t = midnight.getTime(); t <= toMs; ) {
+    if (t >= fromMs) ticks.push(t);
+    if (stepMs >= DAY_MS) {
+      const next = new Date(t);
+      next.setDate(next.getDate() + stepMs / DAY_MS);
+      t = next.getTime();
+    } else {
+      t += stepMs;
+    }
+  }
+  return { ticks, stepMs };
+}
+
+/** Rótulo do eixo do tempo conforme o passo: "dd/mm" para dias, "HH:mm" para horas (com o dia na virada). */
+export function formatTimeTick(t: number, stepMs: number): string {
+  const date = new Date(t);
+  const day = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  if (stepMs >= DAY_MS) return day;
+  if (date.getHours() === 0 && date.getMinutes() === 0) return day;
+  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ── Formatação ──────────────────────────────────────────────────────────────
