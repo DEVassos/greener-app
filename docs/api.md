@@ -77,7 +77,7 @@ Regras que a resposta segue:
 - `buckets` vem em ordem crescente de `start`, e intervalos sem nenhuma coleta são **omitidos** (não aparecem com zeros);
 - `bucket: "1d"` corta o dia à **00:00 UTC** (21:00 de Brasília), porque a origem do agrupamento é o epoch;
 - `energyKwh`, `co2eGrams`, `co2eMinGrams` e `co2eMaxGrams` são `null` quando nenhuma coleta do intervalo está com `calculation_status = "disponivel"` — `null` significa "não calculado", não "zero";
-- `notCalculated` conta as coletas com `status = "ok"` que ainda não têm cálculo, então `collections - failed - notCalculated` é sempre o número de coletas calculadas do intervalo.
+- `failed` conta as coletas com `status <> "ok"`, ou seja, `erro` e `sem_metricas`; `notCalculated` conta as coletas com `status = "ok"` que ainda não têm cálculo, então `collections - failed - notCalculated` é sempre o número de coletas calculadas do intervalo.
 
 ```json
 {"serviceId":"1","from":"2026-10-23T00:00:00.000Z","to":"2026-10-24T00:00:00.000Z","bucket":"15min","buckets":[{"start":"2026-10-23T01:30:00.000Z","collections":12,"failed":0,"notCalculated":0,"energyKwh":0.007480167692,"co2eGrams":0.635814253804,"co2eMinGrams":0.007808506456,"co2eMaxGrams":0.089094607769},{"start":"2026-10-23T01:45:00.000Z","collections":6,"failed":0,"notCalculated":0,"energyKwh":0.003277217910,"co2eGrams":0.278563522361,"co2eMinGrams":0.010893330720,"co2eMaxGrams":0.072805363338}],"totals":{"collections":18,"failed":0,"notCalculated":0,"energyKwh":0.010757385602,"co2eGrams":0.914377776165,"co2eMaxGrams":0.089094607769,"carbonIntensityGco2ePerKwh":85}}
