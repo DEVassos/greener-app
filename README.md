@@ -44,7 +44,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   _Tabela ligada ao backend real (`docker compose`) em 21/10/2026, com energia e emissão da última coleta (#139) e a paleta azul (#180)._
 
-- **RF08, RF09 — Cards de estado dos serviços (#21):** acima da tabela, cards com o total de serviços monitorados e quantos estão ativos, indisponíveis e sem métricas, contados na mesma resposta de `GET /api/services` e atualizados no mesmo ciclo. Os removidos ficam fora do total, e a cor só aparece quando há serviços naquele estado. Sem dados, os cards não aparecem; numa falha, mantêm o último dado, apagado, com "Desatualizado desde …".
+- **RF08, RF09 — Cards de estado dos serviços (#21, PR #202):** acima da tabela, cards com o total de serviços monitorados e quantos estão ativos, indisponíveis e sem métricas, contados na mesma resposta de `GET /api/services` e atualizados no mesmo ciclo. Os removidos ficam fora do total, e a cor só aparece quando há serviços naquele estado. Sem dados, os cards não aparecem; numa falha, mantêm o último dado, apagado, com "Desatualizado desde …".
 
   ![Cards de estado acima da tabela de serviços](docs/img/sprint-2-kpis.png)
 
