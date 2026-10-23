@@ -57,7 +57,7 @@ export class CollectionRepository {
         COUNT(*) AS collections,
         COUNT(*) FILTER (WHERE status <> 'ok') AS failed,
         COUNT(*) FILTER (WHERE status = 'ok' AND calculation_status <> 'disponivel') AS not_calculated,
-        SUM(energy_kwh) AS energy_kwh,
+        SUM(energy_kwh) FILTER (WHERE calculation_status = 'disponivel') AS energy_kwh,
         SUM(co2e_grams) AS co2e_grams,
         MIN(co2e_grams) AS co2e_min_grams,
         MAX(co2e_grams) AS co2e_max_grams,
