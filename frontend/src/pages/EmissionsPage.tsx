@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
 import { useEmissions } from '../hooks/useEmissions';
 import { useMonitoring } from '../hooks/useMonitoring';
@@ -135,6 +136,9 @@ export default function EmissionsPage() {
   const shownEnd = live ? today : end;
   const periodLabel = start === shownEnd ? formatInputDate(start) : `${formatInputDate(start)} a ${formatInputDate(shownEnd)}`;
   const noCalculation = totals !== null && totals.collections > 0 && totals.co2eGrams === null;
+  // A última busca falhou: o resumo na tela é o da busca anterior e fica apagado, como os cards do dashboard (#202)
+  const stale = error !== '' && data !== null;
+  const staleTitle = stale && updatedAt ? `Dados de ${formatDayTime(updatedAt)}: a última atualização falhou` : undefined;
 
   return (
     <div className="page">
@@ -245,17 +249,23 @@ export default function EmissionsPage() {
                     {data && ` · ${BUCKET_LABEL[data.bucket].toLowerCase()}`}
                   </p>
                 </div>
-                <p className="emissions__updated">
+                <LastUpdated
+                  updatedAt={updatedAt}
+                  intervalSeconds={live ? refreshIntervalMs / 1000 : undefined}
+                  stale={error !== ''}
+                >
                   {loading && <span className="emissions__spinner" aria-hidden="true" />}
-                  {updatedAt ? `Atualizado às ${formatDayTime(updatedAt)}` : 'Carregando…'}
-                  {live && ` · a cada ${formatShort(refreshIntervalMs / 1000)} s`}
-                </p>
+                </LastUpdated>
               </header>
 
               {error && <ErrorState message={error} onRetry={refresh} />}
 
               {reading.length > 0 && (
-                <div className="emissions__reading" aria-live="polite">
+                <div
+                  className={stale ? 'emissions__reading emissions__reading--stale' : 'emissions__reading'}
+                  title={staleTitle}
+                  aria-live="polite"
+                >
                   <h3>Leitura do período</h3>
                   <ul>
                     {reading.map((line) => (
@@ -266,7 +276,7 @@ export default function EmissionsPage() {
               )}
 
               {totals && summary && (
-                <dl className="emissions__stats">
+                <dl className={stale ? 'emissions__stats emissions__stats--stale' : 'emissions__stats'} title={staleTitle}>
                   <div>
                     <dt>Emissão no período</dt>
                     <dd>{totals.co2eGrams !== null ? `${formatGrams(totals.co2eGrams)} CO₂e` : '—'}</dd>

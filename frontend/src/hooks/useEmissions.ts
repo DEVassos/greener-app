@@ -25,7 +25,7 @@ export interface EmissionsState {
   loading: boolean;
   /** Mensagem pronta para a tela; vazia quando a última busca deu certo. */
   error: string;
-  /** Horário da última busca bem-sucedida (ISO 8601). */
+  /** Horário da última busca bem-sucedida do filtro atual (ISO 8601); null antes dela. */
   updatedAt: string | null;
   /** Busca de novo agora (botão "Atualizar" e "Tentar novamente"). */
   refresh: () => void;
@@ -44,10 +44,13 @@ export function useEmissions({ serviceId, start, end, bucket, live, intervalMs }
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
 
-  // Trocar de estação, período ou agrupamento não deixa a série antiga na tela como se fosse a nova
+  // Trocar de estação, período ou agrupamento não deixa a série antiga na tela como se fosse a nova; o horário e o
+  // erro também são da série anterior ("Desatualizado desde …" só vale para o dado que está na tela)
   useEffect(() => {
     setData(null);
     setPeriod(null);
+    setUpdatedAt(null);
+    setError('');
   }, [serviceId, start, end, bucket]);
 
   useEffect(() => {

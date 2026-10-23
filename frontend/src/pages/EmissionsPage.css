@@ -200,15 +200,6 @@
     color: var(--muted);
   }
 
-  .emissions__updated {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
   .emissions__spinner {
     width: 12px;
     height: 12px;
@@ -275,6 +266,17 @@
     color: var(--neon);
   }
 
+  /* Dado da última busca bem-sucedida, exibido durante uma falha: números apagados, mas legíveis (como o MetricTile) */
+  .emissions__stats--stale dd,
+  .emissions__stats--stale .emissions__stat--peak dd {
+    color: var(--muted);
+  }
+
+  .emissions__stats--stale > .emissions__stat--peak {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
   /* Leitura do período: frases que dizem o que o gráfico mostra */
   .emissions__reading {
     padding: 10px 14px;
@@ -301,6 +303,14 @@
     list-style: none;
     font-size: 14px;
     color: var(--text-2);
+  }
+
+  .emissions__reading--stale {
+    border-left-color: var(--border);
+  }
+
+  .emissions__reading--stale ul {
+    color: var(--muted);
   }
 
   .emissions__empty {
