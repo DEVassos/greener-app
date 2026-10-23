@@ -56,11 +56,11 @@ Cada coleta traz o resultado do cálculo de energia e CO₂e ([fórmulas](calcul
 
 | `calculationStatus` | Significado | `energyKwh`, `co2eGrams`, `carbonIntensityGco2ePerKwh` |
 |---|---|---|
-| `disponivel` | as três métricas e a intensidade de carbono foram obtidas | número ≥ 0 (zero é resultado válido) |
-| `nao_calculado` | a coleta aconteceu e o cálculo ainda não rodou | `null` |
-| `indisponivel` | o cálculo rodou e a API de intensidade de carbono não respondeu | `null` |
+| `disponivel` | as quatro métricas (CPU, memória, disco e rede) e a intensidade de carbono foram obtidas | número ≥ 0 (zero é resultado válido) |
+| `nao_calculado` | a coleta foi gravada sem que o cálculo fosse executado. Coletas `erro` e `sem_metricas` ficam sempre assim, e não há recálculo depois | `null` |
+| `indisponivel` | o cálculo foi tentado e não houve intensidade válida (região não informada; região sem fator na API de carbono, que respondeu 404; falha da API de carbono, por erro HTTP ou tempo esgotado; resposta fora do contrato) ou um valor saiu da faixa no cálculo. O motivo fica gravado em `collections.calculation_error_message` | `co2eGrams` e `carbonIntensityGco2ePerKwh`: sempre `null`. `energyKwh`: hoje `null`, porque o coletor não grava energia sem intensidade; o schema aceita energia gravada nesse estado e, nesse caso, a rota devolve o valor gravado |
 
-`null` nessas três chaves significa **não calculado**, nunca zero: `energyKwh: 0` é uma coleta calculada que resultou em zero. A conversão de `text` para número é feita na borda da API, então os valores saem em JSON numérico e não em string.
+`null` nessas três chaves significa **não calculado**, nunca zero: `energyKwh: 0` é uma coleta calculada que resultou em zero. As colunas são `numeric`, que o driver `pg` devolve como string; a conversão para número é feita na borda da API, então os valores saem em JSON numérico e não em string.
 
 ```json
 {"collections":[{"id":"2","serviceId":"1","collectedAt":"2026-10-14T20:00:00.000Z","status":"ok","cpuPercent":42.5,"memoryGb":1.2,"diskGb":10,"networkGb":0.3,"errorMessage":null,"calculationStatus":"disponivel","energyKwh":0.000480452625,"co2eGrams":0.040838473125,"carbonIntensityGco2ePerKwh":85},{"id":"1","serviceId":"1","collectedAt":"2026-10-14T19:45:00.000Z","status":"ok","cpuPercent":40,"memoryGb":1.1,"diskGb":10,"networkGb":0.2,"errorMessage":null,"calculationStatus":"indisponivel","energyKwh":null,"co2eGrams":null,"carbonIntensityGco2ePerKwh":null}],"period":{"from":"2026-10-14T00:00:00.000Z","to":"2026-10-14T23:59:59.999Z"}}
