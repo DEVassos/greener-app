@@ -42,7 +42,10 @@ function unexpectedFormat(): ApiError {
   return new ApiError('O servidor respondeu num formato inesperado. Avise a equipe do backend.', 0);
 }
 
-/** Item de GET /api/collections → ponto de uma coleta só; null quando não serve para o gráfico. */
+/**
+ * Item de GET /api/collections → ponto de uma coleta só; null quando não serve para o gráfico.
+ * `intensity` só vem nas coletas calculadas (`calculationStatus: disponivel`), as que entram na média do período.
+ */
 function parseCollection(item: unknown): { point: EmissionPoint; intensity: number | null } | null {
   if (!isRecord(item)) return null;
   const t = instant(item.collectedAt);
@@ -68,7 +71,7 @@ function parseCollection(item: unknown): { point: EmissionPoint; intensity: numb
       co2eMinGrams: co2eGrams,
       co2eMaxGrams: co2eGrams,
     },
-    intensity,
+    intensity: item.calculationStatus === 'disponivel' ? intensity : null,
   };
 }
 
@@ -113,7 +116,9 @@ async function fetchEachCollection(query: EmissionsQuery, signal?: AbortSignal):
   // A rota de coletas inclui o `to`; o período da página é aberto no fim, como a #189
   let to = new Date(Date.parse(query.to) - 1).toISOString();
   const points: EmissionPoint[] = [];
-  let intensity: number | null = null;
+  // Intensidade do período: média das coletas calculadas, a mesma regra de `totals` da #189 (AVG … FILTER)
+  let intensitySum = 0;
+  let intensityCount = 0;
   let discarded = 0;
   let truncated = true;
 
@@ -130,7 +135,10 @@ async function fetchEachCollection(query: EmissionsQuery, signal?: AbortSignal):
         continue;
       }
       points.push(parsed.point);
-      intensity ??= parsed.intensity; // a primeira é a mais recente
+      if (parsed.intensity !== null) {
+        intensitySum += parsed.intensity;
+        intensityCount += 1;
+      }
       oldest = parsed.point.t;
     }
 
@@ -147,6 +155,7 @@ async function fetchEachCollection(query: EmissionsQuery, signal?: AbortSignal):
   }
 
   points.reverse();
+  const intensity = intensityCount > 0 ? intensitySum / intensityCount : null;
   return { bucket: 'coleta', points, totals: totalsOf(points, intensity), truncated, discarded };
 }
 
