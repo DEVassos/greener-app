@@ -23,6 +23,7 @@ export default function AppHeader({ children, updatedAt }: Props) {
           <NavLink to="/" end>
             Dashboard
           </NavLink>
+          <NavLink to="/emissoes">Emissões</NavLink>
           <NavLink to="/configuracao">Configuração</NavLink>
         </nav>
 

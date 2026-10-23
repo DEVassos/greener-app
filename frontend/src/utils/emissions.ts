@@ -151,6 +151,8 @@ export function summarize(points: EmissionPoint[], totals: EmissionsTotals): Emi
  * nos trechos parados por mais de 3× esse intervalo. É ausência de registro, não indisponibilidade.
  */
 export function missingTimeMs(points: EmissionPoint[], bucket: EmissionsBucket, fromMs: number, toMs: number): number {
+  // Sem nenhuma coleta a tela já diz "Nenhuma coleta no período"
+  if (points.length === 0) return 0;
   if (bucket !== 'coleta') {
     const expected = Math.ceil((toMs - fromMs) / BUCKET_MS[bucket]);
     return Math.max(0, expected - points.length) * BUCKET_MS[bucket];
