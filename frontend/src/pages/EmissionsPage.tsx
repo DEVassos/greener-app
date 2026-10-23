@@ -30,6 +30,7 @@ import {
   shiftInputDate,
   spanDays,
   summarize,
+  timeZoneLabel,
   todayInput,
 } from '../utils/emissions';
 import { formatDayTime } from '../utils/format';
@@ -246,7 +247,7 @@ export default function EmissionsPage() {
                     {service.name}
                   </h2>
                   <p className="emissions__subtitle">
-                    Emissão estimada de CO₂e — {periodLabel}
+                    Emissão estimada de CO₂e — {periodLabel} ({timeZoneLabel(start)})
                     {locationOf(service) && ` · ${locationOf(service)}`}
                     {data && ` · ${BUCKET_LABEL[data.bucket].toLowerCase()}`}
                   </p>

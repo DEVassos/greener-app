@@ -109,6 +109,19 @@ export function formatInputDate(value: string): string {
   return parseInputDate(value).toLocaleDateString('pt-BR');
 }
 
+/**
+ * Fuso em que as datas do filtro são lidas (o do navegador): "horário de Brasília" em America/Sao_Paulo; nos outros,
+ * o deslocamento do UTC no dia `value` ("UTC−4", "UTC+5:30"), para não afirmar um fuso que não é o da pessoa.
+ */
+export function timeZoneLabel(value: string): string {
+  if (Intl.DateTimeFormat().resolvedOptions().timeZone === 'America/Sao_Paulo') return 'horário de Brasília';
+  const offsetMin = -parseInputDate(value).getTimezoneOffset();
+  if (offsetMin === 0) return 'UTC';
+  const abs = Math.abs(offsetMin);
+  const minutes = abs % 60 === 0 ? '' : `:${String(abs % 60).padStart(2, '0')}`;
+  return `UTC${offsetMin < 0 ? '−' : '+'}${Math.floor(abs / 60)}${minutes}`;
+}
+
 // ── Agrupamento ─────────────────────────────────────────────────────────────
 
 export const BUCKET_MS: Record<EmissionsBucket, number> = { coleta: 30_000, '15min': 15 * 60_000, '1h': 60 * 60_000 };
