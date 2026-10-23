@@ -74,7 +74,9 @@ export default function DashboardPage() {
         )}
 
         {/* Sem dado ainda, os cards não aparecem (nunca zeros inventados); depois de uma falha, mostram o último dado */}
-        {data && data.services.length > 0 && <KpiPanel summary={summarizeStatus(data.services)} />}
+        {data && data.services.length > 0 && (
+          <KpiPanel summary={summarizeStatus(data.services)} staleSince={error ? updatedAt : null} />
+        )}
 
         {data && data.services.length > 0 && (
           <ServicesTable services={data.services} period={data.period} onSelect={(service) => setSelectedId(service.id)} />
