@@ -1,4 +1,5 @@
 import type { ServiceStatus } from '../../shared/persistence.types';
+import { MonitoringStatus } from '../../domain/monitoring-status';
 import { ServiceRepository, type ServiceWithLastReading } from './services.repository';
 
 export interface MonitoredService {
@@ -31,7 +32,7 @@ function toMonitoredService(service: ServiceWithLastReading): MonitoredService {
     cpuPercent: service.cpu_percent === null ? null : Number(service.cpu_percent),
     energyKwh: service.energy_kwh === null ? null : Number(service.energy_kwh),
     emissionsG: service.co2e_grams === null ? null : Number(service.co2e_grams),
-    status: service.status,
+    status: MonitoringStatus.fromValue(service.status).value(),
     lastReadingAt: service.last_reading_at?.toISOString() ?? null,
   };
 }
