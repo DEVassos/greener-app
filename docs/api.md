@@ -58,6 +58,20 @@ A lista sai sempre da coleta mais recente para a mais antiga. `status` da coleta
 
 Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global, sem stack ou SQL.
 
+## POST /api/auth/login
+
+Autentica o administrador sem expor senha ou hash. Corpo JSON obrigatorio:
+
+```json
+{"email":"admin@ecopulse.dev","password":"senha-do-administrador"}
+```
+
+Com credenciais validas, devolve `200` com `{ "token": "<JWT>" }`. E-mail inexistente e senha incorreta devolvem o mesmo `401 UNAUTHORIZED`; corpo sem `email` ou `password` devolve `400 VALIDATION_ERROR`. O token e assinado com `JWT_SECRET` e expira conforme `JWT_EXPIRES_IN`.
+
+## GET /api/auth/me
+
+Rota minima protegida para verificar o middleware. Envie `Authorization: Bearer <JWT>`; token ausente, invalido ou expirado devolve `401 UNAUTHORIZED`. Com token valido, devolve `200` com o `id` e o `email` do usuario autenticado.
+
 ## GET /health
 
 Sem autenticação, parâmetros ou corpo. Fica na raiz, sem o prefixo `/api` dos recursos. Consulta o PostgreSQL a cada chamada, sem cache.
@@ -80,7 +94,8 @@ Health comprova conectividade, não valida existência de tabelas, persistência
 
 | HTTP | Código | Situação |
 |---|---|---|
-| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections` |
+| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections` ou no login |
+| 401 | UNAUTHORIZED | credenciais inválidas, token ausente, inválido ou expirado |
 | 404 | NOT_FOUND | rota não registrada, incluindo métodos não registrados; `service_id` inexistente em `GET /api/collections` |
 | 500 | DATABASE_ERROR | falha de conexão ou de consulta no PostgreSQL |
 | 500 | INTERNAL_ERROR | erro inesperado, sem detalhes internos |
@@ -91,4 +106,4 @@ Envelope único, sem stack, credenciais ou consulta SQL:
 {"error":{"code":"VALIDATION_ERROR","message":"JSON inválido no corpo da requisição."}}
 ```
 
-Roteiro de verificação, configuração e scripts: [backend/README.md](../backend/README.md). Os arquivos `usuarios.*.ts` são reserva da autenticação e não expõem rota. Ainda não há endpoints de autenticação (`POST /auth/login`), de configuração (`/monitoring-settings`) nem de auditoria de entradas: eles estão previstos para a Sprint 2 ([#20](https://github.com/DEVassos/greener-app/issues/20)).
+Roteiro de verificação, configuração e scripts: [backend/README.md](../backend/README.md). A autenticação está em `POST /api/auth/login` e `GET /api/auth/me`; as rotas de configuração e de auditoria de entradas continuam previstas para a Sprint 2.
