@@ -3,6 +3,7 @@
 
 import type { CollectionsResponse, ServiceCollection } from './collections.types';
 import type { MonitoredService, ServicesResponse } from './services.types';
+import type { SummaryResponse, SummaryTotals } from './summary.types';
 
 /** Intervalo entre coletas do worker (POLLING_INTERVAL_MS do .env.example). */
 const DEMO_COLLECTION_INTERVAL_MS = 30_000;
@@ -61,4 +62,44 @@ export function demoCollections(serviceId: string, limit: number): CollectionsRe
     };
   });
   return { collections, period: { from: null, to: null } };
+}
+
+/** Intensidade de carbono ilustrativa por região, em gCO₂e/kWh (mesmas do backend falso). */
+const DEMO_INTENSITY: Record<string, number> = { 'fraud-detector': 377, 'recommendation-ai': 295, 'audit-stream': 465, 'checkout-worker': 377, 'reporting-batch': 40 };
+
+/**
+ * Totais ilustrativos de um período: os serviços ativos coletam a cada 30 s com a energia por hora da lista acima;
+ * os outros entram só como coletas com falha. `scale` simula o período anterior um pouco diferente.
+ */
+function demoTotals(from: string, to: string, scale: number): SummaryTotals {
+  const hours = Math.max(0, Date.parse(to) - Date.parse(from)) / 3_600_000;
+  const perService = Math.floor((hours * 3_600_000) / DEMO_COLLECTION_INTERVAL_MS);
+  const services = demoServices().services;
+  const active = services.filter((service) => service.status === 'ativo');
+  if (perService === 0) return { collections: 0, failed: 0, notCalculated: 0, energyKwh: null, co2eGrams: null, carbonIntensityGco2ePerKwh: null };
+
+  const energyKwh = active.reduce((sum, service) => sum + (service.energyKwh ?? 0) * hours * scale, 0);
+  const co2eGrams = active.reduce((sum, service) => sum + (service.energyKwh ?? 0) * hours * scale * (DEMO_INTENSITY[service.id] ?? 0), 0);
+  const intensity = active.reduce((sum, service) => sum + (DEMO_INTENSITY[service.id] ?? 0), 0) / active.length;
+  return {
+    collections: perService * services.length,
+    failed: perService * (services.length - active.length),
+    notCalculated: 0,
+    energyKwh: round(energyKwh, 6),
+    co2eGrams: round(co2eGrams, 3),
+    carbonIntensityGco2ePerKwh: round(intensity, 1),
+  };
+}
+
+export function demoSummary(from: string, to: string): SummaryResponse {
+  const duration = Date.parse(to) - Date.parse(from);
+  const previousFrom = new Date(Date.parse(from) - duration).toISOString();
+  const count = (status: MonitoredService['status']) => demoServices().services.filter((service) => service.status === status).length;
+  return {
+    from,
+    to,
+    totals: demoTotals(from, to, 1),
+    previous: { from: previousFrom, to: from, totals: demoTotals(previousFrom, from, 0.92) },
+    servicesByStatus: { ativo: count('ativo'), indisponivel: count('indisponivel'), sem_metricas: count('sem_metricas'), removido: count('removido'), total: demoServices().services.length },
+  };
 }

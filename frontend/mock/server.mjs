@@ -66,6 +66,35 @@ function serviceCollections(service, limit) {
   });
 }
 
+/** Data com hora em ISO 8601 (só a data é recusada, como no backend). */
+const ISO_WITH_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+const MAX_PERIOD_MS = 31 * 24 * 3_600_000;
+
+/**
+ * Totais de um período no formato de GET /services/summary (contrato da #175): os ativos coletam a cada 30 s
+ * com a energia por hora da lista; indisponível e sem métricas entram só como coletas com falha.
+ * `scale` deixa o período anterior um pouco diferente, para a variação aparecer.
+ */
+function periodTotals(fromMs, toMs, scale) {
+  const hours = (toMs - fromMs) / 3_600_000;
+  const perService = Math.floor((toMs - fromMs) / 30_000);
+  const active = SERVICES.filter((service) => service.status === 'ativo');
+  if (perService === 0 || SERVICES_SCENARIO === 'vazio') {
+    return { collections: 0, failed: 0, notCalculated: 0, energyKwh: null, co2eGrams: null, carbonIntensityGco2ePerKwh: null };
+  }
+  const energyKwh = active.reduce((sum, service) => sum + service.kwh * hours * scale, 0);
+  const co2eGrams = active.reduce((sum, service) => sum + service.kwh * hours * scale * service.gramsPerKwh, 0);
+  return {
+    collections: perService * SERVICES.length,
+    failed: perService * (SERVICES.length - active.length),
+    notCalculated: 0,
+    energyKwh: Number(energyKwh.toFixed(6)),
+    co2eGrams: Number(co2eGrams.toFixed(3)),
+    // Média das coletas calculadas: cada ativo tem o mesmo número de coletas
+    carbonIntensityGco2ePerKwh: Number((active.reduce((sum, service) => sum + service.gramsPerKwh, 0) / active.length).toFixed(1)),
+  };
+}
+
 function send(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body === undefined ? '' : JSON.stringify(body));
@@ -89,6 +118,29 @@ const routes = {
     const service = SERVICES.find((item) => item.id === query.get('service_id'));
     if (!service) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Serviço não encontrado.' } });
     return send(res, 200, { collections: serviceCollections(service, Number(limit)), period: { from: null, to: null } });
+  },
+
+  // US04 / #175 — indicadores agregados do período (contrato combinado na issue #175)
+  'GET /services/summary': async (req, res) => {
+    if (SERVICES_SCENARIO === 'erro') return send(res, 500, { error: { code: 'INTERNAL_ERROR', message: 'Falha simulada no backend falso.' } });
+    const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
+    const from = query.get('from') ?? '';
+    const to = query.get('to') ?? '';
+    const fromMs = Date.parse(from);
+    const toMs = Date.parse(to);
+    if (!ISO_WITH_TIME.test(from) || !ISO_WITH_TIME.test(to) || Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs || toMs - fromMs > MAX_PERIOD_MS) {
+      return send(res, 400, { error: { code: 'VALIDATION_ERROR', message: 'Informe from e to (ISO 8601 com hora), com to depois de from e até 31 dias.' } });
+    }
+    const previousFromMs = fromMs - (toMs - fromMs);
+    const list = SERVICES_SCENARIO === 'vazio' ? [] : SERVICES;
+    const count = (status) => list.filter((service) => service.status === status).length;
+    return send(res, 200, {
+      from: new Date(fromMs).toISOString(),
+      to: new Date(toMs).toISOString(),
+      totals: periodTotals(fromMs, toMs, 1),
+      previous: { from: new Date(previousFromMs).toISOString(), to: new Date(fromMs).toISOString(), totals: periodTotals(previousFromMs, fromMs, 0.92) },
+      servicesByStatus: { ativo: count('ativo'), indisponivel: count('indisponivel'), sem_metricas: count('sem_metricas'), removido: count('removido'), total: list.length },
+    });
   },
 };
 
