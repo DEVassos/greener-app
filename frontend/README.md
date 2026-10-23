@@ -53,7 +53,10 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Agrupamento automático pelo tamanho do período: até 2 h, **cada coleta**, por `GET /api/collections` (#188, paginado de 500 em 500); até 1 dia, **15 min**; mais que isso, **1 hora**, por `GET /api/collections/series` (#189), que soma no banco. A pessoa pode trocar.
 - Resumo: emissão e energia no período, média por coleta calculada, pico de uma coleta (com horário e quantas vezes a média), intensidade da região e coletas (com falha, sem cálculo e tempo sem coleta), mais a **Leitura do período** em frases. Sem cálculo, os valores aparecem como "—", nunca zero.
 - A resposta é conferida em tempo de execução: envelope fora do formato vira erro amigável; item fora do formato fica de fora e a tela avisa quantos.
-- O gráfico entra num segundo PR da #190.
+- Gráfico em SVG próprio (`EmissionsChart`, sem biblioteca): a linha é a emissão de cada coleta ou a **soma** de cada intervalo, desenhada no meio dele. No agrupado, uma faixa clara mostra onde a soma estaria se todas as coletas fossem a menor ou a maior do intervalo, para o pico de uma coleta não sumir na soma. Também tem linha de média (ciano), maior ponto em neon e uma faixa vermelha ou cinza abaixo do eixo nos pontos com falha ou sem cálculo. A linha é interrompida onde não há cálculo ou onde a coleta parou.
+- **Por coleta / Por intervalo** × **Acumulado**: o acumulado termina no total de "Emissão no período". O intervalo ainda em andamento (hoje) aparece como um ponto vazado fora da linha, porque a soma dele é parcial.
+- Tooltip: horário (ou intervalo), emissão, acumulado, energia, menor e maior coleta do intervalo e quantas coletas entraram (com falha e sem cálculo).
+- A janela de detalhes do serviço tem o botão **Ver emissões deste serviço**, que abre `/emissoes?servico=<id>`.
 
 ## Detalhes e histórico do serviço
 
@@ -149,3 +152,6 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 24. Em **Agrupar por**, escolher **Cada coleta** → o total de emissão e de coletas é o mesmo do agrupamento por 15 min; o pico passa a mostrar o horário exato da coleta.
 25. Com o mock no ar (`npm run mock`), abrir `/emissoes` → o terminal do mock registra `GET /collections/series`; com **Cada coleta**, registra `GET /collections` (várias páginas para um dia inteiro). Abrir `/emissoes?de=lixo` → cai em hoje.
 26. **Tempo real** com `VITE_REFRESH_INTERVAL_MS=5000` → o horário "Atualizado às" muda a cada 5 s e o logo pulsa; trocar de aba pausa as chamadas no terminal do mock.
+27. Em `/emissoes`, passar o mouse (ou tocar) no gráfico → o tooltip mostra o intervalo de 15 min, a soma, a energia, a menor e a maior coleta e "30 coleta(s)"; em **Email Dispatcher**, a faixa vermelha abaixo do eixo marca os intervalos com falha.
+28. Clicar em **Acumulado** → a curva sobe até o fim do período, e o tooltip do último ponto mostra "Acumulado" igual a **Emissão no período**.
+29. No dashboard, abrir um serviço e clicar em **Ver emissões deste serviço** → abre `/emissoes?servico=<id>` com essa estação; o voltar do navegador retorna ao dashboard.
