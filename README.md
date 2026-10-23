@@ -66,11 +66,11 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RF10 — API dos serviços e histórico de coletas (#115, #116, #119):** `GET /api/services` devolve os serviços monitorados com a última leitura, e `GET /api/collections?service_id=&from=&to=&limit=` devolve o histórico de coletas (com `limit` de 1 a 500), com CORS liberado para o dashboard. Contrato completo em [docs/api.md](docs/api.md).
 
-- **RF09, RF10 — Detalhes e histórico do serviço (#135):** clicar num serviço da tabela abre uma janela com status, localização, última leitura, CPU e as 50 coletas mais recentes do serviço (`GET /api/collections`), com o período exibido na legenda. O histórico se atualiza no mesmo intervalo do dashboard; se uma busca falha, as coletas continuam na tela com "Desatualizado desde …". Como verificar em [frontend/README.md](frontend/README.md).
+- **RF09, RF10 — Detalhes e histórico do serviço (#135):** clicar num serviço da tabela abre uma janela com status, localização, última leitura, CPU e as 50 coletas mais recentes do serviço (`GET /api/collections`), com o período exibido na legenda. Acima da tabela, um gráfico de linha mostra a evolução da CPU nessas coletas, interrompido nas coletas com erro ou sem métricas (#132, PR #201). O histórico se atualiza no mesmo intervalo do dashboard; se uma busca falha, as coletas continuam na tela com "Desatualizado desde …". Como verificar em [frontend/README.md](frontend/README.md).
 
-  ![Janela de detalhes de um serviço com o histórico de coletas](docs/img/sprint-2-detalhe-servico.png)
+  ![Janela de detalhes de um serviço com o gráfico da CPU e o histórico de coletas](docs/img/sprint-2-detalhe-servico.png)
 
-  _Janela da Billing API em 21/10/2026, com o backend real (`docker compose`)._
+  _Janela do Checkout Worker em 22/10/2026, com o backend real (`docker compose`) e o cursor sobre uma coleta do gráfico._
 
 - **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
