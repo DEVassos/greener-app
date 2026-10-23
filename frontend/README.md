@@ -43,10 +43,11 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 ## Cards de estado
 
-- Acima da tabela, `KpiPanel` mostra quatro cards `MetricTile`: **Serviços monitorados**, **Ativos**, **Indisponíveis** e **Sem métricas**. As contagens vêm de `summarizeStatus` (`src/utils/summary.ts`), sobre a mesma lista de `GET /api/services` da tabela, e mudam no mesmo ciclo do polling.
+- Acima da tabela, `KpiPanel` mostra quatro cards `MetricTile`: **Total**, **Ativos**, **Indisponíveis** e **Sem métricas**. As contagens vêm de `summarizeStatus` (`src/utils/summary.ts`), sobre a mesma lista de `GET /api/services` da tabela, e mudam no mesmo ciclo do polling.
 - Os removidos não entram no total, porque saíram da lista do agregador. Quando há algum, o card do total diz "sem contar N removidos".
-- Cada estado tem rótulo, ícone e a cor do `StatusBadge`: a cor nunca é a única pista.
-- Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, junto com o erro e o selo "Desatualizado desde…".
+- Cada estado tem rótulo, ícone e a cor do `StatusBadge`: a cor nunca é a única pista. A cor só aparece com contagem maior que zero; com zero, o card fica neutro e sem nota, para não criar falso alarme. Com contagem, a nota ao lado do número dá a proporção ("14% do total").
+- Os cards são compactos (cerca de 89 px de altura), para sobrar espaço para a tabela em telas de notebook.
+- Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, com os números apagados (`--muted`), junto com o erro e o selo "Desatualizado desde…".
 - `MetricTile` é genérico (rótulo, valor, unidade, nota, ícone e tom), para os cards de energia e CO₂e do painel de indicadores agregados.
 
 ## Energia e emissão na tabela
@@ -142,6 +143,6 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 19. Fechar a janela com Esc, com o botão × e com um clique fora → as três formas fecham. Com Tab até o nome de um serviço e Enter → a janela abre; ao fechar, o foco volta para o nome.
 20. Com o mock no ar e `VITE_REFRESH_INTERVAL_MS=5000`, abrir um serviço → o terminal do mock registra `GET /collections` a cada 5 s, e o selo da janela e a CPU das coletas mudam sem recarregar. Parar o mock → a janela mostra o erro e "Desatualizado desde …" e mantém as coletas.
 21. Estreitar a janela do navegador para 375 px com os detalhes abertos → a página não ganha rolagem lateral; só a tabela do histórico rola na horizontal.
-22. Sem `.env` → acima da tabela, os cards mostram **Serviços monitorados 7**, **Ativos 5**, **Indisponíveis 1** e **Sem métricas 1**, as mesmas contagens da coluna Status. Com 375 px, ficam em 2 colunas, sem rolagem lateral.
-23. Com o backend real: `curl -s http://localhost:3000/api/services | jq '.services | group_by(.status) | map({(.[0].status): length}) | add'` → cada card bate com a contagem do seu status, e o total é a soma sem os `removido`.
-24. Com o dashboard aberto, `docker compose stop backend` e esperar um intervalo → os cards continuam com os últimos números, com o erro e o selo "Desatualizado desde…". Recarregar a página com o backend parado → nenhum card, só o erro. `docker compose start backend` → no ciclo seguinte, os cards e o selo voltam ao normal.
+22. Sem `.env` → acima da tabela, os cards mostram **Total 7**, **Ativos 5** (71% do total), **Indisponíveis 1** e **Sem métricas 1** (14% do total cada), em verde, vermelho e laranja, as mesmas contagens da coluna Status. Com 375 px, ficam em 2 colunas, sem rolagem lateral.
+23. Com o backend real: `curl -s http://localhost:3000/api/services | jq '.services | group_by(.status) | map({(.[0].status): length}) | add'` → cada card bate com a contagem do seu status, e o total é a soma sem os `removido`. Com todos ativos, **Indisponíveis** e **Sem métricas** mostram 0 sem cor e sem nota.
+24. Com o dashboard aberto, `docker compose stop backend` e esperar um intervalo → os cards continuam com os últimos números, apagados, com o erro e o selo "Desatualizado desde…". Recarregar a página com o backend parado → nenhum card, só o erro. `docker compose start backend` → no ciclo seguinte, os cards e o selo voltam ao normal.
