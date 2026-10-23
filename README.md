@@ -48,6 +48,12 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Cards de estado acima da tabela de serviços](docs/img/sprint-2-kpis.png)
 
+- **RF08 — Indicadores de hoje (#175):** abaixo dos cards de estado, um painel soma todos os serviços de 00:00 (horário de Brasília) até agora: energia estimada, emissão de CO₂e, intensidade média de carbono e coletas (com as falhas), vindos de `GET /api/services/summary`. Energia e emissão mostram a variação em relação a ontem no mesmo horário, e o período aparece na legenda com o fuso. Sem cálculo, os valores aparecem como "—", nunca zero; numa falha, o painel mantém os últimos números, apagados, com o erro. Como verificar em [frontend/README.md](frontend/README.md#indicadores-de-hoje).
+
+  ![Painel Indicadores de hoje entre os cards de estado e a tabela](docs/img/sprint-2-indicadores.png)
+
+  _Painel com o backend falso (`npm run mock`) em 23/10/2026: totais de 00:00 às 17:25 (horário de Brasília) e variação em relação a ontem no mesmo horário._
+
   _Dashboard com o backend real (`docker compose`) em 22/10/2026: os 8 serviços ativos, e Indisponíveis e Sem métricas zerados, sem cor._
 
 - **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.

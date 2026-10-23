@@ -13,11 +13,11 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/main.tsx` | ponto de entrada: carrega os estilos globais e monta o React com o `BrowserRouter` |
 | `src/App.tsx` | rotas: `/` (dashboard, público) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
 | `src/pages/` | telas (`DashboardPage`, `SettingsPage`) |
-| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
-| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço); `demo-data.ts` com os dados ilustrativos do modo demonstração |
+| `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `IndicatorsPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
+| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `summary.service.ts` (`GET /services/summary`); `demo-data.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
-| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling) |
-| `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`) e trechos do gráfico da CPU (`cpu-chart.ts`) |
+| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useSummary` (indicadores agregados de hoje, com o mesmo polling) |
+| `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`), período e unidades do painel de indicadores (`indicators.ts`) e trechos do gráfico da CPU (`cpu-chart.ts`) |
 | `src/styles/global.css` | ordem das camadas de CSS, Tailwind, tokens de cor e fonte e reset mínimo |
 | `src/styles/layout.css` | estrutura comum das páginas (`.page`, `.content`, `.panel`) |
 | `mock/server.mjs` | **backend falso** só para desenvolvimento e revisão (ver abaixo); não vai para produção |
@@ -49,6 +49,15 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Os cards são compactos (cerca de 89 px de altura), para sobrar espaço para a tabela em telas de notebook.
 - Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, com os números apagados (`--muted`), junto com o erro e o selo "Desatualizado desde…".
 - `MetricTile` é genérico (rótulo, valor, unidade, nota, ícone e tom), para os cards de energia e CO₂e do painel de indicadores agregados.
+
+## Indicadores de hoje
+
+- Abaixo dos cards de estado, `IndicatorsPanel` mostra os totais de **hoje**, de 00:00 (horário de Brasília) até agora, somando todos os serviços: **Energia estimada**, **Emissão estimada**, **Intensidade média** (gCO₂e/kWh das coletas calculadas) e **Coletas**. Os dados vêm de `GET /api/services/summary?from=…&to=…` (contrato na issue #175), buscados por `useSummary` no mesmo intervalo do dashboard.
+- A legenda mostra o período e o fuso ("23/10, 00:00 às 15:42 (horário de Brasília)"). O fim do período é "agora" a cada ciclo, e depois da meia-noite o painel passa sozinho para o dia novo.
+- Energia e emissão trazem a variação em relação a **ontem no mesmo horário** (o campo `previous` da resposta), com o sinal no texto ("+9% vs. ontem"). Sem valor no período anterior, a nota não aparece.
+- A unidade se ajusta ao tamanho do número: kWh ou Wh; kg, g ou mg de CO₂e.
+- Sem nenhuma coleta calculada no período, energia, emissão e intensidade mostram "—", nunca zero. O card **Coletas** fica laranja e com a nota "N com falha" quando há coletas com erro ou sem métricas.
+- Sem coletas no dia, aparece "Nenhuma coleta hoje ainda". Se uma atualização falha, o painel mostra o erro com **Tentar novamente** e mantém os últimos números, apagados.
 
 ## Energia e emissão na tabela
 
@@ -86,6 +95,7 @@ O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #1
 |---|---|---|
 | `GET /api/services` | — | `200 { "services": [...], "period" }` (campos em `src/services/services.types.ts`); CPU e energia variam a cada chamada |
 | `GET /api/collections` | `service_id` (id do serviço no mock, ex.: `fraud-detector`) e `limit` (1 a 500; padrão 50) | `200 { "collections": [...], "period" }` (campos em `src/services/collections.types.ts`), uma coleta a cada 30 s até agora; serviço indisponível tem as 10 mais recentes com erro e serviço sem métricas devolve lista vazia; `service_id` desconhecido → 404, `limit` inválido → 400 |
+| `GET /api/services/summary` | `from` e `to` (ISO 8601 com hora; `to` depois de `from`; até 31 dias) | `200 { "from", "to", "totals", "previous", "servicesByStatus" }` (campos em `src/services/summary.types.ts`), com totais coerentes com a lista de serviços (os ativos coletam a cada 30 s) e o período anterior 8% menor, para a variação aparecer; parâmetro inválido → 400. Também segue `MOCK_SERVICES=vazio` (sem coletas) e `MOCK_SERVICES=erro` (HTTP 500) |
 
 - `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /api/services` devolver lista vazia ou HTTP 500 com `{ "error": { "code", "message" } }`, o formato de erro do backend (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
 - O terminal do mock mostra cada requisição recebida.
@@ -150,3 +160,6 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 25. Sem `.env` → acima da tabela, os cards mostram **Total 7**, **Ativos 5** (71% do total), **Indisponíveis 1** e **Sem métricas 1** (14% do total cada), em verde, vermelho e laranja, as mesmas contagens da coluna Status. Com 375 px, ficam em 2 colunas, sem rolagem lateral.
 26. Com o backend real: `curl -s http://localhost:3000/api/services | jq '.services | group_by(.status) | map({(.[0].status): length}) | add'` → cada card bate com a contagem do seu status, e o total é a soma sem os `removido`. Com todos ativos, **Indisponíveis** e **Sem métricas** mostram 0 sem cor e sem nota.
 27. Com o dashboard aberto, `docker compose stop backend` e esperar um intervalo → os cards continuam com os últimos números, apagados, com o erro e o selo "Desatualizado desde…". Recarregar a página com o backend parado → nenhum card, só o erro. `docker compose start backend` → no ciclo seguinte, os cards e o selo voltam ao normal.
+28. Sem `.env` → abaixo dos cards, o painel **Indicadores de hoje** mostra a legenda "dd/mm, 00:00 às HH:MM (horário de Brasília) · comparado com ontem no mesmo horário" e os cards **Energia estimada** e **Emissão estimada** com "+9% vs. ontem", **Intensidade média** (cerca de 311 g/kWh) e **Coletas** em laranja com "N com falha". Com 375 px, os cards ficam em 2 colunas, sem rolagem lateral.
+29. Com `npm run mock` e o `.env` da raiz → o terminal do mock registra `GET /services/summary` junto com `GET /services` a cada intervalo, e os números do painel crescem sem recarregar a página. `curl -s "http://localhost:3000/api/services/summary?from=2026-10-23T00:00:00-03:00&to=2026-10-23T12:00:00-03:00"` → `totals` e `previous` no formato do contrato; `from=2026-10-23` (sem hora) → 400.
+30. Com o painel carregado, parar o mock e clicar em **Atualizar agora** → o painel mostra o erro com **Tentar novamente** e mantém os números, apagados; subir o mock e clicar em **Tentar novamente** → os números voltam ao normal.
