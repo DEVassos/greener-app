@@ -17,9 +17,11 @@
 
 ## 2. Itens selecionados e situação
 
-| Issue | Título | Requisito | Critério | Responsável | Situação | PR |
-|---|---|---|---|---|---|---|
-| #`<n>` | `<título>` | RF01 | DW02 | @LUCASAMR23 | concluído / pendente / movido | #`<pr>` |
+A situação de cada critério é registrada **só** no [plano de entregas](../../plano-de-entregas.md#sprint-n); esta seção lista os itens selecionados e o PR de cada um.
+
+| Issue | Título | Requisito | Critério | Responsável | PR |
+|---|---|---|---|---|---|
+| #`<n>` | `<título>` | RF01 | DW02 | @LUCASAMR23 | #`<pr>` |
 
 ## 3. Itens concluídos
 

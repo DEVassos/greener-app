@@ -14,7 +14,9 @@ Dashboard completo com energia e CO₂e por serviço e indicadores agregados, to
 
 ## 2. Itens selecionados e situação
 
-| Issue | Título | Requisito | Critério | Responsável | Situação |
+A situação de cada critério previsto fica **só** no [plano de entregas](../../plano-de-entregas.md#sprint-2); esta seção registra a seleção da sprint e o responsável.
+
+| Issue | Título | Requisito | Critério | Responsável | Seleção |
 |---|---|---|---|---|---|
 | #43 | US02 — Motor de cálculo ambiental | RF07, RF12 | TP01, DW03 | @LUCASAMR23 | planejado |
 | #45 | US04 — Dashboard executivo e operacional | RF08, RF09, RF11, RNF01, RNF02 | DW05 | @DeaTuribio | planejado |
