@@ -62,6 +62,22 @@ describe('HTTP', () => {
       services: { active: 3, unavailable: 1, withoutMetrics: 2, removed: 0 },
     });
   });
+  it('preserva null nos totais quando não houve cálculo disponível no período', async () => {
+    const summary = { energy_kwh: null, co2e_grams: null, active: '1', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ energyKwh: null, co2eGrams: null });
+  });
+  it('mantém zero quando cálculos disponíveis totalizam zero', async () => {
+    const summary = { energy_kwh: '0', co2e_grams: '0', active: '1', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ energyKwh: 0, co2eGrams: 0 });
+  });
   it('rejeita data de calendário inexistente nos filtros do resumo', async () => {
     const { collections, services } = repositories();
     const base = await serve(createApp(async () => {}, collections, services));

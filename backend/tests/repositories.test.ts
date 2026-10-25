@@ -50,6 +50,8 @@ it('agrega indicadores por intervalo com parâmetros de data', async () => {
   const sql = fake.poolQuery.mock.calls[0][0] as string;
   expect(sql).toContain('SUM(c.energy_kwh)');
   expect(sql).toContain('SUM(c.co2e_grams)');
+  expect(sql).not.toContain('COALESCE(SUM(c.energy_kwh)');
+  expect(sql).not.toContain('COALESCE(SUM(c.co2e_grams)');
   expect(sql).toContain('c.collected_at >= $1 AND c.collected_at < $2');
   expect(sql).toContain('COUNT(DISTINCT s.id) FILTER (WHERE s.status = \'ativo\')');
   expect(fake.poolQuery.mock.calls[0][1]).toEqual([from, to]);
