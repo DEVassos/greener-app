@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 import DashboardPage from './pages/DashboardPage';
+import EmissionsPage from './pages/EmissionsPage';
 import SettingsPage from './pages/SettingsPage';
 import MonitoringProvider from './providers/MonitoringProvider';
 
@@ -9,6 +10,7 @@ export default function App() {
       <Routes>
         {/* Área pública: o dashboard abre direto, sem login */}
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/emissoes" element={<EmissionsPage />} />
 
         {/* Configuração do monitoramento: rota reservada; a proteção por login (JWT) é escopo da #25 */}
         <Route path="/configuracao" element={<SettingsPage />} />
