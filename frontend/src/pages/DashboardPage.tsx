@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
@@ -10,6 +10,9 @@ import ServicesTable from '../components/ServicesTable';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useServices } from '../hooks/useServices';
 import { isDemoMode } from '../services/services.service';
+import { fetchServicesSummary } from '../services/services.service';
+import type { ServicesSummaryResponse } from '../services/services.types';
+import SummaryPanel from '../components/SummaryPanel';
 import { summarizeStatus } from '../utils/summary';
 import './DashboardPage.css';
 
@@ -17,6 +20,16 @@ export default function DashboardPage() {
   const { data, loading, error, updatedAt, refresh } = useServices();
   const { refreshIntervalMs } = useMonitoring();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [summary, setSummary] = useState<ServicesSummaryResponse | null>(null);
+  const [summaryError, setSummaryError] = useState('');
+  useEffect(() => {
+    if (isDemoMode) return;
+    const controller = new AbortController(); const to = new Date(); const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
+    void fetchServicesSummary(from.toISOString(), to.toISOString(), controller.signal)
+      .then((response) => { setSummary(response); setSummaryError(''); })
+      .catch((reason: unknown) => { if (!controller.signal.aborted) setSummaryError(reason instanceof Error ? reason.message : 'Não foi possível carregar os indicadores.'); });
+    return () => controller.abort();
+  }, [updatedAt]);
   // A janela usa a linha atual da lista: status, CPU e última leitura acompanham cada atualização
   const selected = data?.services.find((service) => service.id === selectedId) ?? null;
 
@@ -63,6 +76,7 @@ export default function DashboardPage() {
 
         {/* Falha não apaga o que já estava na tela: o erro aparece junto com o último dado */}
         {error && <ErrorState message={error} onRetry={refresh} />}
+        {summaryError && <ErrorState message={summaryError} onRetry={refresh} />}
 
         {loading && !data && <LoadingState message="Carregando serviços…" />}
 
@@ -77,6 +91,7 @@ export default function DashboardPage() {
         {data && data.services.length > 0 && (
           <KpiPanel summary={summarizeStatus(data.services)} staleSince={error ? updatedAt : null} />
         )}
+        {summary && <SummaryPanel summary={summary} stale={error !== ''} />}
 
         {data && data.services.length > 0 && (
           <ServicesTable services={data.services} period={data.period} onSelect={(service) => setSelectedId(service.id)} />

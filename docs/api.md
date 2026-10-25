@@ -42,6 +42,16 @@ Falha de banco retorna 500 no envelope global, sem stack ou SQL:
 {"error":{"code":"DATABASE_ERROR","message":"Não foi possível verificar a conexão com o banco de dados."}}
 ```
 
+## GET /api/services/summary
+
+Indicadores agregados do dashboard, sem autenticação. Exige `from` e `to` em ISO 8601, com período `[from, to)` de até 31 dias.
+
+```json
+{"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":0}}
+```
+
+Os totais consideram somente coletas com cálculo disponível. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
+
 ## GET /api/collections
 
 Histórico de coletas, sem autenticação nem corpo. Parâmetros opcionais:

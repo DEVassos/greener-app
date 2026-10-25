@@ -40,3 +40,8 @@ function toMonitoredService(service: ServiceWithLastReading): MonitoredService {
 export async function getServices(repository: ServiceRepository): Promise<ServicesResponse> {
   return { services: (await repository.findAllWithLastReading()).map(toMonitoredService), period: PERIOD };
 }
+export interface ServicesSummaryResponse { period: { from: string; to: string }; energyKwh: number; co2eGrams: number; services: { active: number; unavailable: number; withoutMetrics: number; removed: number } }
+export async function getServicesSummary(repository: ServiceRepository, period: { from: Date; to: Date }): Promise<ServicesSummaryResponse> {
+  const row = await repository.findSummary(period.from, period.to);
+  return { period: { from: period.from.toISOString(), to: period.to.toISOString() }, energyKwh: Number(row.energy_kwh), co2eGrams: Number(row.co2e_grams), services: { active: Number(row.active), unavailable: Number(row.unavailable), withoutMetrics: Number(row.without_metrics), removed: Number(row.removed) } };
+}
