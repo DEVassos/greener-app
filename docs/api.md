@@ -50,7 +50,7 @@ Indicadores agregados do dashboard, sem autenticação. Exige `from` e `to` em I
 {"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":0}}
 ```
 
-Os totais consideram somente coletas com cálculo disponível; os serviços por estado são contados uma vez por serviço. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
+Os totais consideram somente coletas com cálculo disponível; os serviços por estado são contados uma vez por serviço. Se nenhuma coleta tiver cálculo disponível no período, `energyKwh` e `co2eGrams` são `null` (não zero), para diferenciar ausência de cálculo de um total calculado igual a zero. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
 
 ## GET /api/collections
 

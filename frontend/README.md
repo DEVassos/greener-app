@@ -50,6 +50,12 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Os cards só aparecem depois da primeira busca bem-sucedida: sem dados, a tela mostra o carregamento ou o erro, nunca zeros. Se uma atualização falha, eles continuam com o último dado, com os números apagados (`--muted`), junto com o erro e o selo "Desatualizado desde…".
 - `MetricTile` é genérico (rótulo, valor, unidade, nota, ícone e tom), para os cards de energia e CO₂e do painel de indicadores agregados.
 
+## Indicadores agregados (RF08)
+
+O dashboard consulta `GET /api/services/summary` por meio de `src/services/services.service.ts` e exibe energia (kWh), CO₂e (g) e a contagem distinta de serviços ativos, indisponíveis, sem métricas e removidos no período consultado. Os cards mostram a variação percentual contra o intervalo imediatamente anterior de mesma duração; se o valor anterior for zero, exibem “Sem base para comparação”.
+
+Quando não há cálculo disponível no período, energia e CO₂e aparecem como “—”, nunca como zero. Zero é reservado a um total realmente calculado igual a zero. Se a consulta da comparação falhar, o painel informa que a comparação está indisponível; se o período anterior não tiver cálculos, informa essa ausência separadamente. A falha da atualização mantém os últimos valores com indicação de desatualização.
+
 ## Energia e emissão na tabela
 
 - As colunas "Energia (kWh)" e "Emissão (g CO₂e)" mostram o resultado da **última coleta** de cada serviço (cerca de 30 s de operação), calculado pelo backend desde o #139. Sem cálculo disponível (por exemplo, com a API de carbono fora), aparece "—", nunca zero.
