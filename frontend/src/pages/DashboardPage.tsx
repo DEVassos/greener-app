@@ -21,13 +21,36 @@ export default function DashboardPage() {
   const { refreshIntervalMs } = useMonitoring();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [summary, setSummary] = useState<ServicesSummaryResponse | null>(null);
+  const [previousSummary, setPreviousSummary] = useState<ServicesSummaryResponse | null>(null);
   const [summaryError, setSummaryError] = useState('');
+  const [comparisonError, setComparisonError] = useState('');
+  const [comparisonLoading, setComparisonLoading] = useState(false);
   useEffect(() => {
     if (isDemoMode) return;
+    setComparisonLoading(false);
     const controller = new AbortController(); const to = new Date(); const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
-    void fetchServicesSummary(from.toISOString(), to.toISOString(), controller.signal)
-      .then((response) => { setSummary(response); setSummaryError(''); })
-      .catch((reason: unknown) => { if (!controller.signal.aborted) setSummaryError(reason instanceof Error ? reason.message : 'Não foi possível carregar os indicadores.'); });
+    const previousFrom = new Date(from.getTime() - (to.getTime() - from.getTime()));
+    void (async () => {
+      try {
+        const current = await fetchServicesSummary(from.toISOString(), to.toISOString(), controller.signal);
+        if (controller.signal.aborted) return;
+        setSummary(current);
+        setSummaryError('');
+        setPreviousSummary(null);
+        setComparisonError('');
+        setComparisonLoading(true);
+        try {
+          const previous = await fetchServicesSummary(previousFrom.toISOString(), from.toISOString(), controller.signal);
+          if (!controller.signal.aborted) setPreviousSummary(previous);
+        } catch (reason: unknown) {
+          if (!controller.signal.aborted) setComparisonError(reason instanceof Error ? reason.message : 'Não foi possível carregar a comparação.');
+        } finally {
+          if (!controller.signal.aborted) setComparisonLoading(false);
+        }
+      } catch (reason: unknown) {
+        if (!controller.signal.aborted) setSummaryError(reason instanceof Error ? reason.message : 'Não foi possível carregar os indicadores.');
+      }
+    })();
     return () => controller.abort();
   }, [updatedAt]);
   // A janela usa a linha atual da lista: status, CPU e última leitura acompanham cada atualização
@@ -77,6 +100,7 @@ export default function DashboardPage() {
         {/* Falha não apaga o que já estava na tela: o erro aparece junto com o último dado */}
         {error && <ErrorState message={error} onRetry={refresh} />}
         {summaryError && <ErrorState message={summaryError} onRetry={refresh} />}
+        {comparisonError && <ErrorState message={comparisonError} onRetry={refresh} />}
 
         {loading && !data && <LoadingState message="Carregando serviços…" />}
 
@@ -91,7 +115,7 @@ export default function DashboardPage() {
         {data && data.services.length > 0 && (
           <KpiPanel summary={summarizeStatus(data.services)} staleSince={error ? updatedAt : null} />
         )}
-        {summary && <SummaryPanel summary={summary} stale={error !== ''} />}
+        {summary && <SummaryPanel summary={summary} previousSummary={previousSummary} comparisonLoading={comparisonLoading} stale={error !== '' || summaryError !== ''} />}
 
         {data && data.services.length > 0 && (
           <ServicesTable services={data.services} period={data.period} onSelect={(service) => setSelectedId(service.id)} />
