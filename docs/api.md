@@ -44,13 +44,13 @@ Falha de banco retorna 500 no envelope global, sem stack ou SQL:
 
 ## GET /api/services/summary
 
-Indicadores agregados do dashboard, sem autenticação. Exige `from` e `to` em ISO 8601, com período `[from, to)` de até 31 dias.
+Indicadores agregados do dashboard, sem autenticação. Exige `from` e `to` em ISO 8601 válido, com período `[from, to)` de até 31 dias. A interface consulta esse endpoint também para o intervalo imediatamente anterior, de mesma duração, e apresenta a variação percentual de energia e CO₂e. Quando o total anterior é zero, exibe “Sem base para comparação”.
 
 ```json
 {"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":0}}
 ```
 
-Os totais consideram somente coletas com cálculo disponível. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
+Os totais consideram somente coletas com cálculo disponível; os serviços por estado são contados uma vez por serviço. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
 
 ## GET /api/collections
 
