@@ -5,6 +5,7 @@ import { useMonitoring } from '../hooks/useMonitoring';
 import type { MonitoredService } from '../services/services.types';
 import { formatDayTime, formatNumber } from '../utils/format';
 import CollectionsHistoryTable from './CollectionsHistoryTable';
+import CpuHistoryChart from './CpuHistoryChart';
 import EmptyState from './EmptyState';
 import ErrorState from './ErrorState';
 import LastUpdated from './LastUpdated';
@@ -117,7 +118,12 @@ export default function ServiceDetailsDialog({ service, onClose }: Props) {
             />
           )}
 
-          {data && data.collections.length > 0 && <CollectionsHistoryTable collections={data.collections} />}
+          {data && data.collections.length > 0 && (
+            <>
+              <CpuHistoryChart collections={data.collections} />
+              <CollectionsHistoryTable collections={data.collections} />
+            </>
+          )}
         </section>
       </div>
     </dialog>

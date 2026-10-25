@@ -2,6 +2,7 @@ import { useState } from 'react';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import KpiPanel from '../components/KpiPanel';
 import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
 import ServiceDetailsDialog from '../components/ServiceDetailsDialog';
@@ -9,6 +10,7 @@ import ServicesTable from '../components/ServicesTable';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useServices } from '../hooks/useServices';
 import { isDemoMode } from '../services/services.service';
+import { summarizeStatus } from '../utils/summary';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
@@ -69,6 +71,11 @@ export default function DashboardPage() {
             title="Nenhum serviço monitorado ainda"
             description="Os serviços aparecem aqui assim que o agregador os descobrir na próxima coleta."
           />
+        )}
+
+        {/* Sem dado ainda, os cards não aparecem (nunca zeros inventados); depois de uma falha, mostram o último dado */}
+        {data && data.services.length > 0 && (
+          <KpiPanel summary={summarizeStatus(data.services)} staleSince={error ? updatedAt : null} />
         )}
 
         {data && data.services.length > 0 && (

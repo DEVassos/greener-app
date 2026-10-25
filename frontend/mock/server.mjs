@@ -141,6 +141,9 @@ const routes = {
     if (!service) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Serviço não encontrado.' } });
 
     const groups = new Map();
+    // Intensidade do período: média das coletas calculadas, como o AVG … FILTER (calculation_status = 'disponivel') da #189
+    let intensitySum = 0;
+    let intensityCount = 0;
     const totals = { collections: 0, failed: 0, notCalculated: 0, energyKwh: null, co2eGrams: null, co2eMaxGrams: null, carbonIntensityGco2ePerKwh: null };
     const add = (target, item) => {
       target.collections += 1;
@@ -160,8 +163,12 @@ const routes = {
       }
       add(groups.get(start), item);
       add(totals, item);
-      totals.carbonIntensityGco2ePerKwh ??= item.carbonIntensityGco2ePerKwh;
+      if (item.calculationStatus === 'disponivel') {
+        intensitySum += item.carbonIntensityGco2ePerKwh;
+        intensityCount += 1;
+      }
     }
+    totals.carbonIntensityGco2ePerKwh = intensityCount > 0 ? intensitySum / intensityCount : null;
     const buckets = [...groups.values()].sort((a, b) => a.start.localeCompare(b.start));
     return send(res, 200, { serviceId: service.id, from: new Date(from).toISOString(), to: new Date(to).toISOString(), bucket: query.get('bucket'), buckets, totals });
   },

@@ -32,7 +32,7 @@ export interface EmissionsTotals {
   co2eGrams: number | null;
   /** Maior emissão de uma única coleta no período, em g CO₂e. */
   co2eMaxGrams: number | null;
-  /** Intensidade de carbono da região usada no cálculo, em g CO₂e/kWh. */
+  /** Intensidade de carbono da região, em g CO₂e/kWh: média das coletas calculadas do período (como na #189). */
   carbonIntensity: number | null;
 }
 

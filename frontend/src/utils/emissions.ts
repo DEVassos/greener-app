@@ -109,6 +109,19 @@ export function formatInputDate(value: string): string {
   return parseInputDate(value).toLocaleDateString('pt-BR');
 }
 
+/**
+ * Fuso em que as datas do filtro são lidas (o do navegador): "horário de Brasília" em America/Sao_Paulo; nos outros,
+ * o deslocamento do UTC no dia `value` ("UTC−4", "UTC+5:30"), para não afirmar um fuso que não é o da pessoa.
+ */
+export function timeZoneLabel(value: string): string {
+  if (Intl.DateTimeFormat().resolvedOptions().timeZone === 'America/Sao_Paulo') return 'horário de Brasília';
+  const offsetMin = -parseInputDate(value).getTimezoneOffset();
+  if (offsetMin === 0) return 'UTC';
+  const abs = Math.abs(offsetMin);
+  const minutes = abs % 60 === 0 ? '' : `:${String(abs % 60).padStart(2, '0')}`;
+  return `UTC${offsetMin < 0 ? '−' : '+'}${Math.floor(abs / 60)}${minutes}`;
+}
+
 // ── Agrupamento ─────────────────────────────────────────────────────────────
 
 export const BUCKET_MS: Record<EmissionsBucket, number> = { coleta: 30_000, '15min': 15 * 60_000, '1h': 60 * 60_000 };
@@ -147,22 +160,21 @@ export function summarize(points: EmissionPoint[], totals: EmissionsTotals): Emi
 }
 
 /**
- * Tempo sem coleta no período. Agrupado: intervalos que não vieram. Por coleta: o que passou do intervalo típico
- * nos trechos parados por mais de 3× esse intervalo. É ausência de registro, não indisponibilidade.
+ * Tempo sem coleta no período, com a mesma regra em qualquer agrupamento: soma dos trechos sem nenhuma coleta
+ * registrada (com falha ou não) entre a primeira e a última coleta do período. O tempo antes da primeira e depois da
+ * última não conta: pode ser só o sistema desligado ou o período ainda em curso. Os trechos têm o tamanho do
+ * agrupamento automático do período (15 min até 1 dia; 1 hora acima disso), ou o do agrupamento escolhido, se for
+ * maior, e são alinhados como o `date_bin` da #189; por isso "Cada coleta" e "15 min" dão o mesmo número.
+ * É ausência de registro, não indisponibilidade.
  */
 export function missingTimeMs(points: EmissionPoint[], bucket: EmissionsBucket, fromMs: number, toMs: number): number {
-  // Sem nenhuma coleta a tela já diz "Nenhuma coleta no período"
-  if (points.length === 0) return 0;
-  if (bucket !== 'coleta') {
-    const expected = Math.ceil((toMs - fromMs) / BUCKET_MS[bucket]);
-    return Math.max(0, expected - points.length) * BUCKET_MS[bucket];
-  }
-  const typical = typicalIntervalMs(points);
-  if (typical === null) return 0;
-  return points.slice(1).reduce((missing, point, i) => {
-    const delta = point.t - points[i].t;
-    return delta > typical * 3 ? missing + delta - typical : missing;
-  }, 0);
+  const stepMs = Math.max(BUCKET_MS[autoBucket(fromMs, toMs) === '1h' ? '1h' : '15min'], BUCKET_MS[bucket]);
+  const slots = [
+    ...new Set(points.filter((point) => point.collections > 0).map((point) => Math.floor(point.t / stepMs) * stepMs)),
+  ].sort((a, b) => a - b);
+  let missing = 0;
+  for (let i = 1; i < slots.length; i += 1) missing += slots[i] - slots[i - 1] - stepMs;
+  return missing;
 }
 
 /** Quantas vezes o pico ficou acima da média; null sem cálculo. */
