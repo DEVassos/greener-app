@@ -26,11 +26,7 @@ function readJwt(source: NodeJS.ProcessEnv): Pick<Environment, 'jwtSecret' | 'jw
   if (typeof jwtExpiresIn !== 'string' || jwtExpiresIn.trim() === '') {
     throw new ValidationError('JWT_EXPIRES_IN deve informar a validade do token.');
   }
-  try {
-    sign({}, jwtSecret, { expiresIn: jwtExpiresIn as NonNullable<SignOptions['expiresIn']> });
-  } catch {
-    throw new ValidationError('JWT_EXPIRES_IN deve usar um formato aceito pelo JWT (ex.: 8h ou 7d).');
-  }
+  if (!/^\d+(s|m|h|d)$/.test(jwtExpiresIn)) throw new ValidationError('JWT_EXPIRES_IN deve ser positivo e usar unidade (ex.: 8h ou 7d).');
   return { jwtSecret, jwtExpiresIn: jwtExpiresIn as NonNullable<SignOptions['expiresIn']> };
 }
 

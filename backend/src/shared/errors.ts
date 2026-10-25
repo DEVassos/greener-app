@@ -14,7 +14,7 @@ export class NotFoundError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Credenciais invalidas.') { super('UNAUTHORIZED', 401, message); }
+  constructor(message = 'Credenciais inválidas.') { super('UNAUTHORIZED', 401, message); }
 }
 
 export class DatabaseError extends AppError {

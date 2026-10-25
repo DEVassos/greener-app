@@ -1,4 +1,5 @@
-import type { RequestHandler } from 'express';
+import type { RequestHandler, Response } from 'express';
+import type { AuthLocals } from '../../middlewares/auth';
 import { ValidationError } from '../../shared/errors';
 import { UserRepository } from './usuarios.repository';
 import { login, type AuthConfig } from './usuarios.service';
@@ -17,4 +18,7 @@ export function loginController(users: UserRepository, config: AuthConfig): Requ
     const { email, password } = credentials(req.body);
     res.status(200).json({ token: await login(users, email, password, config) });
   };
+}
+export function meController(_req: Parameters<RequestHandler>[0], res: Response<unknown, AuthLocals>): void {
+  res.status(200).json(res.locals.auth);
 }

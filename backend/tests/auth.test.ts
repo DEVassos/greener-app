@@ -48,11 +48,11 @@ describe('autenticacao', () => {
   });
 
   it('devolve o mesmo 401 para email inexistente e senha incorreta', async () => {
-    const url = await authApp([{ id: '7', email: 'admin@ecopulse.dev', password_hash: await hash('senha-segura', 10), created_at: new Date(), updated_at: new Date() }]);
-    for (const body of [{ email: 'nao@existe.dev', password: 'errada' }, { email: 'admin@ecopulse.dev', password: 'errada' }]) {
+    const rows = [{ id: '7', email: 'admin@ecopulse.dev', password_hash: await hash('senha-segura', 10), created_at: new Date(), updated_at: new Date() }];
+    for (const [url, body] of [[await authApp([]), { email: 'nao@existe.dev', password: 'errada' }], [await authApp(rows), { email: 'admin@ecopulse.dev', password: 'errada' }]] as const) {
       const response = await fetch(url + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual({ error: { code: 'UNAUTHORIZED', message: 'Credenciais invalidas.' } });
+      expect(await response.json()).toEqual({ error: { code: 'UNAUTHORIZED', message: 'Credenciais inválidas.' } });
     }
   });
 
