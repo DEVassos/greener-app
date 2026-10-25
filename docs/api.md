@@ -60,17 +60,25 @@ Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente de
 
 ## POST /api/auth/login
 
-Autentica o administrador sem expor senha ou hash. Corpo JSON obrigatorio:
+Autentica o administrador sem expor senha ou hash. Corpo JSON obrigatório:
 
 ```json
 {"email":"admin@ecopulse.dev","password":"senha-do-administrador"}
 ```
 
-Com credenciais validas, devolve `200` com `{ "token": "<JWT>" }`. E-mail inexistente e senha incorreta devolvem o mesmo `401 UNAUTHORIZED`; corpo sem `email` ou `password` devolve `400 VALIDATION_ERROR`. O token e assinado com `JWT_SECRET` e expira conforme `JWT_EXPIRES_IN`.
+Com credenciais válidas, devolve `200`; e-mail inexistente e senha incorreta devolvem o mesmo `401 UNAUTHORIZED`; corpo sem `email` ou `password` devolve `400 VALIDATION_ERROR`. O token é assinado com HS256 usando `JWT_SECRET` e expira conforme `JWT_EXPIRES_IN`.
+
+```json
+{"token":"<JWT>"}
+```
 
 ## GET /api/auth/me
 
-Rota minima protegida para verificar o middleware. Envie `Authorization: Bearer <JWT>`; token ausente, invalido ou expirado devolve `401 UNAUTHORIZED`. Com token valido, devolve `200` com o `id` e o `email` do usuario autenticado.
+Rota mínima protegida para verificar o middleware. Envie `Authorization: Bearer <JWT>`; token ausente, inválido ou expirado devolve `401 UNAUTHORIZED`. Com token válido, devolve `200` com o `id` e o `email` do usuário autenticado.
+
+```json
+{"id":"1","email":"admin@ecopulse.dev"}
+```
 
 ## GET /health
 

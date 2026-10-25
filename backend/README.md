@@ -7,7 +7,7 @@ API REST em Node.js com Express 5 e TypeScript estrito, persistência no Postgre
 - grava o histórico no PostgreSQL (#14, #19);
 - expõe `GET /health`, `GET /api/services` e `GET /api/collections` (#8, #111, #112), com CORS liberado para o dashboard (#118).
 
-Autenticação JWT e a área de configuração (`/monitoring-settings`) estão previstas para a Sprint 2 ([#20](https://github.com/DEVassos/greener-app/issues/20)); ainda não existem neste código.
+`POST /api/auth/login` e `GET /api/auth/me` já autenticam administradores com bcrypt e JWT. A área de configuração (`/monitoring-settings`) continua pendente na Sprint 2.
 
 ## Organização
 
@@ -25,7 +25,7 @@ src/
 └── shared/                 errors.ts (AppError e subclasses) e persistence.types.ts (tipos das linhas do banco)
 ```
 
-SQL só existe nos arquivos `*.repository.ts`, sempre com parâmetros `$1…$n`. A pasta `modules/usuarios/` tem só o `UserRepository.findByEmail` (usado pelos testes) e três arquivos reservados para a autenticação da Sprint 2; nenhuma rota dela é montada no `app.ts`.
+SQL só existe nos arquivos `*.repository.ts`, sempre com parâmetros `$1…$n`. `modules/usuarios/` contém repository, service, controller e rotas de autenticação; `middlewares/auth.ts` exporta o middleware JWT reutilizável pelas futuras rotas protegidas.
 
 O `tsconfig.json` usa ES2022, Node16 para módulo e resolução, `strict`, `rootDir` `src` e `outDir` `dist`. Sem `type=module`, o build emite CommonJS. Os testes ficam fora de `src`.
 
@@ -52,7 +52,7 @@ JSON inválido no corpo devolve 400; rota inexistente, 404; erro inesperado, 500
 | `POLLING_INTERVAL_MS` | `30000` | inteiro de 1 a 2147483647 ms; intervalo da descoberta e prazo inicial e de recuperação da coleta. O `compose.yaml` ainda não repassa esta variável ao container, então no Docker vale o padrão de 30 s |
 | `CORS_ORIGIN` | `http://localhost:5173` | origens http(s) separadas por vírgula, sem caminho; só elas recebem `Access-Control-Allow-Origin`, e o preflight `OPTIONS` responde 204 |
 
-Só `config/env.ts` lê `process.env`, e não há leitura automática de `.env`: o ambiente é fornecido ao processo (no caminho oficial, pelo `compose.yaml` a partir do `.env` da raiz). Ambiente inválido impede o boot com mensagem clara. `JWT_SECRET` e `JWT_EXPIRES_IN` constam do [`.env.example`](../.env.example), mas só ganham consumidor com a autenticação da Sprint 2 ([#20](https://github.com/DEVassos/greener-app/issues/20)). Não registre URLs com credenciais em logs.
+Só `config/env.ts` lê `process.env`, e não há leitura automática de `.env`: o ambiente é fornecido ao processo (no caminho oficial, pelo `compose.yaml` a partir do `.env` da raiz). Ambiente inválido impede o boot com mensagem clara. `JWT_SECRET` é obrigatório e tem ao menos 16 caracteres; `JWT_EXPIRES_IN` é positivo e usa unidade, como `8h` ou `7d`. Não registre URLs com credenciais em logs.
 
 Caminho oficial: `docker compose up --build` na raiz. O serviço `backend` usa o Dockerfile deste módulo (#26) e só sobe depois do healthcheck do `postgres` (#27).
 
