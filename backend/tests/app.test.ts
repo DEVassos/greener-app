@@ -50,6 +50,24 @@ describe('HTTP', () => {
     expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25,
       energyKwh: 0.000480452625, emissionsG: 0.040838473125 });
   });
+  it('retorna os indicadores agregados para o período solicitado', async () => {
+    const summary = { energy_kwh: '1.2500', co2e_grams: '85.5000', active: '3', unavailable: '1', without_metrics: '2', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      period: { from: '2026-10-20T00:00:00.000Z', to: '2026-10-21T00:00:00.000Z' },
+      energyKwh: 1.25, co2eGrams: 85.5,
+      services: { active: 3, unavailable: 1, withoutMetrics: 2, removed: 0 },
+    });
+  });
+  it('rejeita data de calendário inexistente nos filtros do resumo', async () => {
+    const { collections, services } = repositories();
+    const base = await serve(createApp(async () => {}, collections, services));
+    const response = await fetch(base + '/api/services/summary?from=2026-02-30T00:00:00Z&to=2026-03-03T00:00:00Z');
+    expect(response.status).toBe(400);
+  });
   it('compara serviços no período informado', async () => {
     const rows = [
       { id: '1', name: 'Alpha', region: 'Sul', collections: '2', failed: '0', not_calculated: '0', avg_cpu_percent: '20', avg_memory_gb: '1.5', avg_disk_gb: '2', avg_network_gb: '0.3', energy_kwh: '0.02', co2e_grams: '1.7' },
