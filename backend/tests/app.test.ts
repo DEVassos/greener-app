@@ -50,6 +50,26 @@ describe('HTTP', () => {
     expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25,
       energyKwh: 0.000480452625, emissionsG: 0.040838473125 });
   });
+  it('compara serviços no período informado', async () => {
+    const rows = [
+      { id: '1', name: 'Alpha', region: 'Sul', collections: '2', failed: '0', not_calculated: '0', avg_cpu_percent: '20', avg_memory_gb: '1.5', avg_disk_gb: '2', avg_network_gb: '0.3', energy_kwh: '0.02', co2e_grams: '1.7' },
+      { id: '2', name: 'Beta', region: null, collections: '0', failed: '0', not_calculated: '0', avg_cpu_percent: null, avg_memory_gb: null, avg_disk_gb: null, avg_network_gb: null, energy_kwh: null, co2e_grams: null },
+    ];
+    const { collections, services } = repositories([], rows);
+    const base = await serve(createApp(async () => {}, collections, services));
+    const response = await fetch(base + '/api/services/compare?ids=1,2&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect((await response.json()).services).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: '1', collections: 2, avgCpuPercent: 20, energyKwh: 0.02, co2eGrams: 1.7 }),
+      expect.objectContaining({ id: '2', collections: 0, avgCpuPercent: null, energyKwh: null }),
+    ]));
+  });
+  it('valida a comparação antes de consultar o banco', async () => {
+    const { collections, services } = repositories(); const base = await serve(createApp(async () => {}, collections, services));
+    expect((await fetch(base + '/api/services/compare?ids=1&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z')).status).toBe(400);
+    expect((await fetch(base + '/api/services/compare?ids=1,1&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z')).status).toBe(400);
+    expect((await fetch(base + '/api/services/compare?ids=1,2&from=2026-10-21T00:00:00Z&to=2026-10-20T00:00:00Z')).status).toBe(400);
+  });
   it('valida filtros de collections', async () => {
     const { collections, services } = repositories();
     expect((await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?limit=abc')).status).toBe(400);
@@ -57,6 +77,29 @@ describe('HTTP', () => {
   it('retorna 404 para service_id inexistente', async () => {
     const { collections, services } = repositories([], []);
     expect((await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?service_id=99')).status).toBe(404);
+  });
+  it('expõe os campos de cálculo e separa não calculado de zero', async () => {
+    const base = { service_id: '1', collected_at: new Date('2026-10-14T20:00:00.000Z'), status: 'ok',
+      cpu_percent: '10.00', memory_gb: '1.000000000', disk_gb: '2.000000000', network_gb: '3.000000000', error_message: null };
+    const rows = [
+      { ...base, id: '1', calculation_status: 'disponivel', carbon_intensity_gco2e_per_kwh: '85.000000',
+        energy_kwh: '0.000480452625', co2e_grams: '0.040838473125' },
+      { ...base, id: '2', collected_at: new Date('2026-10-14T20:05:00.000Z'), calculation_status: 'disponivel',
+        carbon_intensity_gco2e_per_kwh: '85.000000', energy_kwh: '0.000000000000', co2e_grams: '0.000000000000' },
+      { ...base, id: '3', collected_at: new Date('2026-10-14T20:10:00.000Z'), calculation_status: 'nao_calculado',
+        carbon_intensity_gco2e_per_kwh: null, energy_kwh: null, co2e_grams: null },
+      { ...base, id: '4', collected_at: new Date('2026-10-14T20:15:00.000Z'), calculation_status: 'indisponivel',
+        carbon_intensity_gco2e_per_kwh: null, energy_kwh: null, co2e_grams: null },
+    ];
+    const { collections, services } = repositories(rows, [{ id: '1', name: 'Demo', status: 'ativo', country: 'BR', region: 'Sul',
+      city: null, last_reading_at: null, cpu_percent: null, energy_kwh: null, co2e_grams: null }]);
+    const body = await (await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?service_id=1')).json();
+    expect(body.collections[0]).toMatchObject({ calculationStatus: 'disponivel', energyKwh: 0.000480452625,
+      co2eGrams: 0.040838473125, carbonIntensityGco2ePerKwh: 85 });
+    expect(body.collections[1]).toMatchObject({ calculationStatus: 'disponivel', energyKwh: 0, co2eGrams: 0 });
+    expect(body.collections[2]).toMatchObject({ calculationStatus: 'nao_calculado', energyKwh: null, co2eGrams: null,
+      carbonIntensityGco2ePerKwh: null });
+    expect(body.collections[3]).toMatchObject({ calculationStatus: 'indisponivel', energyKwh: null, co2eGrams: null });
   });
   it('protege erros inesperados', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
