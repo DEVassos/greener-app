@@ -50,6 +50,26 @@ describe('HTTP', () => {
     expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25,
       energyKwh: 0.000480452625, emissionsG: 0.040838473125 });
   });
+  it('compara serviços no período informado', async () => {
+    const rows = [
+      { id: '1', name: 'Alpha', region: 'Sul', collections: '2', failed: '0', not_calculated: '0', avg_cpu_percent: '20', avg_memory_gb: '1.5', avg_disk_gb: '2', avg_network_gb: '0.3', energy_kwh: '0.02', co2e_grams: '1.7' },
+      { id: '2', name: 'Beta', region: null, collections: '0', failed: '0', not_calculated: '0', avg_cpu_percent: null, avg_memory_gb: null, avg_disk_gb: null, avg_network_gb: null, energy_kwh: null, co2e_grams: null },
+    ];
+    const { collections, services } = repositories([], rows);
+    const base = await serve(createApp(async () => {}, collections, services));
+    const response = await fetch(base + '/api/services/compare?ids=1,2&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect((await response.json()).services).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: '1', collections: 2, avgCpuPercent: 20, energyKwh: 0.02, co2eGrams: 1.7 }),
+      expect.objectContaining({ id: '2', collections: 0, avgCpuPercent: null, energyKwh: null }),
+    ]));
+  });
+  it('valida a comparação antes de consultar o banco', async () => {
+    const { collections, services } = repositories(); const base = await serve(createApp(async () => {}, collections, services));
+    expect((await fetch(base + '/api/services/compare?ids=1&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z')).status).toBe(400);
+    expect((await fetch(base + '/api/services/compare?ids=1,1&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z')).status).toBe(400);
+    expect((await fetch(base + '/api/services/compare?ids=1,2&from=2026-10-21T00:00:00Z&to=2026-10-20T00:00:00Z')).status).toBe(400);
+  });
   it('valida filtros de collections', async () => {
     const { collections, services } = repositories();
     expect((await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?limit=abc')).status).toBe(400);
