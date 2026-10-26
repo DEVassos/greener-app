@@ -9,6 +9,10 @@ export function servicesController(repository: ServiceRepository): RequestHandle
 
 function summaryPeriod(query: Record<string, unknown>) {
   const from = query.from; const to = query.to;
+  if (from === undefined && to === undefined) {
+    const end = new Date();
+    return { from: new Date(end.getTime() - 24 * 60 * 60 * 1000), to: end };
+  }
   const start = parseIsoTimestamp(from); const end = parseIsoTimestamp(to);
   if (!start || !end) throw new ValidationError('from e to devem ser datas e horários ISO 8601 válidos.');
   if (start >= end) throw new ValidationError('from deve ser anterior a to.');

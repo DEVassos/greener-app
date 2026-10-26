@@ -44,7 +44,7 @@ Falha de banco retorna 500 no envelope global, sem stack ou SQL:
 
 ## GET /api/services/summary
 
-Indicadores agregados do dashboard, sem autenticação. Exige `from` e `to` em ISO 8601 válido, com período `[from, to)` de até 31 dias. A interface consulta esse endpoint também para o intervalo imediatamente anterior, de mesma duração, e apresenta a variação percentual de energia e CO₂e. Quando o total anterior é zero, exibe “Sem base para comparação”.
+Indicadores agregados do dashboard, sem autenticação. `from` e `to` são opcionais, mas devem ser enviados juntos em ISO 8601 válido; sem ambos, a rota usa as últimas 24 horas. O período é `[from, to)`, de até 31 dias. A interface consulta esse endpoint também para o intervalo imediatamente anterior, de mesma duração, e apresenta a variação percentual de energia e CO₂e. Quando o total anterior é zero, exibe “Sem base para comparação”.
 
 ```json
 {"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":0}}

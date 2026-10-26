@@ -78,6 +78,14 @@ describe('HTTP', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ energyKwh: 0, co2eGrams: 0 });
   });
+  it('usa as últimas 24 horas quando o período do resumo é omitido', async () => {
+    const summary = { energy_kwh: null, co2e_grams: null, active: '0', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/services/summary');
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(new Date(body.period.to).getTime() - new Date(body.period.from).getTime()).toBe(24 * 60 * 60 * 1000);
+  });
   it('rejeita data de calendário inexistente nos filtros do resumo', async () => {
     const { collections, services } = repositories();
     const base = await serve(createApp(async () => {}, collections, services));
