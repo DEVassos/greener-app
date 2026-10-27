@@ -42,7 +42,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Tabela de serviços monitorados com o backend real](docs/img/sprint-2-dashboard-backend-real.png)
 
-  _Tabela ligada ao backend real (`docker compose`) em 21/10/2026, com energia e emissão da última coleta (#139) e a paleta azul (#180)._
+  _Tabela ligada ao backend real (`docker compose`) em 27/10/2026, numa janela de 1366×657: ordem inicial por gravidade (o serviço removido fica no fim), status logo depois do nome, energia e emissão com 2 algarismos significativos e as 8 linhas visíveis sem rolar (#203)._
 
 - **RF08, RF09 — Cards de estado dos serviços (#21, PR #202):** acima da tabela, cards com o total de serviços monitorados e quantos estão ativos, indisponíveis e sem métricas, contados na mesma resposta de `GET /api/services` e atualizados no mesmo ciclo. Os removidos ficam fora do total, e a cor só aparece quando há serviços naquele estado. Sem dados, os cards não aparecem; numa falha, mantêm o último dado, apagado, com "Desatualizado desde …".
 
@@ -60,7 +60,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Dashboard depois de uma atualização com falha](docs/img/sprint-2-atualizacao-automatica.png)
 
-  _Backend parado com `docker compose stop backend` em 21/10/2026: os dados anteriores continuam na tela e o selo fica laranja ("Desatualizado desde …")._
+  _Backend parado em 27/10/2026 (mesmo efeito de `docker compose stop backend`): depois de um intervalo, a faixa laranja compacta diz "Mostrando dados de 12:38:12" e oferece **Tentar novamente**, a tabela continua visível e o selo fica laranja ("Desatualizado desde …") (#203). Sem nenhum dado na tela, aparece o aviso de erro grande._
 
 - **RF01, RF02, RF03, RF04 — Descoberta e coleta periódica (#95, #98, #99):** o backend descobre os serviços no agregador de métricas, consulta `/metrics/{id}` e grava o histórico no PostgreSQL; o _worker_ roda em segundo plano e reconcilia serviços que aparecem, ficam indisponíveis ou voltam a exportar métricas.
 
@@ -76,7 +76,7 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
-- **RF07 — Cálculo socioambiental por coleta (#133, PR #139):** métricas válidas são convertidas em potência, energia e emissão de CO₂e com o fator regional da API de carbono. Se o fator não estiver disponível, a métrica continua registrada e o cálculo fica indisponível, sem criar valor estimado. As colunas "Energia (kWh)" e "Emissão (g CO₂e)" da tabela mostram o resultado da última coleta, com cerca de 30 s de operação; emissões abaixo de 0,05 g aparecem como 0,0 por causa da casa decimal ([detalhes](frontend/README.md#energia-e-emissão-na-tabela)).
+- **RF07 — Cálculo socioambiental por coleta (#133, PR #139):** métricas válidas são convertidas em potência, energia e emissão de CO₂e com o fator regional da API de carbono. Se o fator não estiver disponível, a métrica continua registrada e o cálculo fica indisponível, sem criar valor estimado. As colunas "Energia (kWh)" e "Emissão (g CO₂e)" da tabela mostram o resultado da última coleta, com cerca de 30 s de operação, com 2 algarismos significativos: uma emissão de 0,04 g aparece como 0,040, e não como 0,0 (#203) ([detalhes](frontend/README.md#energia-e-emissão-na-tabela)).
 
 - **RNF01 — Fundo azul, verde nos destaques e logo pulsante (#180, PR #184):** a base da paleta voltou ao azul-escuro e o verde ficou só em ações e destaques (botão vazado nas ações secundárias, item ativo do menu, neon no que pede atenção), em resposta ao feedback da Sprint Review 1. O logo pulsa uma vez a cada atualização bem-sucedida dos dados, como sinal de "ao vivo", e fica parado em falha ou com "reduzir movimento". Regras e contrastes em [docs/identidade-visual.md](docs/identidade-visual.md).
 
