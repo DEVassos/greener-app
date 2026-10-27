@@ -23,11 +23,6 @@ const COLUMNS: Column[] = [
   { key: 'location', label: 'Localização' },
 ];
 
-/** Energia e Emissão são as duas colunas do período: a legenda dele fica só sobre elas. */
-const PERIOD_FIRST = COLUMNS.findIndex((column) => column.key === 'energyKwh');
-const PERIOD_SPAN = 2;
-const AFTER_PERIOD = COLUMNS.length - PERIOD_FIRST - PERIOD_SPAN;
-
 /** Ordem crescente do status: o que precisa de atenção vem primeiro. */
 const STATUS_ORDER: Record<ServiceStatus, number> = {
   indisponivel: 0,
@@ -37,9 +32,8 @@ const STATUS_ORDER: Record<ServiceStatus, number> = {
 };
 
 interface Props {
+  /** Energia e emissão são da última leitura de cada serviço, cujo horário está na coluna "Última leitura". */
   services: MonitoredService[];
-  /** Período dos valores de energia e emissão (ex.: "última leitura (intervalo de coleta)"), mostrado sobre essas duas colunas. */
-  period: string;
   /** Clique na linha (ou Enter no nome): abre os detalhes e o histórico do serviço. */
   onSelect: (service: MonitoredService) => void;
 }
@@ -69,7 +63,7 @@ function locationText(service: MonitoredService): string {
 }
 
 /** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome, ordenação por coluna e clique para os detalhes. */
-export default function ServicesTable({ services, period, onSelect }: Props) {
+export default function ServicesTable({ services, onSelect }: Props) {
   const [search, setSearch] = useState('');
   // Ordem inicial por gravidade (Status crescente): indisponíveis e sem métricas no topo, acima da dobra
   const [sortKey, setSortKey] = useState<SortKey>('status');
@@ -119,24 +113,13 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
       {/* relative: os textos sr-only (position: absolute) das células ficam dentro da rolagem, sem alargar a página */}
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
-          {/* Grupos de colunas: a legenda do período (scope="colgroup") vale só para Energia e Emissão */}
-          <colgroup span={PERIOD_FIRST} />
-          <colgroup span={PERIOD_SPAN} />
-          <colgroup span={AFTER_PERIOD} />
           <thead>
-            <tr className="text-xs text-muted">
-              <td colSpan={PERIOD_FIRST} />
-              <th scope="colgroup" colSpan={PERIOD_SPAN} className="px-5 pt-1 font-normal whitespace-nowrap">
-                <span className="block border-b border-border pb-0.5 text-center">{period}</span>
-              </th>
-              <td colSpan={AFTER_PERIOD} />
-            </tr>
             <tr className="whitespace-nowrap text-left text-xs text-muted">
               {COLUMNS.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className={`px-5 pt-1.5 pb-2 font-medium ${column.numeric ? 'text-right' : ''}`}
+                  className={`px-5 py-2 font-medium ${column.numeric ? 'text-right' : ''}`}
                   aria-sort={sortKey === column.key ? (direction === 1 ? 'ascending' : 'descending') : 'none'}
                 >
                   <button
