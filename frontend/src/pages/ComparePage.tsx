@@ -55,13 +55,25 @@ const ROWS: { label: string; cell: (service: ComparedService) => ReactNode }[] =
   { label: 'CO₂e (g)', cell: (service) => amount(service.co2eGrams, (value) => formatNumber(value, 2)) },
 ];
 
-/** Serviços com o menor CO₂e do período (empate destaca todos); nenhum quando menos de dois têm cálculo. */
-function lowestCo2e(services: ComparedService[]): Set<string> {
+/**
+ * Serviços com o menor e o maior CO₂e do período (empate marca todos). Nenhum destaque quando menos de dois serviços
+ * têm cálculo ou quando todos empatam.
+ */
+function co2eExtremes(services: ComparedService[]): { lowest: Set<string>; highest: Set<string> } {
   const calculated = services.filter((service) => service.co2eGrams !== null);
-  if (calculated.length < 2) return new Set();
-  const lowest = Math.min(...calculated.map((service) => service.co2eGrams ?? Infinity));
-  return new Set(calculated.filter((service) => service.co2eGrams === lowest).map((service) => service.id));
+  const values = calculated.map((service) => service.co2eGrams ?? 0);
+  const [min, max] = [Math.min(...values), Math.max(...values)];
+  if (calculated.length < 2 || min === max) return { lowest: new Set(), highest: new Set() };
+  const withValue = (target: number) =>
+    new Set(calculated.filter((service) => service.co2eGrams === target).map((service) => service.id));
+  return { lowest: withValue(min), highest: withValue(max) };
 }
+
+/** Destaque da coluna: verde no menor CO₂e, laranja (alerta) no maior; sempre com o texto, nunca só a cor. */
+const EXTREME = {
+  lowest: { label: 'menor CO₂e', arrow: '↓', text: 'text-primary-hover', tint: 'bg-primary/10' },
+  highest: { label: 'maior CO₂e', arrow: '↑', text: 'text-warning', tint: 'bg-warning/10' },
+} as const;
 
 /**
  * Comparação entre serviços (RF15, #194): de 2 a 10 serviços no mesmo período, por GET /api/services/compare.
@@ -102,7 +114,9 @@ export default function ComparePage() {
   }, [idsKey, start, end]);
 
   const { data, loading, error, refresh } = useComparison(ids, start, end);
-  const lowest = data ? lowestCo2e(data.services) : new Set<string>();
+  const extremes = data ? co2eExtremes(data.services) : null;
+  const extremeOf = (id: string) =>
+    extremes?.lowest.has(id) ? EXTREME.lowest : extremes?.highest.has(id) ? EXTREME.highest : null;
 
   function toggle(id: string) {
     setDraftIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -218,34 +232,37 @@ export default function ComparePage() {
                 <thead>
                   <tr className="text-xs text-muted">
                     <td className="px-5 py-2" />
-                    {data.services.map((service) => (
-                      <th
-                        key={service.id}
-                        scope="col"
-                        className={`px-5 py-2 text-right align-bottom font-medium ${lowest.has(service.id) ? 'bg-primary/10' : ''}`}
-                      >
-                        <span className="block text-sm text-text">{service.name}</span>
-                        {service.region}
-                        {lowest.has(service.id) && (
-                          <span className="mt-1 block font-semibold text-primary-hover">
-                            <span aria-hidden="true">↓ </span>menor CO₂e
-                          </span>
-                        )}
-                      </th>
-                    ))}
+                    {data.services.map((service) => {
+                      const extreme = extremeOf(service.id);
+                      return (
+                        <th
+                          key={service.id}
+                          scope="col"
+                          className={`px-5 py-2 text-right align-bottom font-medium ${extreme?.tint ?? ''}`}
+                        >
+                          {/* Acima do nome: o destaque é a primeira coisa lida na coluna */}
+                          {extreme && (
+                            <span className={`mb-1 block font-semibold ${extreme.text}`}>
+                              <span aria-hidden="true">{extreme.arrow} </span>
+                              {extreme.label}
+                            </span>
+                          )}
+                          <span className="block text-sm text-text">{service.name}</span>
+                          {service.region}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Linhas alternadas; a cor da coluna em destaque é translúcida e deixa a alternância aparecer */}
                   {ROWS.map((row) => (
-                    <tr key={row.label} className="border-t border-border">
+                    <tr key={row.label} className="border-t border-border even:bg-surface-3">
                       <th scope="row" className="whitespace-nowrap px-5 py-2 text-left font-medium text-muted">
                         {row.label}
                       </th>
                       {data.services.map((service) => (
-                        <td
-                          key={service.id}
-                          className={`px-5 py-2 text-right font-mono ${lowest.has(service.id) ? 'bg-primary/10' : ''}`}
-                        >
+                        <td key={service.id} className={`px-5 py-2 text-right font-mono ${extremeOf(service.id)?.tint ?? ''}`}>
                           {row.cell(service)}
                         </td>
                       ))}
