@@ -12,15 +12,21 @@ interface Column {
   numeric?: boolean;
 }
 
+// Status logo depois do nome: em notebook, a última coluna fica longe demais do serviço
 const COLUMNS: Column[] = [
   { key: 'name', label: 'Serviço' },
+  { key: 'status', label: 'Status' },
   { key: 'cpuPercent', label: 'CPU', numeric: true },
   { key: 'energyKwh', label: 'Energia (kWh)', numeric: true },
   { key: 'emissionsG', label: 'Emissão (g CO₂e)', numeric: true },
   { key: 'lastReadingAt', label: 'Última leitura', numeric: true },
   { key: 'location', label: 'Localização' },
-  { key: 'status', label: 'Status' },
 ];
+
+/** Energia e Emissão são as duas colunas do período: a legenda dele fica só sobre elas. */
+const PERIOD_FIRST = COLUMNS.findIndex((column) => column.key === 'energyKwh');
+const PERIOD_SPAN = 2;
+const AFTER_PERIOD = COLUMNS.length - PERIOD_FIRST - PERIOD_SPAN;
 
 /** Ordem crescente do status: o que precisa de atenção vem primeiro. */
 const STATUS_ORDER: Record<ServiceStatus, number> = {
@@ -32,7 +38,7 @@ const STATUS_ORDER: Record<ServiceStatus, number> = {
 
 interface Props {
   services: MonitoredService[];
-  /** Período dos valores de energia e emissão (ex.: "última 1 hora"). */
+  /** Período dos valores de energia e emissão (ex.: "última leitura (intervalo de coleta)"), mostrado sobre essas duas colunas. */
   period: string;
   /** Clique na linha (ou Enter no nome): abre os detalhes e o histórico do serviço. */
   onSelect: (service: MonitoredService) => void;
@@ -56,17 +62,29 @@ function compare(a: MonitoredService, b: MonitoredService, key: SortKey, directi
   return ((left as number) - (right as number)) * direction;
 }
 
+/** Localização em texto discreto: "Ashburn, United States · Virginia" (cidade, país · região), só com as partes informadas. */
+function locationText(service: MonitoredService): string {
+  const place = [service.city, service.country].filter(Boolean).join(', ');
+  return [place, service.region].filter(Boolean).join(' · ');
+}
+
 /** Tabela operacional dos serviços monitorados (RF09, RF12): busca por nome, ordenação por coluna e clique para os detalhes. */
 export default function ServicesTable({ services, period, onSelect }: Props) {
   const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('emissionsG');
-  const [direction, setDirection] = useState<1 | -1>(-1);
+  // Ordem inicial por gravidade (Status crescente): indisponíveis e sem métricas no topo, acima da dobra
+  const [sortKey, setSortKey] = useState<SortKey>('status');
+  const [direction, setDirection] = useState<1 | -1>(1);
 
   const rows = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR');
     return services
       .filter((service) => service.name.toLocaleLowerCase('pt-BR').includes(term))
-      .sort((a, b) => compare(a, b, sortKey, direction));
+      .sort(
+        (a, b) =>
+          compare(a, b, sortKey, direction) ||
+          // Mesmo status: maior emissão primeiro, nos dois sentidos
+          (sortKey === 'status' ? compare(a, b, 'emissionsG', -1) : 0),
+      );
   }, [services, search, sortKey, direction]);
 
   function sortBy(column: Column) {
@@ -83,7 +101,7 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
     <section className="rounded-xl border border-border bg-surface" aria-labelledby="services-title">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <h2 id="services-title" className="m-0 font-display text-lg font-semibold">
-          Serviços monitorados <span className="text-sm font-medium text-muted">· {period}</span>
+          Serviços monitorados
         </h2>
         <label className="flex items-center gap-2 text-sm text-muted">
           <span className="sr-only">Buscar serviço por nome</span>
@@ -101,7 +119,18 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
       {/* relative: os textos sr-only (position: absolute) das células ficam dentro da rolagem, sem alargar a página */}
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
+          {/* Grupos de colunas: a legenda do período (scope="colgroup") vale só para Energia e Emissão */}
+          <colgroup span={PERIOD_FIRST} />
+          <colgroup span={PERIOD_SPAN} />
+          <colgroup span={AFTER_PERIOD} />
           <thead>
+            <tr className="text-xs text-muted">
+              <td colSpan={PERIOD_FIRST} />
+              <th scope="colgroup" colSpan={PERIOD_SPAN} className="px-5 pt-1 font-normal whitespace-nowrap">
+                <span className="block border-b border-border pb-0.5 text-center">{period}</span>
+              </th>
+              <td colSpan={AFTER_PERIOD} />
+            </tr>
             <tr className="whitespace-nowrap text-left text-xs text-muted">
               {COLUMNS.map((column) => (
                 <th
@@ -144,6 +173,10 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                     {service.name}
                   </button>
                 </th>
+                {/* O badge é o único elemento colorido da linha */}
+                <td className="px-5 py-3">
+                  <StatusBadge status={service.status} />
+                </td>
                 <td className="px-5 py-3 text-right font-mono">
                   {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
                 </td>
@@ -157,23 +190,12 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                 <td className="px-5 py-3 text-right font-mono text-muted">
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}
                 </td>
-                <td className="px-5 py-3">
-                  {service.region && (
-                    <span className="mr-2 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-mono text-xs text-secondary">
-                      {service.region}
+                <td className="whitespace-nowrap px-5 py-3 text-muted">
+                  {locationText(service) || (
+                    <span title="Localização não informada pelo agregador">
+                      —<span className="sr-only">sem localização</span>
                     </span>
                   )}
-                  <span className="text-muted">
-                    {[service.city, service.country].filter(Boolean).join(', ') ||
-                      (!service.region && (
-                        <span title="Localização não informada pelo agregador">
-                          —<span className="sr-only">sem localização</span>
-                        </span>
-                      ))}
-                  </span>
-                </td>
-                <td className="px-5 py-3">
-                  <StatusBadge status={service.status} />
                 </td>
               </tr>
             ))}
