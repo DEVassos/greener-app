@@ -2,6 +2,8 @@
 // Segue o modelo do ADR 0006 (potência × intervalo × intensidade regional) com métricas sintéticas:
 // a mesma estação e o mesmo horário sempre dão o mesmo valor, então "Atualizar" não embaralha a curva.
 
+import type { ServicesComparison } from './compare.types';
+import { demoServices } from './demo-data';
 import type { EmissionPoint, EmissionsQuery, EmissionsSeries } from './emissions.types';
 import { groupPoints, totalsOf } from '../utils/emissions';
 
@@ -10,15 +12,15 @@ const INTERVAL_MS = 30_000;
 
 const BUCKET_MS = { '15min': 15 * 60_000, '1h': 60 * 60_000 } as const;
 
-/** Perfil de cada serviço do demo-data: carga média de CPU, memória, disco e intensidade da região (g/kWh). */
-const PROFILES: Record<string, { cpu: number; memoryGb: number; diskGb: number; intensity: number }> = {
-  'fraud-detector': { cpu: 68, memoryGb: 6.2, diskGb: 40, intensity: 377 },
-  'recommendation-ai': { cpu: 74, memoryGb: 12.5, diskGb: 85, intensity: 295 },
-  'audit-stream': { cpu: 41, memoryGb: 3.1, diskGb: 120, intensity: 465 },
-  'checkout-worker': { cpu: 45, memoryGb: 2.4, diskGb: 15, intensity: 377 },
-  'reporting-batch': { cpu: 52, memoryGb: 8.0, diskGb: 210, intensity: 40 },
-  'email-dispatcher': { cpu: 30, memoryGb: 1.5, diskGb: 10, intensity: 85 },
-  'inventory-sync': { cpu: 25, memoryGb: 1.0, diskGb: 8, intensity: 40 },
+/** Perfil de cada serviço do demo-data: carga média de CPU, memória, disco, rede e intensidade da região (g/kWh). */
+const PROFILES: Record<string, { cpu: number; memoryGb: number; diskGb: number; networkGb: number; intensity: number }> = {
+  'fraud-detector': { cpu: 68, memoryGb: 6.2, diskGb: 40, networkGb: 0.42, intensity: 377 },
+  'recommendation-ai': { cpu: 74, memoryGb: 12.5, diskGb: 85, networkGb: 0.65, intensity: 295 },
+  'audit-stream': { cpu: 41, memoryGb: 3.1, diskGb: 120, networkGb: 0.18, intensity: 465 },
+  'checkout-worker': { cpu: 45, memoryGb: 2.4, diskGb: 15, networkGb: 0.31, intensity: 377 },
+  'reporting-batch': { cpu: 52, memoryGb: 8.0, diskGb: 210, networkGb: 0.09, intensity: 40 },
+  'email-dispatcher': { cpu: 30, memoryGb: 1.5, diskGb: 10, networkGb: 0.12, intensity: 85 },
+  'inventory-sync': { cpu: 25, memoryGb: 1.0, diskGb: 8, networkGb: 0.05, intensity: 40 },
 };
 
 /** Ruído determinístico em [0, 1) a partir de um número. */
@@ -97,4 +99,31 @@ export function demoEmissions(query: EmissionsQuery): Promise<EmissionsSeries> {
     truncated: false,
     discarded: 0,
   });
+}
+
+/**
+ * Comparação ilustrativa (GET /api/services/compare): os totais saem da mesma série sintética da página Emissões.
+ * As médias são as do perfil e só aparecem quando há coleta sem falha, como no backend.
+ */
+export function demoComparison(ids: string[], from: string, to: string): Promise<ServicesComparison> {
+  const known = new Map(demoServices().services.map((service) => [service.id, service]));
+  const services = ids.map((id) => {
+    const totals = totalsOf(demoCollections(id, Date.parse(from), Date.parse(to)), null);
+    const profile = totals.collections > totals.failed ? PROFILES[id] : undefined;
+    return {
+      id,
+      name: known.get(id)?.name ?? id,
+      region: known.get(id)?.region ?? null,
+      collections: totals.collections,
+      failed: totals.failed,
+      notCalculated: totals.notCalculated,
+      avgCpuPercent: profile?.cpu ?? null,
+      avgMemoryGb: profile?.memoryGb ?? null,
+      avgDiskGb: profile?.diskGb ?? null,
+      avgNetworkGb: profile?.networkGb ?? null,
+      energyKwh: totals.energyKwh,
+      co2eGrams: totals.co2eGrams,
+    };
+  });
+  return Promise.resolve({ from, to, services });
 }
