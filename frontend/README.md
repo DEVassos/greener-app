@@ -11,12 +11,12 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | Pasta / arquivo | Responsabilidade |
 |---|---|
 | `src/main.tsx` | ponto de entrada: carrega os estilos globais e monta o React com o `BrowserRouter` |
-| `src/App.tsx` | rotas: `/` (dashboard, público), `/emissoes` (emissões por estação, pública) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
-| `src/pages/` | telas (`DashboardPage`, `EmissionsPage`, `SettingsPage`) |
+| `src/App.tsx` | rotas: `/` (dashboard, público), `/emissoes` (emissões por estação, pública), `/comparacao` (comparação entre serviços, pública) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
+| `src/pages/` | telas (`DashboardPage`, `EmissionsPage`, `ComparePage`, `SettingsPage`) |
 | `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
-| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração |
+| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta), `compare.service.ts` (`GET /services/compare`); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
-| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useEmissions` (série de emissões, com tempo real opcional) |
+| `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useEmissions` (série de emissões, com tempo real opcional), `useComparison` (comparação entre serviços, uma busca por filtro) |
 | `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`), trechos do gráfico da CPU (`cpu-chart.ts`) e datas do filtro, agrupamento, resumo e formatação das emissões (`emissions.ts`) |
 | `src/styles/global.css` | ordem das camadas de CSS, Tailwind, tokens de cor e fonte e reset mínimo |
 | `src/styles/layout.css` | estrutura comum das páginas (`.page`, `.content`, `.panel`) |
@@ -67,6 +67,14 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - O selo `LastUpdated` do cartão mostra "Última atualização: dd/mm HH:MM:SS" (com o intervalo, no **Tempo real**). Se uma busca falha, o resumo e a Leitura do período continuam com o último dado, com os números apagados (`--muted`), junto com o erro, **Tentar novamente** e o selo laranja "Desatualizado desde …", como no dashboard. Se a primeira busca do filtro falha, o selo fica em "Aguardando a primeira atualização" e só aparece o erro. Trocar a estação, o período ou o agrupamento limpa o resumo, o horário e o erro anteriores.
 - A resposta é conferida em tempo de execução: envelope fora do formato vira erro amigável; item fora do formato fica de fora e a tela avisa quantos.
 - O gráfico entra num segundo PR da #190.
+
+## Comparação entre serviços (#194)
+
+- **Comparação**, no menu do topo, abre `/comparacao`: de 2 a 10 serviços no mesmo período (até 31 dias), por `GET /api/services/compare` (#193). Serviços e datas ficam na URL (`/comparacao?servicos=<id>,<id>&de=<AAAA-MM-DD>&ate=<AAAA-MM-DD>`); as datas seguem as regras da página Emissões, e ids que não estão na lista de serviços são ignorados.
+- Uma coluna por serviço e uma linha por métrica: coletas (com falha e sem cálculo), CPU, memória, disco e rede médios, energia (kWh) e CO₂e (g) somados no período. O menor CO₂e fica destacado, com texto e cor, quando ao menos dois serviços têm cálculo. O período ecoado pela API aparece acima da tabela.
+- Serviço sem coletas no período aparece como "sem coletas", e as métricas como "—", nunca zero. Com menos de dois serviços, a tela explica o que falta e não busca.
+- Uma busca por filtro, sem polling. Se ela falha, aparece só o erro com **Tentar novamente**, sem a comparação anterior.
+- O backend falso (`npm run mock`) não tem a rota: use o modo demonstração ou o backend real.
 
 ## Detalhes e histórico do serviço
 
@@ -171,3 +179,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 32. **Tempo real** com `VITE_REFRESH_INTERVAL_MS=5000` → o selo "Última atualização" muda a cada 5 s, com "intervalo: 5 s", e o logo pulsa; trocar de aba pausa as chamadas no terminal do mock.
 33. Com o resumo na tela, parar o mock e clicar em **Atualizar** → aparece o erro com **Tentar novamente**, o selo fica laranja ("Desatualizado desde …") e os números do resumo e da Leitura do período ficam apagados. Ainda com o mock parado, trocar a estação → "Aguardando a primeira atualização" e o erro, sem resumo. Subir o mock e clicar em **Tentar novamente** → a tela volta ao normal.
 34. O subtítulo do cartão mostra o fuso depois da data: "(horário de Brasília)" com o navegador em `America/Sao_Paulo`. Com outro fuso no sistema (ou no DevTools, em Sensors → Location, campo Timezone ID), mostra o deslocamento, ex.: "(UTC−4)" em Nova York, e o `from` da busca muda junto.
+35. Sem `.env`, clicar em **Comparação** no menu → abre `/comparacao` sem serviços marcados e com "Escolha pelo menos dois serviços". Marcar só um e clicar em **Comparar** → "Escolha pelo menos dois serviços para comparar.", sem busca.
+36. Marcar **Fraud Detector**, **Reporting Batch** e **Inventory Sync** e clicar em **Comparar** → a URL ganha `servicos`, `de` e `ate`, e a tabela mostra os três lado a lado, com o período escrito acima. **Reporting Batch** aparece com "menor CO₂e", e **Inventory Sync** com todas as coletas com falha e "—" nas métricas. O botão voltar do navegador volta à tela sem escolha.
+37. Com o backend real, escolher uma data sem coletas (ex.: anterior à primeira subida do banco) → cada serviço aparece como "sem coletas", sem destaque de menor CO₂e. Parar o backend e clicar em **Comparar** → só o erro com **Tentar novamente**, sem tabela.
+38. Com 375 px de largura → a página não ganha rolagem lateral; só a tabela rola na horizontal.
