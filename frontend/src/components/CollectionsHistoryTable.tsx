@@ -4,9 +4,9 @@ import MissingValue from './MissingValue';
 
 /** Resultado da coleta em texto e cor (nunca só pela cor), no mesmo estilo do StatusBadge. */
 const COLLECTION_STATUS: Record<CollectionStatus, { label: string; className: string }> = {
-  ok: { label: 'OK', className: 'border-primary/50 bg-primary/10 text-emerald-300' },
-  erro: { label: 'Erro', className: 'border-error/50 bg-error/10 text-red-300' },
-  sem_metricas: { label: 'Sem métricas', className: 'border-warning/50 bg-warning/10 text-orange-300' },
+  ok: { label: 'OK', className: 'border-primary/50 bg-primary/10 text-primary-hover' },
+  erro: { label: 'Erro', className: 'border-error/50 bg-error/10 text-danger' },
+  sem_metricas: { label: 'Sem métricas', className: 'border-warning/50 bg-warning/10 text-warning' },
 };
 
 function CollectionStatusBadge({ status }: { status: CollectionStatus }) {

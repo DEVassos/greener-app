@@ -41,29 +41,64 @@ function readService(service) {
   };
 }
 
+/** Ruído determinístico em [0, 1): a mesma coleta tem sempre os mesmos números, em qualquer página ou série. */
+function noise(seed) {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/** Coleta do serviço no instante `t` (múltiplo de 30 s), com os campos de cálculo da #188. */
+function collectionAt(service, t, index) {
+  const slot = t / 30_000;
+  const common = { id: `${service.id}-${slot}`, serviceId: service.id, collectedAt: new Date(t).toISOString() };
+  const empty = { cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, calculationStatus: 'nao_calculado', energyKwh: null, co2eGrams: null, carbonIntensityGco2ePerKwh: null };
+  if (service.status === 'indisponivel' && index < 10) {
+    return { ...common, ...empty, status: 'erro', errorMessage: 'Serviço indisponível (HTTP 500).' };
+  }
+  const cpu = Math.min(100, (service.cpu ?? 30) * (0.85 + 0.3 * noise(slot)));
+  // Potência simplificada (ADR 0006): CPU + memória, em W, durante os 30 s da coleta
+  const energyKwh = ((cpu + 0.4) * 30) / 3_600_000;
+  const gramsPerKwh = service.gramsPerKwh ?? 85;
+  return {
+    ...common,
+    status: 'ok',
+    cpuPercent: Number(cpu.toFixed(1)),
+    memoryGb: Number((1 + noise(slot + 1) * 0.2).toFixed(3)),
+    diskGb: 12,
+    networkGb: Number((0.1 + noise(slot + 2) * 0.05).toFixed(3)),
+    errorMessage: null,
+    calculationStatus: 'disponivel',
+    energyKwh,
+    co2eGrams: energyKwh * gramsPerKwh,
+    carbonIntensityGco2ePerKwh: gramsPerKwh,
+  };
+}
+
 /**
- * Histórico de um serviço: `limit` coletas a cada 30 s até agora, da mais recente para a mais antiga.
- * Ativo: CPU variando a cada chamada · indisponível: as 10 coletas mais recentes com erro · sem métricas: vazio.
+ * Histórico de um serviço: até `limit` coletas a cada 30 s entre `from` e `to` (padrão: agora), da mais recente
+ * para a mais antiga. Ativo: números estáveis por horário · indisponível: as 10 mais recentes com erro · sem métricas: vazio.
  */
-function serviceCollections(service, limit) {
+function serviceCollections(service, { from = 0, to = Date.now(), limit }) {
   if (service.status === 'sem_metricas') return [];
-  const now = Date.now();
-  return Array.from({ length: limit }, (_, index) => {
-    const common = { id: `${service.id}-${index}`, serviceId: service.id, collectedAt: new Date(now - index * 30_000).toISOString() };
-    if (service.status === 'indisponivel' && index < 10) {
-      return { ...common, status: 'erro', cpuPercent: null, memoryGb: null, diskGb: null, networkGb: null, errorMessage: 'Serviço indisponível (HTTP 500).' };
-    }
-    const cpu = (service.cpu ?? 30) * (1 + (Math.random() - 0.5) * 0.3);
-    return {
-      ...common,
-      status: 'ok',
-      cpuPercent: Number(Math.min(100, cpu).toFixed(1)),
-      memoryGb: Number((1 + Math.random() * 0.2).toFixed(3)),
-      diskGb: Number((12 + (limit - index) * 0.01).toFixed(3)),
-      networkGb: Number((0.1 + Math.random() * 0.05).toFixed(3)),
-      errorMessage: null,
-    };
-  });
+  const newest = Math.floor(Math.min(to, Date.now()) / 30_000) * 30_000;
+  const now = Math.floor(Date.now() / 30_000) * 30_000;
+  const list = [];
+  for (let t = newest; t >= from && list.length < limit; t -= 30_000) list.push(collectionAt(service, t, (now - t) / 30_000));
+  return list;
+}
+
+const BUCKETS = { '15min': 15 * 60_000, '1h': 60 * 60_000, '1d': 24 * 60 * 60_000 };
+const MAX_SPAN_MS = 31 * 24 * 60 * 60_000;
+
+/** Data com hora em ISO 8601 (só a data é recusada, como na API); null quando inválida. */
+function parseInstant(value) {
+  if (value === null || !value.includes('T')) return null;
+  const t = Date.parse(value);
+  return Number.isNaN(t) ? null : t;
+}
+
+function validationError(res, message) {
+  return send(res, 400, { error: { code: 'VALIDATION_ERROR', message } });
 }
 
 function send(res, status, body) {
@@ -83,12 +118,59 @@ const routes = {
   'GET /collections': async (req, res) => {
     const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
     const limit = query.get('limit') ?? '50';
-    if (!/^[1-9]\d*$/.test(limit) || Number(limit) > 500) {
-      return send(res, 400, { error: { code: 'VALIDATION_ERROR', message: 'limit deve ser inteiro entre 1 e 500.' } });
+    if (!/^[1-9]\d*$/.test(limit) || Number(limit) > 500) return validationError(res, 'limit deve ser inteiro entre 1 e 500.');
+    const from = query.has('from') ? parseInstant(query.get('from')) : 0;
+    const to = query.has('to') ? parseInstant(query.get('to')) : Date.now();
+    if (from === null || to === null || from > to) return validationError(res, 'Informe from e to com data e hora (ISO 8601), com from antes de to.');
+    const service = SERVICES.find((item) => item.id === query.get('service_id'));
+    if (!service) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Serviço não encontrado.' } });
+    const period = { from: query.get('from'), to: query.get('to') };
+    return send(res, 200, { collections: serviceCollections(service, { from, to, limit: Number(limit) }), period });
+  },
+
+  // Página Emissões — série somada por intervalo (contrato da #189)
+  'GET /collections/series': async (req, res) => {
+    const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
+    const from = parseInstant(query.get('from'));
+    const to = parseInstant(query.get('to'));
+    const bucketMs = BUCKETS[query.get('bucket')];
+    if (from === null || to === null || from >= to || to - from > MAX_SPAN_MS || !bucketMs) {
+      return validationError(res, 'Informe from e to (ISO 8601, até 31 dias) e bucket 15min, 1h ou 1d.');
     }
     const service = SERVICES.find((item) => item.id === query.get('service_id'));
     if (!service) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Serviço não encontrado.' } });
-    return send(res, 200, { collections: serviceCollections(service, Number(limit)), period: { from: null, to: null } });
+
+    const groups = new Map();
+    // Intensidade do período: média das coletas calculadas, como o AVG … FILTER (calculation_status = 'disponivel') da #189
+    let intensitySum = 0;
+    let intensityCount = 0;
+    const totals = { collections: 0, failed: 0, notCalculated: 0, energyKwh: null, co2eGrams: null, co2eMaxGrams: null, carbonIntensityGco2ePerKwh: null };
+    const add = (target, item) => {
+      target.collections += 1;
+      if (item.status !== 'ok') target.failed += 1;
+      else if (item.co2eGrams === null) target.notCalculated += 1;
+      if (item.co2eGrams === null) return;
+      target.energyKwh = (target.energyKwh ?? 0) + item.energyKwh;
+      target.co2eGrams = (target.co2eGrams ?? 0) + item.co2eGrams;
+      target.co2eMaxGrams = Math.max(target.co2eMaxGrams ?? 0, item.co2eGrams);
+      if ('co2eMinGrams' in target) target.co2eMinGrams = Math.min(target.co2eMinGrams ?? Infinity, item.co2eGrams);
+    };
+    // Período fechado em from e aberto em to; intervalos alinhados a from (como date_bin)
+    for (const item of serviceCollections(service, { from, to: to - 1, limit: Infinity })) {
+      const start = from + Math.floor((Date.parse(item.collectedAt) - from) / bucketMs) * bucketMs;
+      if (!groups.has(start)) {
+        groups.set(start, { start: new Date(start).toISOString(), collections: 0, failed: 0, notCalculated: 0, energyKwh: null, co2eGrams: null, co2eMinGrams: null, co2eMaxGrams: null });
+      }
+      add(groups.get(start), item);
+      add(totals, item);
+      if (item.calculationStatus === 'disponivel') {
+        intensitySum += item.carbonIntensityGco2ePerKwh;
+        intensityCount += 1;
+      }
+    }
+    totals.carbonIntensityGco2ePerKwh = intensityCount > 0 ? intensitySum / intensityCount : null;
+    const buckets = [...groups.values()].sort((a, b) => a.start.localeCompare(b.start));
+    return send(res, 200, { serviceId: service.id, from: new Date(from).toISOString(), to: new Date(to).toISOString(), bucket: query.get('bucket'), buckets, totals });
   },
 };
 

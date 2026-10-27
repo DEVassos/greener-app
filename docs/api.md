@@ -50,13 +50,81 @@ Histórico de coletas, sem autenticação nem corpo. Parâmetros opcionais:
 - `from` e `to`: data **com hora** em ISO 8601, como `2026-10-18T00:00:00Z` ou `2026-10-18T00:00:00-03:00`. Só a data (`2026-10-18`) devolve 400, e `from` precisa ser anterior ou igual a `to`;
 - `limit`: de 1 a 500, padrão 50.
 
-A lista sai sempre da coleta mais recente para a mais antiga. `status` da coleta: `ok`, `erro` (falha do agregador ou métrica inválida, com `errorMessage`) ou `sem_metricas`. Os campos de cálculo (energia, CO₂e e `calculation_status`) ficam gravados em `collections`, mas ainda não saem nesta rota: a energia e a emissão da última coleta aparecem em `GET /api/services`.
+A lista sai sempre da coleta mais recente para a mais antiga. `status` da coleta: `ok`, `erro` (falha do agregador ou métrica inválida, com `errorMessage`) ou `sem_metricas`.
+
+Cada coleta traz o resultado do cálculo de energia e CO₂e ([fórmulas](calculos.md)), com `calculationStatus` em:
+
+| `calculationStatus` | Significado | `energyKwh`, `co2eGrams`, `carbonIntensityGco2ePerKwh` |
+|---|---|---|
+| `disponivel` | as quatro métricas (CPU, memória, disco e rede) e a intensidade de carbono foram obtidas | número ≥ 0 (zero é resultado válido) |
+| `nao_calculado` | a coleta foi gravada sem que o cálculo fosse executado. Coletas `erro` e `sem_metricas` ficam sempre assim, e não há recálculo depois | `null` |
+| `indisponivel` | o cálculo foi tentado e não houve intensidade válida (região não informada; região sem fator na API de carbono, que respondeu 404; falha da API de carbono, por erro HTTP ou tempo esgotado; resposta fora do contrato) ou um valor saiu da faixa no cálculo. O motivo fica gravado em `collections.calculation_error_message` | `co2eGrams` e `carbonIntensityGco2ePerKwh`: sempre `null`. `energyKwh`: hoje `null`, porque o coletor não grava energia sem intensidade; o schema aceita energia gravada nesse estado e, nesse caso, a rota devolve o valor gravado |
+
+`null` nessas três chaves significa **não calculado**, nunca zero: `energyKwh: 0` é uma coleta calculada que resultou em zero. As colunas são `numeric`, que o driver `pg` devolve como string; a conversão para número é feita na borda da API, então os valores saem em JSON numérico e não em string.
 
 ```json
-{"collections":[{"id":"1","serviceId":"1","collectedAt":"2026-10-14T20:00:00.000Z","status":"ok","cpuPercent":42.5,"memoryGb":1.2,"diskGb":10,"networkGb":0.3,"errorMessage":null}],"period":{"from":null,"to":null}}
+{"collections":[{"id":"2","serviceId":"1","collectedAt":"2026-10-14T20:00:00.000Z","status":"ok","cpuPercent":42.5,"memoryGb":1.2,"diskGb":10,"networkGb":0.3,"errorMessage":null,"calculationStatus":"disponivel","energyKwh":0.000480452625,"co2eGrams":0.040838473125,"carbonIntensityGco2ePerKwh":85},{"id":"1","serviceId":"1","collectedAt":"2026-10-14T19:45:00.000Z","status":"ok","cpuPercent":40,"memoryGb":1.1,"diskGb":10,"networkGb":0.2,"errorMessage":null,"calculationStatus":"indisponivel","energyKwh":null,"co2eGrams":null,"carbonIntensityGco2ePerKwh":null}],"period":{"from":"2026-10-14T00:00:00.000Z","to":"2026-10-14T23:59:59.999Z"}}
 ```
 
+O limite `to` é **inclusivo** (`collected_at <= to`): quem precisa de um período com fim aberto deve recuar 1 ms no parâmetro.
+
 Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global, sem stack ou SQL.
+
+## GET /api/collections/series
+
+Série temporal de um serviço: agrupa as coletas do período em intervalos e devolve, por intervalo, a contagem e os totais de energia e CO₂e. Sem autenticação nem corpo. Diferente de `GET /api/collections`, aqui **todos os parâmetros são obrigatórios**:
+
+| Parâmetro | Obrigatório | Regra |
+|---|---|---|
+| `service_id` | sim | inteiro positivo; serviço inexistente devolve 404 |
+| `from` | sim | data **com hora** em ISO 8601 (`2026-10-23T00:00:00Z`); só a data devolve 400 |
+| `to` | sim | igual a `from`, e precisa ser **posterior** a ele (400 se for igual ou anterior) |
+| `bucket` | sim | `15min`, `1h` ou `1d`; qualquer outro valor devolve 400 |
+
+O período máximo é de **31 dias**. O intervalo `bucket` é enviado como parâmetro para o banco (`date_bin` recebe `$4::interval`): o valor é traduzido a partir de uma lista fechada no controller, nunca montado dentro do texto SQL.
+
+Regras que a resposta segue:
+
+- o período é **aberto no fim**: entram coletas com `collected_at >= from` e `collected_at < to`;
+- `buckets` vem em ordem crescente de `start`, e intervalos sem nenhuma coleta são **omitidos** (não aparecem com zeros);
+- `bucket: "1d"` corta o dia à **00:00 UTC** (21:00 de Brasília), porque a origem do agrupamento é o epoch;
+- `energyKwh`, `co2eGrams`, `co2eMinGrams` e `co2eMaxGrams` são `null` quando nenhuma coleta do intervalo está com `calculation_status = "disponivel"` — `null` significa "não calculado", não "zero";
+- `failed` conta as coletas com `status <> "ok"`, ou seja, `erro` e `sem_metricas`; `notCalculated` conta as coletas com `status = "ok"` que ainda não têm cálculo, então `collections - failed - notCalculated` é sempre o número de coletas calculadas do intervalo.
+
+```json
+{"serviceId":"1","from":"2026-10-23T00:00:00.000Z","to":"2026-10-24T00:00:00.000Z","bucket":"15min","buckets":[{"start":"2026-10-23T01:30:00.000Z","collections":12,"failed":0,"notCalculated":0,"energyKwh":0.007480167692,"co2eGrams":0.635814253804,"co2eMinGrams":0.007808506456,"co2eMaxGrams":0.089094607769},{"start":"2026-10-23T01:45:00.000Z","collections":6,"failed":0,"notCalculated":0,"energyKwh":0.003277217910,"co2eGrams":0.278563522361,"co2eMinGrams":0.010893330720,"co2eMaxGrams":0.072805363338}],"totals":{"collections":18,"failed":0,"notCalculated":0,"energyKwh":0.010757385602,"co2eGrams":0.914377776165,"co2eMaxGrams":0.089094607769,"carbonIntensityGco2ePerKwh":85}}
+```
+
+Quando o intervalo não tem nenhuma coleta calculada, os campos de cálculo saem como `null` e `notCalculated` conta as coletas sem cálculo:
+
+```json
+{"serviceId":"1","from":"2026-10-22T09:00:00.000Z","to":"2026-10-22T11:00:00.000Z","bucket":"15min","buckets":[{"start":"2026-10-22T10:00:00.000Z","collections":1,"failed":0,"notCalculated":1,"energyKwh":null,"co2eGrams":null,"co2eMinGrams":null,"co2eMaxGrams":null}],"totals":{"collections":1,"failed":0,"notCalculated":1,"energyKwh":null,"co2eGrams":null,"co2eMaxGrams":null,"carbonIntensityGco2ePerKwh":null}}
+```
+
+Período sem nenhuma coleta devolve `buckets` vazio e `totals` zerado nas contagens:
+
+```json
+{"serviceId":"1","from":"2025-01-01T00:00:00.000Z","to":"2025-01-02T00:00:00.000Z","bucket":"1h","buckets":[],"totals":{"collections":0,"failed":0,"notCalculated":0,"energyKwh":null,"co2eGrams":null,"co2eMaxGrams":null,"carbonIntensityGco2ePerKwh":null}}
+```
+
+`totals` cobre o período inteiro e é calculado na **mesma consulta** dos intervalos, então nunca divergem: soma das energias e emissões, maior valor de CO₂e entre as coletas e média da intensidade de carbono apenas das coletas calculadas (`null` se nenhuma estiver calculada).
+
+Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global. O cálculo de energia e CO₂e está em [calculos.md](calculos.md).
+
+## GET /api/services/compare
+
+Compara de 2 a 10 serviços no mesmo período, sem autenticação.
+
+`GET /api/services/compare?ids=1,2&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z`
+
+- `ids`: ids inteiros positivos, distintos e separados por vírgula;
+- `from` e `to`: instantes ISO 8601 obrigatórios, com intervalo `[from, to)` de até 31 dias.
+
+Resposta 200 ecoa `from` e `to` e traz, por serviço, contagens de coletas, falhas e coletas sem cálculo, médias de CPU/memória/disco/rede e somas de energia e CO₂e. Um serviço sem coleta permanece na resposta com `collections: 0` e métricas agregadas `null`; um id inexistente devolve 404. Entrada inválida devolve 400 `VALIDATION_ERROR`.
+
+```json
+{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z","services":[{"id":"1","name":"Demo","region":"Sul","collections":12,"failed":0,"notCalculated":0,"avgCpuPercent":42.5,"avgMemoryGb":2.1,"avgDiskGb":10,"avgNetworkGb":0.3,"energyKwh":0.01,"co2eGrams":0.85}]}
+```
 
 ## GET /health
 
@@ -80,8 +148,8 @@ Health comprova conectividade, não valida existência de tabelas, persistência
 
 | HTTP | Código | Situação |
 |---|---|---|
-| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections` |
-| 404 | NOT_FOUND | rota não registrada, incluindo métodos não registrados; `service_id` inexistente em `GET /api/collections` |
+| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections` e em `GET /api/collections/series` |
+| 404 | NOT_FOUND | rota não registrada, incluindo métodos não registrados; `service_id` inexistente em `GET /api/collections` e em `GET /api/collections/series` |
 | 500 | DATABASE_ERROR | falha de conexão ou de consulta no PostgreSQL |
 | 500 | INTERNAL_ERROR | erro inesperado, sem detalhes internos |
 
