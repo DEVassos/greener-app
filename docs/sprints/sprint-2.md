@@ -4,17 +4,18 @@
 |---|---|
 | Período | 20/10 a 09/11/2026 · checkpoint 30/10 · congelamento 08/11 20h · review 09/11 19h30 (a confirmar) |
 | Milestone | [Sprint 2](https://github.com/DEVassos/greener-app/milestone/2) |
-| Critérios previstos | ES01–ES09, DW01 + DW05, DW06, TP01, TP03 — denominador 61 |
-| Plano | [docs/plano-de-entregas.md § Sprint 2](../plano-de-entregas.md) |
+| Plano | [docs/plano-de-entregas.md § Sprint 2](../plano-de-entregas.md#sprint-2): critérios previstos, denominador e situação de cada critério |
 | Atas | [planning](sprint-2/planning.md) |
 
 ## 1. Objetivo da sprint
 
 Dashboard completo com energia e CO₂e por serviço e indicadores agregados, tolerância a falhas (serviço indisponível, sem métricas, API fora do ar) visível na interface, atualização periódica com intervalo e "Última atualização" informados, e área de configuração do monitoramento protegida por JWT no backend. A identidade visual volta ao fundo azul-escuro, com verde só em ações e destaques, e o logo pulsa a cada atualização (feedback da Review 1). Tudo o que foi aceito na Sprint 1 continua funcionando.
 
-## 2. Itens selecionados e situação
+## 2. Itens selecionados
 
-| Issue | Título | Requisito | Critério | Responsável | Situação |
+A situação de cada critério previsto fica **só** no [plano de entregas](../plano-de-entregas.md#sprint-2); esta seção registra a seleção da sprint e o responsável.
+
+| Issue | Título | Requisito | Critério | Responsável | Seleção |
 |---|---|---|---|---|---|
 | #43 | US02 — Motor de cálculo ambiental | RF07, RF12 | TP01, DW03 | @LUCASAMR23 | planejado |
 | #45 | US04 — Dashboard executivo e operacional | RF08, RF09, RF11, RNF01, RNF02 | DW05 | @DeaTuribio | planejado |

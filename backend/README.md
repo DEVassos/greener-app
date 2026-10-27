@@ -5,7 +5,7 @@ API REST em Node.js com Express 5 e TypeScript estrito, persistência no Postgre
 - descobre os serviços no agregador de métricas e coleta as métricas de cada um (worker, #19);
 - consulta a intensidade de carbono por região e calcula energia e CO₂e por coleta (#17, #133);
 - grava o histórico no PostgreSQL (#14, #19);
-- expõe `GET /health`, `GET /api/services` e `GET /api/collections` (#8, #111, #112), com CORS liberado para o dashboard (#118).
+- expõe `GET /health`, `GET /api/services` e `GET /api/collections` (#8, #111, #112), com CORS liberado para o dashboard (#118). Na Sprint 2, `GET /api/collections/series` passou a devolver a série temporal de um serviço em intervalos (#189).
 
 `POST /api/auth/login` e `GET /api/auth/me` já autenticam administradores com bcrypt e JWT. A área de configuração (`/monitoring-settings`) continua pendente na Sprint 2.
 
@@ -40,6 +40,7 @@ Contrato completo, com exemplos e erros, em [`docs/api.md`](../docs/api.md).
 | `GET /api/collections` | histórico de coletas, com filtros `service_id`, `from`, `to` e `limit` (1–500, padrão 50) ([#112](https://github.com/DEVassos/greener-app/issues/112)) | 200 `{ collections, period }`; 400 `VALIDATION_ERROR`; 404 `NOT_FOUND`; 500 |
 | `POST /api/auth/login` | valida e-mail e senha com bcrypt e emite JWT HS256 | 200 `{ token }`; 400 `VALIDATION_ERROR`; 401 `UNAUTHORIZED`; 500 |
 | `GET /api/auth/me` | devolve o administrador autenticado pelo JWT | 200 `{ id, email }`; 401 `UNAUTHORIZED`; 500 |
+| `GET /api/collections/series` | série temporal de um serviço: agrupa as coletas do período em intervalos, com contagem, energia e CO₂e por intervalo e o total do período; parâmetros obrigatórios `service_id`, `from`, `to` (período de até 31 dias) e `bucket` (`15min`, `1h` ou `1d`) ([#189](https://github.com/DEVassos/greener-app/issues/189)) | 200 `{ serviceId, from, to, bucket, buckets, totals }`; 400 `VALIDATION_ERROR`; 404 `NOT_FOUND`; 500 |
 
 JSON inválido no corpo devolve 400; rota inexistente, 404; erro inesperado, 500 `INTERNAL_ERROR` sem stack. Todo erro sai no formato `{"error":{"code","message"}}`, produzido só pelo `error-handler`.
 
@@ -131,7 +132,7 @@ Antes do INSERT, as medidas são validadas contra as faixas das colunas e arredo
 ## Repositories e transações (#14)
 
 - `ServiceRepository` (`modules/services`): lista com a última coleta, busca por ID, upsert por `external_id`, atualização de estado e marcação de ausentes como removidos.
-- `CollectionRepository` (`modules/collections`): insere coletas (com os campos de cálculo) e lista o histórico com filtros.
+- `CollectionRepository` (`modules/collections`): insere coletas (com os campos de cálculo) e lista o histórico com filtros; `findSeries` agrupa as coletas de um serviço por `date_bin` e devolve os intervalos e o total do período na mesma consulta, com `GROUPING SETS`.
 - `UserRepository` (`modules/usuarios`): busca por e-mail sem distinção de caixa; o hash é interno, nunca vai para resposta HTTP nem log.
 - `withTransaction(database, async tx => { ... })` (`db/transaction.repository.ts`) executa BEGIN/COMMIT/ROLLBACK na mesma conexão; os repositories do callback são criados com `tx`, nunca com o pool. Erros do PostgreSQL viram `DatabaseError` com a causa preservada.
 
@@ -151,9 +152,10 @@ Com o compose da raiz (`cp .env.example .env && docker compose up --build -d`):
 1. `curl -i http://localhost:3000/health` → 200 e `{"status":"ok","db":"ok"}`.
 2. Depois de um ciclo (~30 s): `curl http://localhost:3000/api/services` → serviços com `status`, região e, nos ativos com fator disponível, `energyKwh` e `emissionsG` numéricos.
 3. `curl "http://localhost:3000/api/collections?limit=3"` → as coletas mais recentes; `curl -i "http://localhost:3000/api/collections?limit=0"` → 400 `VALIDATION_ERROR`.
-4. Queda da API de carbono: `CARBON_API_URL=http://127.0.0.1:9 docker compose up -d --force-recreate backend`. As coletas seguintes ficam com `calculation_status = indisponivel`, e `GET /api/services` devolve `energyKwh: null` e `emissionsG: null` com o serviço `ativo`. Para restaurar: `docker compose up -d --force-recreate backend`.
-5. Banco fora: `docker compose stop postgres` → `/health` responde 500 `DATABASE_ERROR` e o backend continua no ar; `docker compose start postgres` → volta a 200.
-6. `curl -i http://localhost:3000/inexistente` → 404 `NOT_FOUND`.
+4. Série do dia em intervalos de 1 h (troque a data pela de hoje, em UTC): `curl "http://localhost:3000/api/collections/series?service_id=1&from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=1h"` → 200 com `serviceId`, `from`, `to` e `bucket` ecoados, `buckets` em ordem crescente de `start` (só os intervalos com coleta) e `totals.collections` igual à soma das `collections` dos intervalos; com `bucket=7min` → 400 `VALIDATION_ERROR`; com `service_id=999` → 404 `NOT_FOUND`.
+5. Queda da API de carbono: `CARBON_API_URL=http://127.0.0.1:9 docker compose up -d --force-recreate backend`. As coletas seguintes ficam com `calculation_status = indisponivel`, e `GET /api/services` devolve `energyKwh: null` e `emissionsG: null` com o serviço `ativo`. Para restaurar: `docker compose up -d --force-recreate backend`.
+6. Banco fora: `docker compose stop postgres` → `/health` responde 500 `DATABASE_ERROR` e o backend continua no ar; `docker compose start postgres` → volta a 200.
+7. `curl -i http://localhost:3000/inexistente` → 404 `NOT_FOUND`.
 
 ## Testes
 
