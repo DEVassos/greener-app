@@ -349,7 +349,14 @@ export default function EmissionsPage() {
                   <p className="emissions__empty">Nenhuma coleta desta estação no período escolhido.</p>
                 )}
                 {data !== null && period !== null && points.length > 0 && (
-                  <EmissionsChart points={points} bucket={data.bucket} mode={mode} fromMs={period.fromMs} toMs={period.toMs} />
+                  <EmissionsChart
+                    points={points}
+                    bucket={data.bucket}
+                    mode={mode}
+                    fromMs={period.fromMs}
+                    toMs={period.toMs}
+                    stale={stale}
+                  />
                 )}
               </div>
               {noCalculation && (

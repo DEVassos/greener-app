@@ -4,7 +4,19 @@
     position: relative;
     width: 100%;
     min-height: 280px;
+    border-radius: 8px;
     user-select: none;
+  }
+
+  .emissions-chart:focus-visible {
+    outline: 2px solid var(--sky);
+    outline-offset: 4px;
+  }
+
+  /* Última atualização falhou: o gráfico fica apagado, como o resumo ao lado */
+  .emissions-chart--stale svg {
+    opacity: 0.45;
+    filter: grayscale(1);
   }
 
   .emissions-chart svg {
@@ -102,6 +114,18 @@
     font-weight: 500;
   }
 
+  /* Trecho de um ponto só (entre buracos ou falhas): sem vizinho, a linha não aparece */
+  .emissions-chart__single {
+    fill: var(--accent);
+  }
+
+  /* Acumulado: liga a curva ao total até agora (intervalo em andamento) */
+  .emissions-chart__open-link {
+    stroke: var(--accent);
+    stroke-width: 1.6;
+    stroke-dasharray: 3 3;
+  }
+
   /* Intervalo em andamento: soma parcial, ponto vazado fora da linha */
   .emissions-chart__open {
     fill: var(--surface);
@@ -155,6 +179,11 @@
     color: var(--text-2);
     pointer-events: none;
     white-space: nowrap;
+  }
+
+  /* o display: flex acima venceria o atributo hidden */
+  .emissions-chart__tooltip[hidden] {
+    display: none;
   }
 
   .emissions-chart__tooltip strong {
