@@ -5,7 +5,8 @@
 | Período | 20/10 a 09/11/2026 · checkpoint 30/10 · congelamento 08/11 20h · review 09/11 19h30 (a confirmar) |
 | Milestone | [Sprint 2](https://github.com/DEVassos/greener-app/milestone/2) |
 | Plano | [docs/plano-de-entregas.md § Sprint 2](../plano-de-entregas.md#sprint-2): critérios previstos, denominador e situação de cada critério |
-| Atas | [planning](sprint-2/planning.md) |
+| Atas | [planning](sprint-2/planning.md) · [dailies](sprint-2/dailies/) |
+| Burndown | [sprint-2/burndown.md](sprint-2/burndown.md) — Story Points por dia, gerado por `.github/scripts/burndown.sh 2` |
 
 ## 1. Objetivo da sprint
 
