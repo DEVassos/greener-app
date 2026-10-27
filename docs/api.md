@@ -70,7 +70,6 @@ O limite `to` é **inclusivo** (`collected_at <= to`): quem precisa de um perío
 
 Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global, sem stack ou SQL.
 
-## POST /api/auth/login
 ## GET /api/collections/series
 
 Série temporal de um serviço: agrupa as coletas do período em intervalos e devolve, por intervalo, a contagem e os totais de energia e CO₂e. Sem autenticação nem corpo. Diferente de `GET /api/collections`, aqui **todos os parâmetros são obrigatórios**:
@@ -113,6 +112,21 @@ Período sem nenhuma coleta devolve `buckets` vazio e `totals` zerado nas contag
 Parâmetro inválido devolve 400 `VALIDATION_ERROR`; `service_id` inexistente devolve 404 `NOT_FOUND`; falha de banco devolve 500 no envelope global. O cálculo de energia e CO₂e está em [calculos.md](calculos.md).
 
 ## GET /api/services/compare
+
+Compara de 2 a 10 serviços no mesmo período, sem autenticação.
+
+`GET /api/services/compare?ids=1,2&from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z`
+
+- `ids`: ids inteiros positivos, distintos e separados por vírgula;
+- `from` e `to`: instantes ISO 8601 obrigatórios, com intervalo `[from, to)` de até 31 dias.
+
+Resposta 200 ecoa `from` e `to` e traz, por serviço, contagens de coletas, falhas e coletas sem cálculo, médias de CPU/memória/disco/rede e somas de energia e CO₂e. Um serviço sem coleta permanece na resposta com `collections: 0` e métricas agregadas `null`; um id inexistente devolve 404. Entrada inválida devolve 400 `VALIDATION_ERROR`.
+
+```json
+{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z","services":[{"id":"1","name":"Demo","region":"Sul","collections":12,"failed":0,"notCalculated":0,"avgCpuPercent":42.5,"avgMemoryGb":2.1,"avgDiskGb":10,"avgNetworkGb":0.3,"energyKwh":0.01,"co2eGrams":0.85}]}
+```
+
+## POST /api/auth/login
 
 Autentica o administrador sem expor senha ou hash. Corpo JSON obrigatório:
 
