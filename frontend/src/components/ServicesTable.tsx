@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { MonitoredService, ServiceStatus } from '../services/services.types';
-import { formatNumber, formatSignificant, formatTime } from '../utils/format';
+import { formatFixed, formatNumber, formatTime } from '../utils/format';
 import MissingValue from './MissingValue';
 import StatusBadge from './StatusBadge';
 
@@ -180,12 +180,12 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                 <td className="px-5 py-2 text-right font-mono">
                   {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
                 </td>
-                {/* 2 algarismos significativos: 0,040 g em vez de "0,0" para emissões pequenas */}
+                {/* Resolução fixa por coluna (kWh com 5 casas, g com 3): vírgulas alinhadas e 0,040 g em vez de "0,0" */}
                 <td className="px-5 py-2 text-right font-mono">
-                  {service.energyKwh === null ? <MissingValue /> : formatSignificant(service.energyKwh, 2)}
+                  {service.energyKwh === null ? <MissingValue /> : formatFixed(service.energyKwh, 5)}
                 </td>
                 <td className="px-5 py-2 text-right font-mono">
-                  {service.emissionsG === null ? <MissingValue /> : formatSignificant(service.emissionsG, 2)}
+                  {service.emissionsG === null ? <MissingValue /> : formatFixed(service.emissionsG, 3)}
                 </td>
                 <td className="px-5 py-2 text-right font-mono text-muted">
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}

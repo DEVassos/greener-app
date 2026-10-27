@@ -6,17 +6,15 @@ export function formatNumber(value: number, decimals: number): string {
 }
 
 /**
- * Número com `digits` algarismos significativos, sem arredondar a parte inteira.
- * Com 2: 0.04 → "0,040" · 0.5 → "0,50" · 0.0014 → "0,0014" · 0.0996 → "0,10" · 12.3 → "12" · 123.4 → "123".
- * Zero é resultado de cálculo e sai "0"; valor ausente (null) continua com o MissingValue de quem chama.
+ * Número com resolução fixa de `decimals` casas: numa coluna, a vírgula fica alinhada e o número não muda de tamanho
+ * a cada leitura. Com 3: 0.04 → "0,040" · 0.511 → "0,511" · 0.0007 → "0,001" · 0 → "0,000".
+ * Positivo menor que a resolução nunca parece zero: 0.0004 → "< 0,001". Valor ausente (null) continua com o
+ * MissingValue de quem chama.
  */
-export function formatSignificant(value: number, digits: number): string {
-  if (value === 0) return '0';
-  // Arredonda antes de contar as casas: 0.0996 vira 0.10, não "0,100"
-  const rounded = Number(value.toPrecision(digits));
-  const magnitude = Math.floor(Math.log10(Math.abs(rounded)));
-  const decimals = Math.max(0, digits - 1 - magnitude);
-  return formatNumber(decimals === 0 ? value : rounded, decimals);
+export function formatFixed(value: number, decimals: number): string {
+  const resolution = 10 ** -decimals;
+  if (value > 0 && value < resolution / 2) return `< ${formatNumber(resolution, decimals)}`;
+  return formatNumber(value, decimals);
 }
 
 /** ISO 8601 → "08:52:14". */
