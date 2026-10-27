@@ -20,8 +20,8 @@ src/
 ├── integrations/           metrics-api.ts (agregador) e carbon-api.ts (intensidade de carbono), com tipos *.types.ts
 ├── domain/                 carbon-calculator.ts — potência, energia e CO₂e de uma coleta
 ├── jobs/collector.ts       descoberta, reconciliação e coleta periódica (worker)
-├── middlewares/            cors.ts e error-handler.ts
-├── modules/                health, services e collections em routes/controller/service/repository
+├── middlewares/            auth.ts (JWT), cors.ts e error-handler.ts
+├── modules/                health, services, collections e usuarios em routes/controller/service/repository
 └── shared/                 errors.ts (AppError e subclasses) e persistence.types.ts (tipos das linhas do banco)
 ```
 
@@ -38,6 +38,8 @@ Contrato completo, com exemplos e erros, em [`docs/api.md`](../docs/api.md).
 | `GET /health` | consulta o PostgreSQL a cada chamada | 200 `{"status":"ok","db":"ok"}`; 500 `DATABASE_ERROR` |
 | `GET /api/services` | lista os serviços com estado, região e a última coleta (métricas, energia e CO₂e) ([#111](https://github.com/DEVassos/greener-app/issues/111), [#133](https://github.com/DEVassos/greener-app/issues/133)) | 200 `{ services, period }`; 500 `DATABASE_ERROR` |
 | `GET /api/collections` | histórico de coletas, com filtros `service_id`, `from`, `to` e `limit` (1–500, padrão 50) ([#112](https://github.com/DEVassos/greener-app/issues/112)) | 200 `{ collections, period }`; 400 `VALIDATION_ERROR`; 404 `NOT_FOUND`; 500 |
+| `POST /api/auth/login` | valida e-mail e senha com bcrypt e emite JWT HS256 | 200 `{ token }`; 400 `VALIDATION_ERROR`; 401 `UNAUTHORIZED`; 500 |
+| `GET /api/auth/me` | devolve o administrador autenticado pelo JWT | 200 `{ id, email }`; 401 `UNAUTHORIZED`; 500 |
 
 JSON inválido no corpo devolve 400; rota inexistente, 404; erro inesperado, 500 `INTERNAL_ERROR` sem stack. Todo erro sai no formato `{"error":{"code","message"}}`, produzido só pelo `error-handler`.
 
@@ -51,6 +53,8 @@ JSON inválido no corpo devolve 400; rota inexistente, 404; erro inesperado, 500
 | `CARBON_API_URL` | `https://carbon.unilaunch.org` | base http(s), sem credenciais, query ou fragmento; vazia usa o padrão oficial |
 | `POLLING_INTERVAL_MS` | `30000` | inteiro de 1 a 2147483647 ms; intervalo da descoberta e prazo inicial e de recuperação da coleta. O `compose.yaml` ainda não repassa esta variável ao container, então no Docker vale o padrão de 30 s |
 | `CORS_ORIGIN` | `http://localhost:5173` | origens http(s) separadas por vírgula, sem caminho; só elas recebem `Access-Control-Allow-Origin`, e o preflight `OPTIONS` responde 204 |
+| `JWT_SECRET` | sem padrão | obrigatória; ao menos 16 caracteres; assina os JWTs |
+| `JWT_EXPIRES_IN` | `8h` | inteiro positivo com unidade `s`, `m`, `h` ou `d` |
 
 Só `config/env.ts` lê `process.env`, e não há leitura automática de `.env`: o ambiente é fornecido ao processo (no caminho oficial, pelo `compose.yaml` a partir do `.env` da raiz). Ambiente inválido impede o boot com mensagem clara. `JWT_SECRET` é obrigatório e tem ao menos 16 caracteres; `JWT_EXPIRES_IN` é positivo e usa unidade, como `8h` ou `7d`. Não registre URLs com credenciais em logs.
 

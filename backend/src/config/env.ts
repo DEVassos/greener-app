@@ -1,4 +1,4 @@
-import { sign, type SignOptions } from 'jsonwebtoken';
+import type { SignOptions } from 'jsonwebtoken';
 import { ValidationError } from '../shared/errors';
 
 export interface Environment {
@@ -26,7 +26,7 @@ function readJwt(source: NodeJS.ProcessEnv): Pick<Environment, 'jwtSecret' | 'jw
   if (typeof jwtExpiresIn !== 'string' || jwtExpiresIn.trim() === '') {
     throw new ValidationError('JWT_EXPIRES_IN deve informar a validade do token.');
   }
-  if (!/^\d+(s|m|h|d)$/.test(jwtExpiresIn)) throw new ValidationError('JWT_EXPIRES_IN deve ser positivo e usar unidade (ex.: 8h ou 7d).');
+  if (!/^[1-9]\d*(s|m|h|d)$/.test(jwtExpiresIn)) throw new ValidationError('JWT_EXPIRES_IN deve ser positivo e usar unidade (ex.: 8h ou 7d).');
   return { jwtSecret, jwtExpiresIn: jwtExpiresIn as NonNullable<SignOptions['expiresIn']> };
 }
 

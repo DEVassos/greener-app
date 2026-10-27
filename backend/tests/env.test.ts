@@ -60,7 +60,7 @@ describe('ambiente', () => {
   it.each([undefined, '', 'short'])('recusa JWT_SECRET invalido', JWT_SECRET => {
     expect(() => readEnvironment({ ...environment, JWT_SECRET })).toThrow('JWT_SECRET');
   });
-  it.each([undefined, '', 'not-a-duration', '-1h', '0', '3600'])('recusa JWT_EXPIRES_IN invalido', JWT_EXPIRES_IN => {
+  it.each([undefined, '', 'not-a-duration', '-1h', '0', '0h', '3600'])('recusa JWT_EXPIRES_IN invalido', JWT_EXPIRES_IN => {
     expect(() => readEnvironment({ ...environment, JWT_EXPIRES_IN })).toThrow('JWT_EXPIRES_IN');
   });
 });
