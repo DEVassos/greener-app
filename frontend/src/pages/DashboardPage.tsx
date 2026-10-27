@@ -7,6 +7,7 @@ import LastUpdated from '../components/LastUpdated';
 import LoadingState from '../components/LoadingState';
 import ServiceDetailsDialog from '../components/ServiceDetailsDialog';
 import ServicesTable from '../components/ServicesTable';
+import UpdateFailedBanner from '../components/UpdateFailedBanner';
 import { useMonitoring } from '../hooks/useMonitoring';
 import { useServices } from '../hooks/useServices';
 import { isDemoMode } from '../services/services.service';
@@ -61,8 +62,9 @@ export default function DashboardPage() {
       <main className="content">
         <h1 className="sr-only">Dashboard de energia e emissões</h1>
 
-        {/* Falha não apaga o que já estava na tela: o erro aparece junto com o último dado */}
-        {error && <ErrorState message={error} onRetry={refresh} />}
+        {/* Falha não apaga o que já estava na tela: com dados, faixa compacta junto do último dado; sem dados, o aviso grande */}
+        {data && <UpdateFailedBanner message={error} updatedAt={updatedAt} onRetry={refresh} />}
+        {error && !data && <ErrorState message={error} onRetry={refresh} />}
 
         {loading && !data && <LoadingState message="Carregando serviços…" />}
 
