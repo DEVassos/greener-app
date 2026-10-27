@@ -74,11 +74,11 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
 - **RF07, RF10 — Página Emissões (#190, PR #200):** o item **Emissões** do menu abre `/emissoes`, com a emissão estimada de CO₂e e a energia de uma estação no período escolhido. A estação e as datas ficam na URL, então o link abre no mesmo filtro. O agrupamento é automático pelo tamanho do período: cada coleta até 2 h (`GET /api/collections`), 15 min até 1 dia e 1 hora acima disso (`GET /api/collections/series`). O resumo mostra emissão, energia, média por coleta, pico, intensidade da região e coletas com falha, sem cálculo e tempo sem coleta. **Tempo real** busca de novo no intervalo do dashboard. Sem cálculo aparece "—", nunca zero, e numa falha o resumo fica apagado, com "Desatualizado desde …". O gráfico entra na segunda parte da #190. Como verificar em [frontend/README.md](frontend/README.md#página-emissões-190).
 
-- **RF15 — Comparação entre serviços (#193, PR #214; #194):** o item **Comparação** do menu abre `/comparacao`, com 2 a 10 serviços lado a lado no mesmo período (até 31 dias): coletas, médias de CPU, memória, disco e rede, e energia e CO₂e somados, por `GET /api/services/compare`. O menor CO₂e fica destacado, o período aparece acima da tabela, e serviço sem coletas aparece como "sem coletas", nunca zero. Serviços e datas ficam na URL. Como verificar em [frontend/README.md](frontend/README.md#comparação-entre-serviços-194).
+- **RF15 — Comparação entre serviços (#193, PR #214; #194):** o item **Comparação** do menu abre `/comparacao`, com 2 a 10 serviços lado a lado no mesmo período (até 31 dias): coletas, médias de CPU, memória, disco e rede, e energia e CO₂e somados, por `GET /api/services/compare`. O menor e o maior CO₂e ficam destacados, o período aparece acima da tabela, e serviço sem coletas aparece como "sem coletas", nunca zero. Serviços e datas ficam na URL. Como verificar em [frontend/README.md](frontend/README.md#comparação-entre-serviços-194).
 
   ![Comparação de quatro serviços com o backend real](docs/img/sprint-2-comparacao.png)
 
-  _Quatro serviços comparados com o backend real (`docker compose`) em 27/10/2026, das 00:00 às 14:34: Inventory Sync tem o menor CO₂e do período._
+  _Quatro serviços comparados com o backend real (`docker compose`) em 27/10/2026, das 00:00 às 15:01: Fraud Detector tem o maior CO₂e do período e Inventory Sync, o menor._
 
 - **RNF05, DW07 — Execução com Docker (#91, #113, #81):** backend, frontend (nginx) e PostgreSQL sobem juntos por `docker compose up --build`, com volume persistente para o banco e todas as variáveis documentadas em [.env.example](.env.example) (#82). Passo a passo no [README](#8-como-executar).
 
