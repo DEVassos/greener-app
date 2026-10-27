@@ -99,7 +99,7 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
 
   return (
     <section className="rounded-xl border border-border bg-surface" aria-labelledby="services-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-2.5">
         <h2 id="services-title" className="m-0 font-display text-lg font-semibold">
           Serviços monitorados
         </h2>
@@ -110,7 +110,7 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por nome…"
-            className="h-10 w-60 max-w-full rounded-lg border border-border bg-surface-2 px-3 font-sans text-sm text-text outline-none placeholder:text-muted focus:border-primary"
+            className="h-9 w-60 max-w-full rounded-lg border border-border bg-surface-2 px-3 font-sans text-sm text-text outline-none placeholder:text-muted focus:border-primary"
           />
         </label>
       </div>
@@ -136,7 +136,7 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                 <th
                   key={column.key}
                   scope="col"
-                  className={`px-5 py-3 font-medium ${column.numeric ? 'text-right' : ''}`}
+                  className={`px-5 pt-1.5 pb-2 font-medium ${column.numeric ? 'text-right' : ''}`}
                   aria-sort={sortKey === column.key ? (direction === 1 ? 'ascending' : 'descending') : 'none'}
                 >
                   <button
@@ -163,7 +163,7 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                 }}
                 className="cursor-pointer border-t border-border hover:bg-surface-2"
               >
-                <th scope="row" className="px-5 py-3 text-left font-medium">
+                <th scope="row" className="px-5 py-2 text-left font-medium">
                   <button
                     type="button"
                     aria-haspopup="dialog"
@@ -174,23 +174,23 @@ export default function ServicesTable({ services, period, onSelect }: Props) {
                   </button>
                 </th>
                 {/* O badge é o único elemento colorido da linha */}
-                <td className="px-5 py-3">
+                <td className="px-5 py-2">
                   <StatusBadge status={service.status} />
                 </td>
-                <td className="px-5 py-3 text-right font-mono">
+                <td className="px-5 py-2 text-right font-mono">
                   {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
                 </td>
                 {/* 2 algarismos significativos: 0,040 g em vez de "0,0" para emissões pequenas */}
-                <td className="px-5 py-3 text-right font-mono">
+                <td className="px-5 py-2 text-right font-mono">
                   {service.energyKwh === null ? <MissingValue /> : formatSignificant(service.energyKwh, 2)}
                 </td>
-                <td className="px-5 py-3 text-right font-mono">
+                <td className="px-5 py-2 text-right font-mono">
                   {service.emissionsG === null ? <MissingValue /> : formatSignificant(service.emissionsG, 2)}
                 </td>
-                <td className="px-5 py-3 text-right font-mono text-muted">
+                <td className="px-5 py-2 text-right font-mono text-muted">
                   {service.lastReadingAt === null ? 'nunca' : formatTime(service.lastReadingAt)}
                 </td>
-                <td className="whitespace-nowrap px-5 py-3 text-muted">
+                <td className="whitespace-nowrap px-5 py-2 text-muted">
                   {locationText(service) || (
                     <span title="Localização não informada pelo agregador">
                       —<span className="sr-only">sem localização</span>
