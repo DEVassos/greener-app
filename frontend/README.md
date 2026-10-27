@@ -55,7 +55,7 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 - As colunas "Energia (kWh)" e "Emissão (g CO₂e)" mostram o resultado da **última coleta** de cada serviço (cerca de 30 s de operação), calculado pelo backend desde o #139. Sem cálculo disponível (por exemplo, com a API de carbono fora), aparece "—", nunca zero.
 - Energia e emissão têm resolução fixa por coluna (`formatFixed` em `src/utils/format.ts`): kWh com 5 casas e g com 3, nas mesmas unidades da API. As vírgulas ficam alinhadas e o número não muda de tamanho a cada leitura. 0,04 g aparece como **0,040** (antes, "0,0"). Um valor positivo menor que a resolução aparece como "< 0,001" (g) ou "< 0,00001" (kWh), nunca como zero; zero calculado aparece "0,000"; sem cálculo, continua "—".
-- O período da API ("última leitura (intervalo de coleta)") é a legenda sobre essas duas colunas, as únicas a que ele se refere.
+- A tabela não repete o `period` de `GET /api/services`: a coluna **Última leitura** já diz de quando são os valores da linha: os da coleta, não um total.
 
 ## Página Emissões (#190)
 
