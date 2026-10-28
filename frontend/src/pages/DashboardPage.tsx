@@ -118,7 +118,7 @@ export default function DashboardPage() {
         {summary && <SummaryPanel summary={summary} previousSummary={previousSummary} comparisonLoading={comparisonLoading} stale={error !== '' || summaryError !== ''} />}
 
         {data && data.services.length > 0 && (
-          <ServicesTable services={data.services} period={data.period} onSelect={(service) => setSelectedId(service.id)} />
+          <ServicesTable services={data.services} onSelect={(service) => setSelectedId(service.id)} />
         )}
 
         {/* Montada só enquanto aberta: fechar desmonta e cancela o polling do histórico */}
