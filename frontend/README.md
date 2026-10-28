@@ -53,9 +53,11 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 
 ## Indicadores agregados (RF08)
 
-O dashboard consulta `GET /api/services/summary` por meio de `src/services/services.service.ts` e exibe energia (kWh), CO₂e (g) e a contagem distinta de serviços ativos, indisponíveis, sem métricas e removidos no período consultado. Os cards mostram a variação percentual contra o intervalo imediatamente anterior de mesma duração; se o valor anterior for zero, exibem “Sem base para comparação”.
-
-Quando não há cálculo disponível no período, energia e CO₂e aparecem como “—”, nunca como zero. Zero é reservado a um total realmente calculado igual a zero. Se a consulta da comparação falhar, o painel informa que a comparação está indisponível; se o período anterior não tiver cálculos, informa essa ausência separadamente. A falha da atualização mantém os últimos valores com indicação de desatualização.
+- `SummaryPanel`, abaixo dos cards de estado, mostra **Energia no período** (kWh, 4 casas) e **Emissões no período** (g CO₂e, 2 casas) das **últimas 24 h**, com o período no título em horário de Brasília (`timeZone: 'America/Sao_Paulo'`). O estado dos serviços fica só nos cards do `KpiPanel` (#21): o `services` de `GET /api/services/summary` é o estado **atual** e não depende do período, por isso o painel não o repete.
+- O `DashboardPage` chama `GET /api/services/summary` (por `fetchServicesSummary`, em `src/services/services.service.ts`) a cada ciclo do polling, duas vezes: as últimas 24 h e as 24 h anteriores a elas. A nota de cada card é a variação "±N,N% vs. 24 h anteriores"; sem cálculo no período anterior, "Sem cálculo no período anterior"; com total anterior zero, "Sem base para comparação".
+- Sem cálculo no período, o valor é o traço do `MissingValue` ("sem cálculo" para leitor de tela), nunca zero. Nos ciclos seguintes ao primeiro, a variação anterior continua na tela até chegar a nova resposta, sem piscar "Comparando período anterior…".
+- Falha do resumo ou da comparação aparece como `ErrorState` abaixo da faixa de falha da lista (`UpdateFailedBanner`, #217), e os cards ficam com os números apagados até a próxima busca bem-sucedida.
+- No modo demonstração (sem `VITE_API_URL`) o painel não aparece: não há dados de demonstração para o resumo.
 
 ## Energia e emissão na tabela
 

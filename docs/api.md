@@ -44,13 +44,47 @@ Falha de banco retorna 500 no envelope global, sem stack ou SQL:
 
 ## GET /api/services/summary
 
-Indicadores agregados do dashboard, sem autenticação. `from` e `to` são opcionais, mas devem ser enviados juntos em ISO 8601 válido; sem ambos, a rota usa as últimas 24 horas. O período é `[from, to)`, de até 31 dias. A interface consulta esse endpoint também para o intervalo imediatamente anterior, de mesma duração, e apresenta a variação percentual de energia e CO₂e. Quando o total anterior é zero, exibe “Sem base para comparação”.
+Indicadores agregados do dashboard (RF08, #175), sem autenticação.
+
+`GET /api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z`
+
+| Parâmetro | Obrigatório | Regra |
+|---|---|---|
+| `from` | não | instante ISO 8601 com hora (`2026-10-20T00:00:00Z` ou `2026-10-20T00:00:00-03:00`); enviado junto com `to` |
+| `to` | não | igual a `from` e posterior a ele; o período `[from, to)` tem até 31 dias |
+
+Regras:
+
+- Sem `from` e `to`, o período são as **últimas 24 h** até o instante da requisição. Enviar só um dos dois devolve 400.
+- O período é fechado no início e aberto no fim: entra a coleta de `from` e fica de fora a de `to`, como em `GET /api/collections/series` e `GET /api/services/compare`.
+- `energyKwh` e `co2eGrams` somam **só as coletas com cálculo disponível** no período. Sem nenhuma, vêm `null` ("não calculado"), nunca `0`; `0` é um total calculado igual a zero.
+- `services` é o **estado atual** de cada serviço, contado uma vez por serviço, e **não depende do período**.
+- O dashboard chama a rota duas vezes por ciclo: as últimas 24 h e as 24 h anteriores a elas, para a variação percentual.
+
+Resposta 200:
 
 ```json
-{"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":0}}
+{"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":0.0124,"co2eGrams":1.05,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":1}}
 ```
 
-Os totais consideram somente coletas com cálculo disponível; os serviços por estado são contados uma vez por serviço. Se nenhuma coleta tiver cálculo disponível no período, `energyKwh` e `co2eGrams` são `null` (não zero), para diferenciar ausência de cálculo de um total calculado igual a zero. Datas inválidas, período vazio ou maior que 31 dias retornam 400 `VALIDATION_ERROR`.
+Sem coleta calculada no período:
+
+```json
+{"period":{"from":"2026-10-20T00:00:00.000Z","to":"2026-10-21T00:00:00.000Z"},"energyKwh":null,"co2eGrams":null,"services":{"active":3,"unavailable":0,"withoutMetrics":0,"removed":1}}
+```
+
+Erros:
+
+| HTTP | Código | Situação |
+|---|---|---|
+| 400 | VALIDATION_ERROR | só `from` ou só `to`; data sem hora, inexistente (30/02) ou texto; `from` igual ou posterior a `to`; período acima de 31 dias |
+| 500 | DATABASE_ERROR | falha de conexão ou de consulta no PostgreSQL |
+
+```json
+{"error":{"code":"VALIDATION_ERROR","message":"from deve ser anterior a to."}}
+```
+
+O formato desta rota (`period{}` e `services{}`) é diferente do de `GET /api/collections/series` e `GET /api/services/compare` (`from`/`to` no topo, contagens `collections`/`failed`/`notCalculated`). O alinhamento ao contrato combinado na #175 ficou para a Sprint 3.
 
 ## GET /api/collections
 
@@ -180,7 +214,7 @@ Health comprova conectividade, não valida existência de tabelas, persistência
 
 | HTTP | Código | Situação |
 |---|---|---|
-| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections`, `GET /api/collections/series` ou no login |
+| 400 | VALIDATION_ERROR | JSON inválido com Content-Type application/json; parâmetro inválido em `GET /api/collections`, `GET /api/collections/series`, `GET /api/services/summary`, `GET /api/services/compare` ou no login |
 | 401 | UNAUTHORIZED | credenciais inválidas, token ausente, inválido ou expirado |
 | 404 | NOT_FOUND | rota não registrada, incluindo métodos não registrados; `service_id` inexistente em `GET /api/collections` e em `GET /api/collections/series` |
 | 500 | DATABASE_ERROR | falha de conexão ou de consulta no PostgreSQL |

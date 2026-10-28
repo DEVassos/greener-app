@@ -50,11 +50,11 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   _Dashboard com o backend real (`docker compose`) em 22/10/2026: os 8 serviços ativos, e Indisponíveis e Sem métricas zerados, sem cor._
 
-- **RF08 — Indicadores agregados e comparação por período (#175, PR #215):** o dashboard mostra totais de energia e CO₂e, contagem de serviços ativos, indisponíveis, sem métricas e removidos, e compara os totais com o intervalo imediatamente anterior de mesma duração. Se o total anterior for zero, a tela informa que não há base para calcular a variação. A API usa `GET /api/services/summary?from=&to=` e documenta o contrato em [docs/api.md](docs/api.md).
+- **RF08 — Indicadores agregados e comparação por período (#175, PR #215):** abaixo dos cards de estado, o dashboard mostra a energia (kWh) e o CO₂e (g) das últimas 24 h, com o período em horário de Brasília, e a variação contra as 24 h anteriores. Sem cálculo no período, o valor é "—", nunca zero; com total anterior zero, a tela informa que não há base para a variação. A API usa `GET /api/services/summary?from=&to=`, documentada em [docs/api.md](docs/api.md).
 
-  ![Indicadores agregados com comparação ao período anterior](docs/img/sprint-2-indicadores-agregados.png)
+  ![Indicadores agregados com comparação às 24 h anteriores](docs/img/sprint-2-indicadores-agregados.png)
 
-  _Dashboard com o backend real (`docker compose`) em 25/10/2026. As 24 horas anteriores não tinham dados, então os cards indicam que ainda não há base para comparação._
+  _Dashboard com o backend real (`docker compose`) em 28/10/2026, 19h32: 0,2620 kWh e 64,61 g CO₂e nas últimas 24 h. O compose ficou desligado nas 24 h anteriores, então os cards dizem "Sem cálculo no período anterior" em vez de uma variação._
 
 - **RNF02 — Indicador de última atualização (#89):** selo no cabeçalho com o horário da última busca bem-sucedida e um ponto verde pulsando enquanto os dados estão em dia; se uma busca falha, ele fica laranja e passa a dizer "Desatualizado desde …", sem apagar os dados da tela.
 
