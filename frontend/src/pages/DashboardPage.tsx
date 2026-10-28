@@ -37,7 +37,7 @@ export default function DashboardPage() {
         if (controller.signal.aborted) return;
         setSummary(current);
         setSummaryError('');
-        setPreviousSummary(null);
+        // A variação anterior continua na tela até chegar a nova resposta, sem piscar "Comparando…" a cada ciclo
         setComparisonError('');
         setComparisonLoading(true);
         try {
