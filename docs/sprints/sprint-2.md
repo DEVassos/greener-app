@@ -5,7 +5,8 @@
 | Período | 20/10 a 09/11/2026 · checkpoint 30/10 · congelamento 08/11 20h · review 09/11 19h30 (a confirmar) |
 | Milestone | [Sprint 2](https://github.com/DEVassos/greener-app/milestone/2) |
 | Plano | [docs/plano-de-entregas.md § Sprint 2](../plano-de-entregas.md#sprint-2): critérios previstos, denominador e situação de cada critério |
-| Atas | [planning](sprint-2/planning.md) |
+| Atas | [planning](sprint-2/planning.md) · [dailies](sprint-2/dailies/) |
+| Burndown | [sprint-2/burndown.md](sprint-2/burndown.md) — Story Points por dia, gerado por `.github/scripts/burndown.sh 2` |
 
 ## 1. Objetivo da sprint
 
@@ -51,7 +52,7 @@ Itens de processo e qualidade (12): #159, #160, #161, #162, #163, #164, #165, #1
 | APIs auxiliares instáveis (métricas/carbono) | alto | timeout, cache do último valor e estado `indisponivel` visível; nunca exibir resultado válido após falha | @LUCASAMR23 |
 | Carga de backend concentrada em @LUCASAMR23 | alto | #174 e #163 com @viniciusaugusto1997; revisão cruzada; quebrar #49 em tarefas | @henriqueptbd-cell |
 | #49 e #52 com 8 pontos e sem tarefas suficientes (DoR) | médio | quebradas em 22/10: #188, #189 e #190 na #49; #193 e #194 na #52 | @henriqueptbd-cell |
-| @viniciusaugusto1997 em viagem em 22/10, sem data de volta registrada; as tarefas dele (#174 TP03, #6, #188 e #189) continuam com ele | alto | gatilho do TP03 em 30/10 (planning § 4); a #190 começa em modo demonstração enquanto a #188 e a #189 não chegam | @travensolli |
+| @viniciusaugusto1997 em viagem programada (combinada com o professor e a equipe), ainda sem data de volta registrada em 26/10; seguem com ele a #174 (TP03) e a #6 | alto | gatilho do TP03 em 30/10 (planning § 4); a #188 e a #189 passaram para @henriqueptbd-cell em 22/10 e foram mergeadas em 25 e 26/10 ([ata de 22/10](sprint-2/dailies/2026-10-22.md)) | @travensolli |
 | #52 depende de #49 e #50 | médio | implementar a comparação depois do ranking e do histórico | @DeaTuribio |
 | Frontend com #45, #50, #52 e #51 (could) | alto | priorizar #45 e #50; #51 só se sobrar capacidade | @DeaTuribio |
 | Paleta e animação do logo podem desatualizar prints/docs e falhar em acessibilidade | médio | refazer `docs/identidade-visual.md` e prints no mesmo PR (#180); testar falha e `prefers-reduced-motion` | @DeaTuribio |

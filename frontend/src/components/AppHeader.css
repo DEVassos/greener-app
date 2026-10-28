@@ -61,11 +61,11 @@
     margin-left: auto;
   }
 
-  /* Tela larga: marca, menu e ações na mesma linha */
+  /* Tela larga: marca, menu e ações na mesma linha; 10 px na vertical deixa o cabeçalho com cerca de 56 px */
   @media (min-width: 961px) {
     .topbar-inner {
       flex-wrap: nowrap;
-      padding: 14px 24px;
+      padding: 10px 24px;
       gap: 32px;
     }
 
