@@ -6,7 +6,7 @@ Decisões e fontes do modelo em [`integracao-modelagem-banco.md`](../docs/arquit
 
 ## Arquivos e ordem
 
-`database/schema.sql` é a fonte única do modelo: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); o compose usa `postgres:16-alpine`. Depois dele, `zz-seed-admin.sh` cria o administrador inicial usando `ADMIN_EMAIL` e `ADMIN_PASSWORD` do ambiente: a senha não é versionada nem gravada em texto puro.
+`database/schema.sql` é a fonte única do modelo: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); o compose usa `postgres:16-alpine`. Depois dele, `zz-seed-admin.sh` cria o administrador inicial usando `ADMIN_EMAIL` e `ADMIN_PASSWORD` do ambiente: a senha de cada instalação não é versionada nem gravada em texto puro; o `.env.example` contém apenas valores de desenvolvimento.
 
 ## Execução pelo compose (#27)
 
@@ -37,7 +37,19 @@ docker compose exec postgres psql -U ecopulse -d ecopulse_db \
   -c "SELECT email, left(password_hash, 7) AS prefixo, count(*) OVER () AS total FROM users;"
 ```
 
-Esperado: uma linha para `ADMIN_EMAIL`, prefixo `$2a$10$` ou `$2b$10$` e total `1`. O seed usa o índice único de e-mail sem distinguir maiúsculas/minúsculas; reaplicá-lo não duplica o usuário.
+Esperado: uma linha para `ADMIN_EMAIL`, prefixo `$2a$10$` ou `$2b$10$` e total `1`. O seed usa o índice único de e-mail sem distinguir maiúsculas/minúsculas.
+
+### Reaplicar o seed
+
+Em um volume já existente, inclua `ADMIN_EMAIL` e `ADMIN_PASSWORD` no `.env` se ainda não estiverem definidos e execute o seed sem apagar o volume:
+
+```bash
+docker compose exec postgres sh /docker-entrypoint-initdb.d/zz-seed-admin.sh
+```
+
+Esperado: `INSERT 0 0` se o administrador já existe ou `INSERT 0 1` se ele ainda não existia; a consulta acima deve continuar mostrando uma única linha. O seed é idempotente. Alterar `ADMIN_PASSWORD` e reaplicar não troca a senha já cadastrada (`ON CONFLICT DO NOTHING`).
+
+Em clones existentes, copiar as duas variáveis do `.env.example` para o `.env` e executar o comando acima preserva o volume e os demais dados. Não use `docker compose down -v` para atualizar as credenciais.
 
 Persistência (BD03): insira um registro, reinicie e conte de novo.
 

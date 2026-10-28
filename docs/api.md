@@ -128,10 +128,10 @@ Resposta 200 ecoa `from` e `to` e traz, por serviço, contagens de coletas, falh
 
 ## POST /api/auth/login
 
-Autentica o administrador sem expor senha ou hash. Corpo JSON obrigatório:
+Autentica o administrador sem expor senha ou hash. Use as credenciais `ADMIN_EMAIL` e `ADMIN_PASSWORD` definidas no `.env`; o `.env.example` contém apenas valores de desenvolvimento. Corpo JSON obrigatório:
 
 ```json
-{"email":"admin@ecopulse.dev","password":"senha-do-administrador"}
+{"email":"admin@ecopulse.local","password":"admin1234"}
 ```
 
 Com credenciais válidas, devolve `200`; e-mail inexistente e senha incorreta devolvem o mesmo `401 UNAUTHORIZED`; corpo sem `email` ou `password` devolve `400 VALIDATION_ERROR`. O token é assinado com HS256 usando `JWT_SECRET` e expira conforme `JWT_EXPIRES_IN`.
@@ -145,7 +145,7 @@ Com credenciais válidas, devolve `200`; e-mail inexistente e senha incorreta de
 Rota mínima protegida para verificar o middleware. Envie `Authorization: Bearer <JWT>`; token ausente, inválido ou expirado devolve `401 UNAUTHORIZED`. Com token válido, devolve `200` com o `id` e o `email` do usuário autenticado.
 
 ```json
-{"id":"1","email":"admin@ecopulse.dev"}
+{"id":"1","email":"admin@ecopulse.local"}
 ```
 
 ## GET /health
