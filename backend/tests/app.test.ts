@@ -92,6 +92,17 @@ describe('HTTP', () => {
     const response = await fetch(base + '/api/services/summary?from=2026-02-30T00:00:00Z&to=2026-03-03T00:00:00Z');
     expect(response.status).toBe(400);
   });
+  it.each([
+    ['só from', 'from=2026-10-20T00:00:00Z'],
+    ['from igual a to', 'from=2026-10-20T00:00:00Z&to=2026-10-20T00:00:00Z'],
+    ['from depois de to', 'from=2026-10-21T00:00:00Z&to=2026-10-20T00:00:00Z'],
+    ['período acima de 31 dias', 'from=2026-09-01T00:00:00Z&to=2026-10-03T00:00:00Z'],
+  ])('rejeita %s no resumo com 400 VALIDATION_ERROR', async (_case, query) => {
+    const { collections, services } = repositories();
+    const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/services/summary?' + query);
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe('VALIDATION_ERROR');
+  });
   it('compara serviços no período informado', async () => {
     const rows = [
       { id: '1', name: 'Alpha', region: 'Sul', collections: '2', failed: '0', not_calculated: '0', avg_cpu_percent: '20', avg_memory_gb: '1.5', avg_disk_gb: '2', avg_network_gb: '0.3', energy_kwh: '0.02', co2e_grams: '1.7' },
