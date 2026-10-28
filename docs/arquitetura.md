@@ -17,9 +17,9 @@ PostgreSQL ──► GET /api/services · GET /api/collections ──(polling do
 
 ## Backend
 
-Camadas por módulo (`health`, `services`, `collections`): **routes** só mapeiam a URL → **controller** valida a entrada e escolhe o status HTTP → **service** monta a resposta → **repository** tem o SQL (`pg`, parâmetros `$1…$n`, sem ORM). `config/env.ts` é o único ponto que lê o ambiente; `shared/errors.ts` define `AppError` e as subclasses (400, 404, 500, 502); `middlewares/error-handler.ts` converte qualquer erro no envelope `{"error":{"code","message"}}`, sem stack. O boot valida o ambiente, consulta o banco, abre o HTTP e só então inicia o coletor; SIGTERM para o coletor e fecha HTTP e pool. Organização, variáveis e verificação no [README do backend](../backend/README.md).
+Camadas por módulo (`health`, `services`, `collections`, `usuarios`): **routes** só mapeiam a URL → **controller** valida a entrada e escolhe o status HTTP → **service** monta a resposta → **repository** tem o SQL (`pg`, parâmetros `$1…$n`, sem ORM). `config/env.ts` é o único ponto que lê o ambiente; `shared/errors.ts` define `AppError` e as subclasses, incluindo `UnauthorizedError` (401), além de 400, 404, 500 e 502; `middlewares/error-handler.ts` converte qualquer erro no envelope `{"error":{"code","message"}}`, sem stack. O boot valida o ambiente, consulta o banco, abre o HTTP e só então inicia o coletor; SIGTERM para o coletor e fecha HTTP e pool. Organização, variáveis e verificação no [README do backend](../backend/README.md).
 
-A área de configuração e a consulta de entradas exigirão JWT no backend, com a tabela `users` (Sprint 2, #20). O intervalo externo de coleta vem de cada observação; o intervalo de atualização da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`).
+O login administrativo usa JWT no backend e a tabela `users` (#20). A área de configuração e a consulta de entradas usarão o mesmo middleware quando forem implementadas. O intervalo externo de coleta vem de cada observação; o intervalo de atualização da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`).
 
 ## Frontend
 
