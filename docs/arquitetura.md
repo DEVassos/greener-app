@@ -19,7 +19,7 @@ PostgreSQL ──► GET /api/services · GET /api/collections ──(polling do
 
 Camadas por módulo (`health`, `services`, `collections`, `usuarios`): **routes** só mapeiam a URL → **controller** valida a entrada e escolhe o status HTTP → **service** monta a resposta → **repository** tem o SQL (`pg`, parâmetros `$1…$n`, sem ORM). `config/env.ts` é o único ponto que lê o ambiente; `shared/errors.ts` define `AppError` e as subclasses, incluindo `UnauthorizedError` (401), além de 400, 404, 500 e 502; `middlewares/error-handler.ts` converte qualquer erro no envelope `{"error":{"code","message"}}`, sem stack. O boot valida o ambiente, consulta o banco, abre o HTTP e só então inicia o coletor; SIGTERM para o coletor e fecha HTTP e pool. Organização, variáveis e verificação no [README do backend](../backend/README.md).
 
-O login administrativo usa JWT no backend e a tabela `users` (#20). A área de configuração e a consulta de entradas usarão o mesmo middleware quando forem implementadas. O intervalo externo de coleta vem de cada observação; o intervalo de atualização da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`).
+O login administrativo usa JWT no backend e a tabela `users` (#20). Em volume PostgreSQL novo, `zz-seed-admin.sh` cria um administrador com `ADMIN_EMAIL` e hash bcrypt da senha fornecida em `ADMIN_PASSWORD` (#6); nenhum segredo ou hash fixo é versionado. A área de configuração e a consulta de entradas usarão o mesmo middleware quando forem implementadas. O intervalo externo de coleta vem de cada observação; o intervalo de atualização da tela é configuração independente do frontend (`VITE_REFRESH_INTERVAL_MS`).
 
 ## Frontend
 
@@ -60,4 +60,4 @@ Primeira abertura por sessão de navegação em uma aba; reload e navegação in
 
 ## Inicialização e evolução
 
-Schema inicial em transação, reaplicável ao mesmo modelo. Banco anterior com bytes é recusado pelo guard; precisa de migração numerada conforme ADR 0002, sem conversão presumida nem remoção de dados. Não há seed. No `compose.yaml` (#27) o serviço `postgres` (16-alpine) aplica o schema na primeira criação do volume nomeado `pgdata`, que preserva os dados entre reinícios; só `docker compose down -v` os apaga. Comandos de validação isolada: [README do banco](../database/README.md). Precisão e fontes: [cálculos](calculos.md).
+Schema inicial em transação, reaplicável ao mesmo modelo. Banco anterior com bytes é recusado pelo guard; precisa de migração numerada conforme ADR 0002, sem conversão presumida nem remoção de dados. No `compose.yaml` (#27), o serviço `postgres` (16-alpine) aplica `schema.sql` e o seed idempotente do administrador na primeira criação do volume nomeado `pgdata`, que preserva os dados entre reinícios; só `docker compose down -v` os apaga. Comandos de validação isolada: [README do banco](../database/README.md). Precisão e fontes: [cálculos](calculos.md).

@@ -6,13 +6,13 @@ Decisões e fontes do modelo em [`integracao-modelagem-banco.md`](../docs/arquit
 
 ## Arquivos e ordem
 
-`database/schema.sql` é a fonte única de inicialização: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); o compose usa `postgres:16-alpine`. Ainda não há seeds.
+`database/schema.sql` é a fonte única do modelo: services, users, collections e access_entries, constraints, índices e comentários em uma transação. Exige PostgreSQL 14 ou superior (numeric com valores especiais nos CHECKs); o compose usa `postgres:16-alpine`. Depois dele, `zz-seed-admin.sh` cria o administrador inicial usando `ADMIN_EMAIL` e `ADMIN_PASSWORD` do ambiente: a senha não é versionada nem gravada em texto puro.
 
 ## Execução pelo compose (#27)
 
 A execução oficial é exclusivamente Docker (RP04, ADR 0003). O serviço `postgres` do [`compose.yaml`](../compose.yaml):
 
-- monta esta pasta em `/docker-entrypoint-initdb.d/` (somente leitura). Na **primeira** criação do volume, o entrypoint do PostgreSQL executa os `.sql` daqui em ordem alfabética, hoje só `schema.sql`, e ignora o `README.md`;
+- monta esta pasta em `/docker-entrypoint-initdb.d/` (somente leitura). Na **primeira** criação do volume, o entrypoint executa `schema.sql` e, depois, `zz-seed-admin.sh`; o script habilita `pgcrypto`, gera um hash bcrypt com custo 10 e insere um único administrador. Ele ignora o `README.md`;
 - guarda os dados no volume nomeado `pgdata` (`/var/lib/postgresql/data`). Eles sobrevivem a `docker compose restart`, `stop` e `down`; só `docker compose down -v` apaga o volume (BD03);
 - tem healthcheck `pg_isready`, e o backend só sobe depois dele (`depends_on: condition: service_healthy`);
 - atende em `postgres:5432` dentro da rede do compose (é o endereço que o backend usa) e fica exposto no host na porta `POSTGRES_HOST_PORT` (padrão e exemplo: 5433, para não conflitar com um PostgreSQL local na 5432). Se a 5433 estiver ocupada, troque no `.env`; a porta interna não muda.
@@ -30,7 +30,14 @@ docker compose exec postgres psql -U ecopulse -d ecopulse_db -c '\dt'
 docker compose exec postgres psql -U ecopulse -d ecopulse_db -c 'SELECT count(*) FROM collections;'
 ```
 
-Esperado: as quatro tabelas (`access_entries`, `collections`, `services`, `users`) e a contagem do histórico. No log (`docker compose logs postgres`) aparece `running /docker-entrypoint-initdb.d/schema.sql` só na primeira subida.
+Esperado: as quatro tabelas (`access_entries`, `collections`, `services`, `users`), a contagem do histórico e um único administrador. No log (`docker compose logs postgres`) aparecem `running /docker-entrypoint-initdb.d/schema.sql` e `running /docker-entrypoint-initdb.d/zz-seed-admin.sh` só na primeira subida.
+
+```bash
+docker compose exec postgres psql -U ecopulse -d ecopulse_db \
+  -c "SELECT email, left(password_hash, 7) AS prefixo, count(*) OVER () AS total FROM users;"
+```
+
+Esperado: uma linha para `ADMIN_EMAIL`, prefixo `$2a$10$` ou `$2b$10$` e total `1`. O seed usa o índice único de e-mail sem distinguir maiúsculas/minúsculas; reaplicá-lo não duplica o usuário.
 
 Persistência (BD03): insira um registro, reinicie e conte de novo.
 
