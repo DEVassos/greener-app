@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { Link } from 'react-router';
 import { useCollections } from '../hooks/useCollections';
 import { useMonitoring } from '../hooks/useMonitoring';
 import type { MonitoredService } from '../services/services.types';
@@ -88,6 +89,14 @@ export default function ServiceDetailsDialog({ service, onClose }: Props) {
             {service.cpuPercent === null ? <MissingValue /> : `${formatNumber(service.cpuPercent, 0)}%`}
           </Detail>
         </dl>
+
+        {/* Atalho para a página Emissões já com este serviço escolhido (#190) */}
+        <Link
+          to={`/emissoes?${new URLSearchParams({ servico: service.id })}`}
+          className="btn-outline self-start px-4 py-2 text-sm no-underline"
+        >
+          Ver emissões deste serviço
+        </Link>
 
         <section aria-labelledby="service-history-title" className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

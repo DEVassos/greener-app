@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import AppHeader from '../components/AppHeader';
+import EmissionsChart from '../components/EmissionsChart';
+import type { EmissionsChartMode } from '../components/EmissionsChart';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LastUpdated from '../components/LastUpdated';
@@ -72,6 +74,7 @@ export default function EmissionsPage() {
   const [draftEnd, setDraftEnd] = useState(end);
   const [bucket, setBucket] = useState<EmissionsBucket | null>(null);
   const [live, setLive] = useState(false);
+  const [mode, setMode] = useState<EmissionsChartMode>('intervalo');
   const [formError, setFormError] = useState('');
 
   // A URL também muda pelo "voltar" do navegador: os campos acompanham
@@ -232,6 +235,14 @@ export default function EmissionsPage() {
                     Tempo real
                   </button>
                 </div>
+                <div className="emissions__group emissions__segmented" role="group" aria-label="Forma de exibir">
+                  <button type="button" className="emissions__btn" aria-pressed={mode === 'intervalo'} onClick={() => setMode('intervalo')}>
+                    {data?.bucket === 'coleta' ? 'Por coleta' : 'Por intervalo'}
+                  </button>
+                  <button type="button" className="emissions__btn" aria-pressed={mode === 'acumulado'} onClick={() => setMode('acumulado')}>
+                    Acumulado
+                  </button>
+                </div>
               </div>
               {formError && (
                 <p className="emissions__form-error" role="alert">
@@ -247,7 +258,7 @@ export default function EmissionsPage() {
                     {service.name}
                   </h2>
                   <p className="emissions__subtitle">
-                    Emissão estimada de CO₂e — {periodLabel} ({timeZoneLabel(start)})
+                    Emissão estimada de CO₂e {mode === 'acumulado' ? 'acumulada ' : ''}— {periodLabel} ({timeZoneLabel(start)})
                     {locationOf(service) && ` · ${locationOf(service)}`}
                     {data && ` · ${BUCKET_LABEL[data.bucket].toLowerCase()}`}
                   </p>
@@ -332,10 +343,22 @@ export default function EmissionsPage() {
                 </dl>
               )}
 
-              {data === null && loading && <p className="emissions__empty">Carregando coletas…</p>}
-              {data !== null && points.length === 0 && (
-                <p className="emissions__empty">Nenhuma coleta desta estação no período escolhido.</p>
-              )}
+              <div className="emissions__chart">
+                {data === null && loading && <p className="emissions__empty">Carregando coletas…</p>}
+                {data !== null && points.length === 0 && (
+                  <p className="emissions__empty">Nenhuma coleta desta estação no período escolhido.</p>
+                )}
+                {data !== null && period !== null && points.length > 0 && (
+                  <EmissionsChart
+                    points={points}
+                    bucket={data.bucket}
+                    mode={mode}
+                    fromMs={period.fromMs}
+                    toMs={period.toMs}
+                    stale={stale}
+                  />
+                )}
+              </div>
               {noCalculation && (
                 <p className="emissions__notice">
                   Há coletas no período, mas nenhuma com emissão calculada. O cálculo depende da API de intensidade de

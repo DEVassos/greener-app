@@ -120,6 +120,55 @@ describe('HTTP', () => {
     const { collections, services } = repositories([], []);
     expect((await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/collections?service_id=99')).status).toBe(404);
   });
+
+  it('devolve a série por intervalo com os totais do período', async () => {
+    const seriesRows = [
+      { bucket_start: new Date('2026-10-23T01:30:00.000Z'), collections: '12', failed: '0', not_calculated: '1',
+        energy_kwh: '0.007480167692', co2e_grams: '0.635814253804', co2e_min_grams: '0.007808506456',
+        co2e_max_grams: '0.089094607769', carbon_intensity_gco2e_per_kwh: '85.0000000000000000' },
+      { bucket_start: new Date('2026-10-23T01:45:00.000Z'), collections: '3', failed: '2', not_calculated: '1',
+        energy_kwh: null, co2e_grams: null, co2e_min_grams: null, co2e_max_grams: null, carbon_intensity_gco2e_per_kwh: null },
+      { bucket_start: null, collections: '15', failed: '2', not_calculated: '2',
+        energy_kwh: '0.007480167692', co2e_grams: '0.635814253804', co2e_min_grams: '0.007808506456',
+        co2e_max_grams: '0.089094607769', carbon_intensity_gco2e_per_kwh: '85.0000000000000000' },
+    ];
+    const { collections, services } = repositories(seriesRows, [{ id: '1' }]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/collections/series?service_id=1&from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=15min');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      serviceId: '1', from: '2026-10-23T00:00:00.000Z', to: '2026-10-24T00:00:00.000Z', bucket: '15min',
+      buckets: [
+        { start: '2026-10-23T01:30:00.000Z', collections: 12, failed: 0, notCalculated: 1,
+          energyKwh: 0.007480167692, co2eGrams: 0.635814253804, co2eMinGrams: 0.007808506456, co2eMaxGrams: 0.089094607769 },
+        { start: '2026-10-23T01:45:00.000Z', collections: 3, failed: 2, notCalculated: 1,
+          energyKwh: null, co2eGrams: null, co2eMinGrams: null, co2eMaxGrams: null },
+      ],
+      totals: { collections: 15, failed: 2, notCalculated: 2, energyKwh: 0.007480167692, co2eGrams: 0.635814253804,
+        co2eMaxGrams: 0.089094607769, carbonIntensityGco2ePerKwh: 85 },
+    });
+  });
+  
+  it('retorna 404 para série de serviço inexistente', async () => {
+    const { collections, services } = repositories([], []);
+    expect((await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/collections/series?service_id=99&from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=1h')).status).toBe(404);
+  });
+  
+  it.each([
+    'service_id=1&from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z',
+    'from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=15min',
+    'service_id=1&to=2026-10-24T00:00:00Z&bucket=15min',
+    'service_id=1&from=2026-10-23T00:00:00Z&bucket=15min',
+    'service_id=1&from=2026-10-23T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=1min',
+    'service_id=1&from=2026-10-24T00:00:00Z&to=2026-10-23T00:00:00Z&bucket=1h',
+    'service_id=1&from=2026-09-01T00:00:00Z&to=2026-10-24T00:00:00Z&bucket=1d',
+  ])('recusa série inválida com 400: %s', async query => {
+    const { collections, services } = repositories([], [{ id: '1' }]);
+    const url = await serve(createApp(async () => {}, collections, services));
+    expect((await fetch(url + '/api/collections/series?' + query)).status).toBe(400);
+  });
+
   it('expõe os campos de cálculo e separa não calculado de zero', async () => {
     const base = { service_id: '1', collected_at: new Date('2026-10-14T20:00:00.000Z'), status: 'ok',
       cpu_percent: '10.00', memory_gb: '1.000000000', disk_gb: '2.000000000', network_gb: '3.000000000', error_message: null };
