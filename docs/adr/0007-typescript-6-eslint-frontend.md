@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | proposto |
+| Status | aceito (PR #230) |
 | Data | 2026-10-28 |
 | Decisores | @travensolli (SM, responsável pela #160) |
 | Rastreabilidade | issue #160 (lint no frontend e no CI, apontamento do cliente em `docs/sprints/sprint-1/review.md` § 3) · épico #41 · requisito RP01 · critérios DW01, TP02 |
