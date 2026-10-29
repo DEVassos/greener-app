@@ -1,10 +1,10 @@
 # `frontend` — EcoPulse
 
-Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões de CO₂e dos serviços monitorados. Stack: React 19 + TypeScript (Vite 8), react-router e Tailwind CSS 4.
+Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões de CO₂e dos serviços monitorados. Stack: React 19 + TypeScript 6.0 (Vite 8), react-router e Tailwind CSS 4; lint com ESLint.
 
 ## Requisitos
 
-- Node.js 20.19+ ou 22.12+ (exigência do Vite 8) e npm.
+- Node.js 20.19+ ou 22.13+ (exigência do Vite 8 e do ESLint 10) e npm.
 
 ## Organização das pastas
 
@@ -152,6 +152,7 @@ O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #1
 npm ci              # instalar dependências
 npm run dev         # desenvolvimento com recarga (http://localhost:5173)
 npm run typecheck   # checagem de tipos (tsc --noEmit)
+npm run lint        # ESLint: regras recomendadas de JavaScript, TypeScript e React Hooks (aviso também reprova)
 npm run build       # checagem de tipos + build de produção em dist/
 npm run preview     # serve o build de produção
 npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
@@ -159,7 +160,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 
 ## Como verificar este módulo isoladamente
 
-1. `npm ci && npm run build` → termina sem erros de TypeScript.
+1. `npm ci && npm run lint && npm run build` → termina sem erros de lint nem de TypeScript.
 2. Sem `.env`: `npm run dev` e abrir http://localhost:5173 → faixa "demonstração com dados ilustrativos" e a tabela **Serviços monitorados** com 7 serviços; o link **Configuração** abre `/configuracao`.
 3. Estreitar a janela para menos de 960 px (ou usar o modo dispositivo do navegador) → o menu continua visível, numa segunda linha abaixo da marca, e só a tabela rola na horizontal: a página não ganha rolagem lateral, nem com energia e emissão vazias (serviço sem cálculo disponível).
 4. Na raiz, `cp .env.example .env`. Em um terminal `npm run mock`; em outro `npm run dev` → a faixa some e a tabela mostra os serviços de `GET /api/services` (o terminal do mock registra a chamada como `GET /services`, sem o prefixo `/api`).

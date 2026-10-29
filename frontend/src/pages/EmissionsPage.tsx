@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import AppHeader from '../components/AppHeader';
@@ -77,11 +77,14 @@ export default function EmissionsPage() {
   const [mode, setMode] = useState<EmissionsChartMode>('intervalo');
   const [formError, setFormError] = useState('');
 
-  // A URL também muda pelo "voltar" do navegador: os campos acompanham
-  useEffect(() => {
+  // A URL também muda pelo "voltar" do navegador: os campos acompanham (ajuste na renderização, sem efeito)
+  const urlPeriod = `${start}|${end}`;
+  const [formPeriod, setFormPeriod] = useState(urlPeriod);
+  if (formPeriod !== urlPeriod) {
+    setFormPeriod(urlPeriod);
     setDraftStart(start);
     setDraftEnd(end);
-  }, [start, end]);
+  }
 
   const { data, period, loading, error, updatedAt, refresh } = useEmissions({
     serviceId: service?.id ?? null,
