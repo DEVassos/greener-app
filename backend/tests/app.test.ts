@@ -50,6 +50,59 @@ describe('HTTP', () => {
     expect(response.status).toBe(200); expect((await response.json()).services[0]).toMatchObject({ id: '1', cpuPercent: 51.25,
       energyKwh: 0.000480452625, emissionsG: 0.040838473125 });
   });
+  it('retorna os indicadores agregados para o período solicitado', async () => {
+    const summary = { energy_kwh: '1.2500', co2e_grams: '85.5000', active: '3', unavailable: '1', without_metrics: '2', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      period: { from: '2026-10-20T00:00:00.000Z', to: '2026-10-21T00:00:00.000Z' },
+      energyKwh: 1.25, co2eGrams: 85.5,
+      services: { active: 3, unavailable: 1, withoutMetrics: 2, removed: 0 },
+    });
+  });
+  it('preserva null nos totais quando não houve cálculo disponível no período', async () => {
+    const summary = { energy_kwh: null, co2e_grams: null, active: '1', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ energyKwh: null, co2eGrams: null });
+  });
+  it('mantém zero quando cálculos disponíveis totalizam zero', async () => {
+    const summary = { energy_kwh: '0', co2e_grams: '0', active: '1', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services))
+      + '/api/services/summary?from=2026-10-20T00:00:00Z&to=2026-10-21T00:00:00Z');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ energyKwh: 0, co2eGrams: 0 });
+  });
+  it('usa as últimas 24 horas quando o período do resumo é omitido', async () => {
+    const summary = { energy_kwh: null, co2e_grams: null, active: '0', unavailable: '0', without_metrics: '0', removed: '0' };
+    const { collections, services } = repositories([], [summary]);
+    const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/services/summary');
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(new Date(body.period.to).getTime() - new Date(body.period.from).getTime()).toBe(24 * 60 * 60 * 1000);
+  });
+  it('rejeita data de calendário inexistente nos filtros do resumo', async () => {
+    const { collections, services } = repositories();
+    const base = await serve(createApp(async () => {}, collections, services));
+    const response = await fetch(base + '/api/services/summary?from=2026-02-30T00:00:00Z&to=2026-03-03T00:00:00Z');
+    expect(response.status).toBe(400);
+  });
+  it.each([
+    ['só from', 'from=2026-10-20T00:00:00Z'],
+    ['from igual a to', 'from=2026-10-20T00:00:00Z&to=2026-10-20T00:00:00Z'],
+    ['from depois de to', 'from=2026-10-21T00:00:00Z&to=2026-10-20T00:00:00Z'],
+    ['período acima de 31 dias', 'from=2026-09-01T00:00:00Z&to=2026-10-03T00:00:00Z'],
+  ])('rejeita %s no resumo com 400 VALIDATION_ERROR', async (_case, query) => {
+    const { collections, services } = repositories();
+    const response = await fetch(await serve(createApp(async () => {}, collections, services)) + '/api/services/summary?' + query);
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe('VALIDATION_ERROR');
+  });
   it('compara serviços no período informado', async () => {
     const rows = [
       { id: '1', name: 'Alpha', region: 'Sul', collections: '2', failed: '0', not_calculated: '0', avg_cpu_percent: '20', avg_memory_gb: '1.5', avg_disk_gb: '2', avg_network_gb: '0.3', energy_kwh: '0.02', co2e_grams: '1.7' },

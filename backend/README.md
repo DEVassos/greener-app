@@ -169,6 +169,6 @@ INSERT INTO users (id, email, password_hash) OVERRIDING SYSTEM VALUE
 VALUES (9007199254740993, 'review@example.test', '$2b$10$' || repeat('a', 53));
 ```
 
-As variáveis de teste pertencem só ao processo de testes, não à configuração do backend, e as suítes alteram dados. A suíte de repositories ainda não foi reexecutada depois que o #139 passou a gravar os campos de cálculo; o ajuste das coletas de teste está previsto com a [#140](https://github.com/DEVassos/greener-app/issues/140) (Sprint 2).
+As variáveis de teste pertencem só ao processo de testes, não à configuração do backend, e as suítes alteram dados. A suíte de repositories voltou a passar em 28/10 (7/7, #175): as coletas de teste ganharam os campos de cálculo que o #139 tornou obrigatórios, e um caso cobre `findSummary` com 2 serviços e várias coletas cada.
 
 Verificações registradas na Sprint 1: 31/31 testes com PostgreSQL descartável em 11/10 (#94), 82/82 e o snapshot combinado 125/125 em 13/10 (#99), e o compose integrado com persistência após restart em 14/10 (#113). Detalhes em [`docs/sprints/sprint-1.md`](../docs/sprints/sprint-1.md) § Verificações realizadas.
