@@ -28,7 +28,6 @@ export default function DashboardPage() {
   const [comparisonLoading, setComparisonLoading] = useState(false);
   useEffect(() => {
     if (isDemoMode) return;
-    setComparisonLoading(false);
     const controller = new AbortController(); const to = new Date(); const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
     const previousFrom = new Date(from.getTime() - (to.getTime() - from.getTime()));
     void (async () => {
@@ -46,7 +45,8 @@ export default function DashboardPage() {
         } catch (reason: unknown) {
           if (!controller.signal.aborted) setComparisonError(reason instanceof Error ? reason.message : 'Não foi possível carregar a comparação.');
         } finally {
-          if (!controller.signal.aborted) setComparisonLoading(false);
+          // Também quando cancelada: o ciclo seguinte não herda "Comparando…" de uma busca que não terminou
+          setComparisonLoading(false);
         }
       } catch (reason: unknown) {
         if (!controller.signal.aborted) setSummaryError(reason instanceof Error ? reason.message : 'Não foi possível carregar os indicadores.');
