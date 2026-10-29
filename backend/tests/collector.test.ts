@@ -79,11 +79,12 @@ it('respeita prazo distinto, alteração, último intervalo após falha e retorn
 });
 it('isola falha de um serviço e registra 404/500 sem métricas falsas', async () => {
   vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }, { ...a, id: 'c' }, { ...a, id: 'd' }]);
-  vi.mocked(api.getServiceMetrics).mockRejectedValueOnce(new Error('rede'))
+  vi.mocked(api.getServiceMetrics).mockRejectedValueOnce(new ExternalApiError('API de métricas indisponível.'))
     .mockResolvedValueOnce({ status: 'sem_metricas' }).mockResolvedValueOnce({ status: 'indisponivel' })
     .mockResolvedValueOnce(ok);
   await worker.run();
   expect(insert.mock.calls.map(call => call[0].status)).toEqual(['erro', 'sem_metricas', 'erro', 'ok']);
+  expect(insert.mock.calls[0][0].error_message).toBe('API de métricas indisponível.');
   expect(insert.mock.calls.slice(0, 3).every(call => call[0].cpu_percent === null)).toBe(true);
   expect(insert.mock.calls[3][0]).toMatchObject({ status: 'ok', cpu_percent: '50.00' });
   expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(1, stored.id, 'indisponivel');
@@ -122,6 +123,7 @@ it('rollback de persistência não impede o serviço seguinte', async () => {
   vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }]);
   insert.mockRejectedValueOnce(new Error('banco'));
   await worker.run(); expect(insert).toHaveBeenCalledTimes(2);
+  expect(report).toHaveBeenCalledWith(expect.stringContaining('banco'));
   expect(ServiceRepository.prototype.updateStatus).toHaveBeenCalledOnce(); expect(report).toHaveBeenCalledOnce();
 });
 it('observação inválida vira diagnóstico e usa recuperação configurada até sucesso', async () => {
