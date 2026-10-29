@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import AppHeader from '../components/AppHeader';
@@ -110,12 +110,15 @@ export default function ComparePage() {
   const [draftEnd, setDraftEnd] = useState(end);
   const [formError, setFormError] = useState('');
 
-  // A URL também muda pelo "voltar" do navegador: o formulário acompanha
-  useEffect(() => {
+  // A URL também muda pelo "voltar" do navegador: o formulário acompanha (ajuste na renderização, sem efeito)
+  const urlFilter = `${idsKey}|${start}|${end}`;
+  const [formFilter, setFormFilter] = useState(urlFilter);
+  if (formFilter !== urlFilter) {
+    setFormFilter(urlFilter);
     setDraftIds(idsKey === '' ? [] : idsKey.split(','));
     setDraftStart(start);
     setDraftEnd(end);
-  }, [idsKey, start, end]);
+  }
 
   const { data, loading, error, refresh } = useComparison(ids, start, end);
   const extremes = data ? co2eExtremes(data.services) : null;
