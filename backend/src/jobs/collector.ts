@@ -26,6 +26,9 @@ function unavailableCalculation(message: string) {
   return { calculation_status: 'indisponivel' as const, carbon_intensity_gco2e_per_kwh: null,
     power_watts: null, energy_kwh: null, co2e_grams: null, calculation_error_message: message };
 }
+function failureMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Erro desconhecido.';
+}
 
 /** Arredonda à escala da coluna: a API manda resíduo de float (51.248000000000005); o JSON bruto guarda o original. */
 function coordinate(value: number, precision: number): string {
@@ -89,8 +92,8 @@ export class Collector implements CollectorLifecycle {
   }
   run(): Promise<void> {
     if (this.stopping) return Promise.resolve();
-    return this.active ??= this.collect().catch(() => {
-      if (!this.stopping) this.report('Falha no ciclo de descoberta/reconciliação; cadastro preservado.');
+    return this.active ??= this.collect().catch((error: unknown) => {
+      if (!this.stopping) this.report(`Falha no ciclo de descoberta/reconciliação; cadastro preservado. ${failureMessage(error)}`);
     }).finally(() => { this.active = undefined; });
   }
   async stop(): Promise<void> {
@@ -158,8 +161,8 @@ export class Collector implements CollectorLifecycle {
           if (!await new ServiceRepository(tx).updateStatus(service.id, status))
             throw new ValidationError('Serviço da coleta não encontrado.');
         });
-      } catch {
-        this.report('Falha na persistência da coleta; transação desfeita, próximos serviços continuam.');
+      } catch (error) {
+        this.report(`Falha na persistência da coleta; transação desfeita, próximos serviços continuam. ${failureMessage(error)}`);
       }
       this.deadlines.set(service.external_id, { interval, due: this.now() + interval });
     }
