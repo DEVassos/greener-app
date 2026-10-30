@@ -159,15 +159,23 @@ Com o compose da raiz (`cp .env.example .env && docker compose up --build -d`):
 
 ## Testes
 
-`npm test` (Vitest) cobre configuração, boot e encerramento, rotas e erros HTTP, CORS, os dois clientes de API (sucesso, formato inválido, 404, 500, rede, timeout, cancelamento e cache), o coletor (descoberta, prazos, isolamento de falhas, rollback e cálculo disponível ou indisponível) e o `CarbonCalculator`. O CI roda `npx tsc --noEmit` e `npm test` a cada PR, e o job `compose` constrói a imagem, o que executa o build.
+`npm test` (Vitest) cobre configuração, boot e encerramento, rotas e erros HTTP, CORS, os dois clientes de API (sucesso, formato inválido, 404, 500, rede, timeout, cancelamento e cache), o coletor (descoberta, prazos, isolamento de falhas, rollback e cálculo disponível ou indisponível) e o `CarbonCalculator`. O job `backend` do CI roda `npx tsc --noEmit` e `npm test` a cada PR com um PostgreSQL 16 descartável, então as suítes de integração também executam e nenhum teste fica pulado (#162). O job `compose` constrói a imagem, o que executa o build.
 
-As suítes de integração com PostgreSQL real (`tests/repositories.integration.test.ts` e `tests/collector.integration.test.ts`) são puladas sem as variáveis `REPOSITORY_TEST_DATABASE_URL` e `WORKER_TEST_DATABASE_URL`. Para rodá-las, use bancos novos, distintos e descartáveis, com `database/schema.sql` aplicado; a suíte de repositories exige antes a fixture abaixo (hash sintético só no formato exigido pelo CHECK, não credencial):
+As suítes de integração com PostgreSQL real (`tests/repositories.integration.test.ts` e `tests/collector.integration.test.ts`) leem `REPOSITORY_TEST_DATABASE_URL` e `WORKER_TEST_DATABASE_URL` e são puladas sem elas. Cada uma precisa de um banco próprio, novo e descartável, com `database/schema.sql` aplicado; a fixture fica no próprio teste (`tests/*-test.repository.ts`): IDs de `services` acima de `Number.MAX_SAFE_INTEGER` e, na de repositories, um usuário com hash sintético só no formato exigido pelo CHECK, não credencial. No CI, o job `backend` cria os bancos `repositories_test` e `worker_test` e define as duas variáveis. Para rodar localmente, a partir de `backend/`:
 
-```sql
-SELECT setval(pg_get_serial_sequence('services', 'id'), 9007199254740993, false);
-INSERT INTO users (id, email, password_hash) OVERRIDING SYSTEM VALUE
-VALUES (9007199254740993, 'review@example.test', '$2b$10$' || repeat('a', 53));
+```bash
+docker run -d --rm --name ecopulse-testes -e POSTGRES_PASSWORD=postgres -p 55432:5432 postgres:16
+docker exec ecopulse-testes sh -c 'until pg_isready -h 127.0.0.1 -U postgres -q; do sleep 1; done'
+for db in repositories_test worker_test; do
+  docker exec ecopulse-testes psql -U postgres -qc "CREATE DATABASE $db"
+  docker exec -i ecopulse-testes psql -U postgres -d "$db" -v ON_ERROR_STOP=1 -q < ../database/schema.sql
+done
+REPOSITORY_TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/repositories_test \
+WORKER_TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/worker_test npm test
+docker stop ecopulse-testes   # o --rm apaga o container e os dois bancos
 ```
+
+Esperado: `tests/repositories.integration.test.ts (7 tests)` e `tests/collector.integration.test.ts (1 test)` na lista e o resumo `Tests` só com `passed`, sem `skipped`. Para repetir, recrie o container: as suítes deixam dados nos bancos. Se a porta 55432 estiver ocupada, troque-a no `-p` e nas duas URLs.
 
 As variáveis de teste pertencem só ao processo de testes, não à configuração do backend, e as suítes alteram dados. A suíte de repositories voltou a passar em 28/10 (7/7, #175): as coletas de teste ganharam os campos de cálculo que o #139 tornou obrigatórios, e um caso cobre `findSummary` com 2 serviços e várias coletas cada.
 
