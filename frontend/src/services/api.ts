@@ -13,6 +13,16 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Resposta que chegou, mas fora do contrato de docs/api.md (corpo que não é JSON, campo ausente ou de outro tipo).
+ * `field` é o caminho do primeiro campo recusado, como `services[3].id`, para quem investiga saber onde olhar.
+ */
+export function unexpectedFormat(field?: string): ApiError {
+  const where = field ? ` (${field})` : '';
+  // status 0: a requisição deu certo, mas o conteúdo não é o combinado em docs/api.md
+  return new ApiError(`O servidor respondeu num formato inesperado${where}. Avise a equipe do backend.`, 0);
+}
+
 const DEFAULT_MESSAGES: Record<number, string> = {
   401: 'Sua sessão expirou. Entre novamente.',
   403: 'Você não tem permissão para esta ação.',
