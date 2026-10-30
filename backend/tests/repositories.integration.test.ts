@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDatabase } from '../src/db/connection';
 import { withTransaction } from '../src/db/transaction.repository';
 import { ServiceRepository } from '../src/modules/services/services.repository';
@@ -6,8 +6,9 @@ import { CollectionRepository } from '../src/modules/collections/collections.rep
 import { UserRepository } from '../src/modules/usuarios/usuarios.repository';
 import type { DiscoveredService, NewCollection } from '../src/shared/persistence.types';
 import { DatabaseError } from '../src/shared/errors';
+import { prepare } from './repositories-test.repository';
 
-// URL exclusiva de teste; schema e fixture aplicados antes em banco descartável vazio.
+// URL exclusiva de teste; schema aplicado antes em banco descartável vazio, fixture no beforeAll.
 const url = process.env.REPOSITORY_TEST_DATABASE_URL;
 describe.skipIf(!url)('repositories em PostgreSQL descartável', () => {
   const db = createDatabase(url ?? 'postgresql://localhost/test');
@@ -24,6 +25,7 @@ describe.skipIf(!url)('repositories em PostgreSQL descartável', () => {
     region_code: 'br-sudeste', status: 'ok', collection_interval_seconds: 27, cpu_percent: '62.67',
     memory_gb: '3.17', disk_gb: '19.26', network_gb: '0.45', error_message: null, ...notCalculated,
     metrics: { collection_interval_seconds: 27, metrics: { cpu_percent: 62.67, memory_gb: 3.17, disk_gb: 19.26, network_gb: 0.45 } } });
+  beforeAll(() => prepare(db));
   afterAll(() => db.close());
   it('preserva bigint, upsert, datas, ausência/reaparecimento e histórico', async () => {
     const a = await services.upsert(service("a' OR '1'='1"), first);
