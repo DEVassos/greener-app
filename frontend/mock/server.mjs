@@ -11,6 +11,8 @@ const PORT = Number(process.env.MOCK_PORT ?? 3000);
 /**
  * Cenário de GET /services, para ver os estados da tela:
  *   (padrão) lista normal · MOCK_SERVICES=vazio lista vazia · MOCK_SERVICES=erro responde 500
+ *   MOCK_SERVICES=sem-id: Checkout Worker sem `id` · MOCK_SERVICES=cpu-texto: CPU do Fraud Detector em texto
+ *   (os dois últimos respondem 200 fora do contrato, e a tela deve tratá-los como falha: #161)
  */
 const SERVICES_SCENARIO = process.env.MOCK_SERVICES ?? 'normal';
 
@@ -111,6 +113,9 @@ const routes = {
   'GET /services': async (_req, res) => {
     if (SERVICES_SCENARIO === 'erro') return send(res, 500, { error: { code: 'INTERNAL_ERROR', message: 'Falha simulada no backend falso.' } });
     const services = SERVICES_SCENARIO === 'vazio' ? [] : SERVICES.map(readService);
+    const checkout = services.find((service) => service.id === 'checkout-worker');
+    if (SERVICES_SCENARIO === 'sem-id' && checkout) delete checkout.id;
+    if (SERVICES_SCENARIO === 'cpu-texto' && services[0]) services[0].cpuPercent = String(services[0].cpuPercent);
     return send(res, 200, { services, period: 'última 1 hora' });
   },
 
@@ -190,5 +195,5 @@ createServer(async (req, res) => {
   return route(req, res);
 }).listen(PORT, () => {
   console.log(`Backend falso em http://localhost:${PORT}`);
-  console.log(`GET /services: cenário "${SERVICES_SCENARIO}" (MOCK_SERVICES=normal|vazio|erro)`);
+  console.log(`GET /services: cenário "${SERVICES_SCENARIO}" (MOCK_SERVICES=normal|vazio|erro|sem-id|cpu-texto)`);
 });
