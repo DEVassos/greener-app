@@ -48,7 +48,11 @@ async function readErrorMessage(response: Response): Promise<string> {
   return DEFAULT_MESSAGES[response.status] ?? `Falha na requisição (HTTP ${response.status}).`;
 }
 
-/** Faz a requisição e devolve o JSON da resposta; falhas viram ApiError com mensagem em pt-BR. */
+/**
+ * Faz a requisição e devolve o JSON da resposta; falhas viram ApiError com mensagem em pt-BR.
+ * O JSON não é conferido aqui: o tipo `T` some no build. Quem precisa de garantia pede `unknown` e confere o
+ * formato com os leitores de `contract.ts` (#161), como `services.service.ts` e `collections.service.ts`.
+ */
 export async function apiRequest<T>(path: string, { method = 'GET', body, signal }: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -69,5 +73,11 @@ export async function apiRequest<T>(path: string, { method = 'GET', body, signal
 
   if (!response.ok) throw new ApiError(await readErrorMessage(response), response.status);
   if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
+    // 2xx com corpo que não é JSON (página HTML de um proxy, corpo cortado): não há dado para mostrar
+    throw unexpectedFormat();
+  }
 }
