@@ -1,8 +1,8 @@
-// Contrato provisório de GET /services (US01 / US04).
-// Ajustar quando o backend documentar a rota em docs/api.md.
+// Contrato de GET /api/services (docs/api.md § GET /api/services), conferido em services.service.ts (#161).
 
 /** Estados de monitoramento de um serviço (mesmos nomes do backend). */
-export type ServiceStatus = 'ativo' | 'indisponivel' | 'sem_metricas' | 'removido';
+export const SERVICE_STATUSES = ['ativo', 'indisponivel', 'sem_metricas', 'removido'] as const;
+export type ServiceStatus = (typeof SERVICE_STATUSES)[number];
 
 export interface MonitoredService {
   id: string;

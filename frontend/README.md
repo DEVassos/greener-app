@@ -14,7 +14,7 @@ Interface web (dashboard EcoPulse) que mostra a energia estimada e as emissões 
 | `src/App.tsx` | rotas: `/` (dashboard, público), `/emissoes` (emissões por estação, pública), `/comparacao` (comparação entre serviços, pública) e `/configuracao` (configuração do monitoramento; a proteção por login é escopo da #25); envolve tudo no `MonitoringProvider` |
 | `src/pages/` | telas (`DashboardPage`, `EmissionsPage`, `ComparePage`, `SettingsPage`) |
 | `src/components/` | componentes reutilizáveis e sem HTTP (`AppHeader`, `Brand`, `KpiPanel`, `MetricTile`, `ServicesTable`, `ServiceDetailsDialog`, `CollectionsHistoryTable`, `CpuHistoryChart`, `CompareChart`, `StatusBadge`, `LastUpdated`, `MissingValue`, `LoadingState`, `ErrorState`, `UpdateFailedBanner`, `EmptyState`), com `.css` próprio ou classes do Tailwind |
-| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta), `compare.service.ts` (`GET /services/compare`); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração |
+| `src/services/` | **único lugar com HTTP**: `api.ts` (cliente base, `VITE_API_URL`, erros → `ApiError`), `contract.ts` (conferência das respostas, ver [abaixo](#conferência-das-respostas-da-api-161)), `services.service.ts` (`GET /services`), `collections.service.ts` (`GET /collections` de um serviço), `emissions.service.ts` (série de emissões: `GET /collections` e `GET /collections/series`, com conferência da resposta), `compare.service.ts` (`GET /services/compare`); `demo-data.ts` e `emissions.demo.ts` com os dados ilustrativos do modo demonstração; testes em `*.test.ts` ao lado do arquivo testado (vitest) |
 | `src/contexts/` · `src/providers/` | `MonitoringContext`/`MonitoringProvider`: intervalo da atualização automática |
 | `src/hooks/` | `useMonitoring`, `usePolling` (atualização periódica sem recarregar a página), `useServices` (lista de serviços com polling, erro e atualizar agora), `useCollections` (histórico de coletas de um serviço, com o mesmo polling), `useEmissions` (série de emissões, com tempo real opcional), `useComparison` (comparação entre serviços, uma busca por filtro) |
 | `src/utils/` | funções puras: formatação pt-BR (`format.ts`), contagem dos serviços por estado (`summary.ts`), trechos do gráfico da CPU (`cpu-chart.ts`) e datas do filtro, agrupamento, resumo e formatação das emissões (`emissions.ts`) |
@@ -41,6 +41,14 @@ Lidas do `.env` da **raiz** do repositório (modelo em `.env.example`; `envDir: 
 - Durante uma busca o botão fica com `aria-disabled` (não `disabled`), para quem navega pelo teclado não perder o foco a cada ciclo. O selo não é `role="status"`: o horário não é anunciado a cada ciclo, e a falha é anunciada pelo aviso de erro.
 - Se uma atualização falhar com dados na tela, eles continuam visíveis, o selo fica laranja ("Desatualizado desde…") e, acima dos cards, aparece a faixa compacta laranja `UpdateFailedBanner` (cerca de 40 px): a mensagem do erro, "Mostrando dados de HH:MM:SS." e **Tentar novamente**. A mensagem é a que o hook entrega: "Não foi possível conectar ao servidor…" quando a rede cai, ou a do corpo do erro num 500. O aviso grande (`ErrorState`) fica só para a falha sem nenhum dado.
 - A faixa é `role="status"`, e não `alert`: a região viva fica montada enquanto há dados, e o leitor de tela anuncia a falha uma vez, e não a cada ciclo do polling.
+
+## Conferência das respostas da API (#161)
+
+- Os tipos do TypeScript somem no build ([erased types](https://www.typescriptlang.org/docs/handbook/2/basic-types.html#erased-types)) e não garantem o formato que o servidor devolveu. Por isso `services.service.ts` e `collections.service.ts` pedem a resposta como `unknown` e a conferem contra [docs/api.md](../docs/api.md) antes de entregá-la aos hooks.
+- A conferência usa os leitores de `src/services/contract.ts`, sem biblioteca. Cada campo é checado pelo tipo do contrato: id em texto não vazio, medidas como número finito ≥ 0 ou `null`, datas em ISO 8601 e estados só entre os valores conhecidos. Campo que aceita `null` precisa vir na resposta. Os campos de cálculo das coletas (#188) podem faltar.
+- Um único item fora do contrato recusa a resposta inteira com `ApiError`. A tela segue o fluxo de falha que já tem: com dados na tela, eles continuam com "Desatualizado desde…" e a faixa com **Tentar novamente**; sem dados, aparece só o aviso grande. O item inválido nunca entra na tabela.
+- A mensagem diz o primeiro campo recusado, para quem investiga saber onde olhar: "O servidor respondeu num formato inesperado (services[3].id). Avise a equipe do backend." Um 2xx com corpo que não é JSON gera a mesma mensagem, sem o campo.
+- `fetchServicesSummary` e `compare.service.ts` ainda não conferem a resposta. A página Emissões confere a sua, mas deixa de fora só o item inválido e avisa quantos foram descartados.
 
 ## Cards de estado
 
@@ -124,6 +132,7 @@ O backend real já expõe `GET /api/services` e `GET /api/collections` (#111, #1
 | `GET /api/collections/series` | `service_id`, `from`, `to` (ISO 8601 com hora, até 31 dias) e `bucket` (`15min`, `1h` ou `1d`) | `200 { serviceId, from, to, bucket, buckets: [...], totals }` (contrato da #189), com as mesmas coletas da rota acima somadas por intervalo e `totals.carbonIntensityGco2ePerKwh` como média das coletas calculadas; período fechado em `from` e aberto em `to`; parâmetro inválido → 400, serviço desconhecido → 404 |
 
 - `MOCK_SERVICES=vazio` ou `MOCK_SERVICES=erro` faz `GET /api/services` devolver lista vazia ou HTTP 500 com `{ "error": { "code", "message" } }`, o formato de erro do backend (Git Bash: `MOCK_SERVICES=vazio npm run mock`; PowerShell: `$env:MOCK_SERVICES='vazio'; npm run mock`).
+- `MOCK_SERVICES=sem-id` e `MOCK_SERVICES=cpu-texto` respondem 200 **fora do contrato** (#161): o **Checkout Worker** vem sem `id`, ou a CPU do **Fraud Detector** vem em texto (`"68"`). Servem para ver a tela tratar a resposta como falha.
 - O terminal do mock mostra cada requisição recebida.
 
 ## Estilos (Tailwind CSS)
@@ -153,6 +162,7 @@ npm ci              # instalar dependências
 npm run dev         # desenvolvimento com recarga (http://localhost:5173)
 npm run typecheck   # checagem de tipos (tsc --noEmit)
 npm run lint        # ESLint: regras recomendadas de JavaScript, TypeScript e React Hooks (aviso também reprova)
+npm test            # testes de unidade (vitest), também no CI
 npm run build       # checagem de tipos + build de produção em dist/
 npm run preview     # serve o build de produção
 npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
@@ -160,7 +170,7 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 
 ## Como verificar este módulo isoladamente
 
-1. `npm ci && npm run lint && npm run build` → termina sem erros de lint nem de TypeScript.
+1. `npm ci && npm run lint && npm test && npm run build` → termina sem erros de lint nem de TypeScript, e o vitest mostra todos os testes passando.
 2. Sem `.env`: `npm run dev` e abrir http://localhost:5173 → faixa "demonstração com dados ilustrativos" e a tabela **Serviços monitorados** com 7 serviços; o link **Configuração** abre `/configuracao`.
 3. Estreitar a janela para menos de 960 px (ou usar o modo dispositivo do navegador) → o menu continua visível, numa segunda linha abaixo da marca, e só a tabela rola na horizontal: a página não ganha rolagem lateral, nem com energia e emissão vazias (serviço sem cálculo disponível).
 4. Na raiz, `cp .env.example .env`. Em um terminal `npm run mock`; em outro `npm run dev` → a faixa some e a tabela mostra os serviços de `GET /api/services` (o terminal do mock registra a chamada como `GET /services`, sem o prefixo `/api`).
@@ -204,3 +214,5 @@ npm run mock        # backend falso em http://localhost:3000 (desenvolvimento)
 42. Na comparação do passo 39 → abaixo da tabela, os gráficos **Energia (kWh)** e **CO₂e (g)**, com os três serviços na ordem das colunas e os mesmos valores da tabela. No CO₂e, **Fraud Detector** tem a barra laranja e "↑" antes do nome, e **Reporting Batch**, a verde com "↓"; a legenda abaixo dos gráficos explica as setas. **Inventory Sync** aparece como "sem cálculo", sem barra, nos dois gráficos.
 43. Com o backend real, na data sem coletas do passo 40 → os dois gráficos mostram "sem coletas" em cada serviço, sem trilho nem barra, e a legenda fica sem as setas. Com dados, conferir os valores com `curl -s "http://localhost:3000/api/services/compare?ids=1,2&from=<início em ISO>&to=<fim em ISO>" | jq '.services[] | {name, energyKwh, co2eGrams}'` → os gráficos mostram os mesmos números arredondados como na tabela (4 casas em kWh e 2 em g).
 44. Com 375 px de largura → os dois gráficos ficam um embaixo do outro, na largura da tela, sem rolagem lateral da página. Com um leitor de tela (ou no DevTools, em Accessibility), cada gráfico é uma imagem com título ("Energia (kWh) por serviço") e descrição com o valor de cada serviço.
+45. Com o `.env` do passo 4, `MOCK_SERVICES=sem-id npm run mock` e recarregar o dashboard → a tabela e os cards de estado não aparecem; aparece o aviso grande "O servidor respondeu num formato inesperado (services[3].id). Avise a equipe do backend." com **Tentar novamente**, e o selo fica em "Aguardando a primeira atualização". O painel de indicadores vem de outra rota, `GET /services/summary`, e não depende desta resposta.
+46. Com o mock normal no ar, carregar o dashboard; depois parar o mock, subir `MOCK_SERVICES=cpu-texto npm run mock` e clicar em **Atualizar agora** → a tabela continua com os dados anteriores, o selo fica laranja ("Desatualizado desde …") e a faixa laranja diz "O servidor respondeu num formato inesperado (services[0].cpuPercent). Avise a equipe do backend. Mostrando dados de HH:MM:SS.". A linha do **Fraud Detector** mantém a CPU da busca anterior, sem o texto. Subir o mock normal e clicar em **Tentar novamente** → a faixa some e o selo volta a "Última atualização".

@@ -1,10 +1,12 @@
-// Contrato de GET /api/collections (docs/api.md § GET /api/collections).
+// Contrato de GET /api/collections (docs/api.md § GET /api/collections), conferido em collections.service.ts (#161).
 
 /** Resultado de uma coleta: métricas lidas, falha na chamada ou serviço sem métricas. */
-export type CollectionStatus = 'ok' | 'erro' | 'sem_metricas';
+export const COLLECTION_STATUSES = ['ok', 'erro', 'sem_metricas'] as const;
+export type CollectionStatus = (typeof COLLECTION_STATUSES)[number];
 
 /** Estado do cálculo de energia/CO₂e da coleta (`collections.calculation_status`). */
-export type CalculationStatus = 'nao_calculado' | 'disponivel' | 'indisponivel';
+export const CALCULATION_STATUSES = ['nao_calculado', 'disponivel', 'indisponivel'] as const;
+export type CalculationStatus = (typeof CALCULATION_STATUSES)[number];
 
 export interface ServiceCollection {
   id: string;

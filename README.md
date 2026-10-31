@@ -60,6 +60,12 @@ O desenvolvimento acontece na branch `develop`; cada funcionalidade entra nesta 
 
   ![Selo de última atualização no cabeçalho](docs/img/sprint-2-ultima-atualizacao.png)
 
+- **RNF04 — Resposta da API conferida antes de aparecer na tela (#161):** o frontend confere o formato de `GET /api/services` e `GET /api/collections` contra o contrato de [docs/api.md](docs/api.md) a cada busca. Um item sem `id` ou com CPU em texto faz a busca ser tratada como falha: os dados anteriores continuam com "Desatualizado desde …" e **Tentar novamente**, e o item inválido não aparece. Atende ao apontamento do cliente na review da Sprint 1. Como verificar em [frontend/README.md](frontend/README.md#conferência-das-respostas-da-api-161).
+
+  ![Dashboard depois de uma resposta com a CPU em texto](docs/img/sprint-2-resposta-fora-do-contrato.png)
+
+  _Backend falso com `MOCK_SERVICES=cpu-texto` em 30/10/2026, 11h50: a faixa laranja aponta o campo recusado e a tabela mantém os dados de 11:50:47. O aviso "Rota não existe no backend falso." é do painel de indicadores: nessa data, o backend falso ainda não respondia `GET /services/summary` (#239)._
+
   _Selo em 21/10/2026, com o backend real (`docker compose`)._
 
 - **RF11, RNF02 — Atualização automática sem recarregar (#100, #114):** o dashboard busca os dados de novo a cada intervalo (`VITE_REFRESH_INTERVAL_MS`, padrão 30 s), pausa com a aba oculta e tem o botão **Atualizar agora**; se uma atualização falha, os dados anteriores continuam na tela e aparece o erro com **Tentar novamente**.
