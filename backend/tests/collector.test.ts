@@ -25,6 +25,7 @@ beforeEach(() => {
   database = { query, close: vi.fn(), withClient: async work => work({ query }) } as Database;
   vi.spyOn(ServiceRepository.prototype, 'upsert').mockImplementation(async s => ({ ...stored, ...s }));
   vi.spyOn(ServiceRepository.prototype, 'markMissingAsRemoved').mockResolvedValue([]);
+  vi.spyOn(ServiceRepository.prototype, 'findAll').mockResolvedValue([]);
   vi.spyOn(ServiceRepository.prototype, 'updateStatus').mockResolvedValue(stored);
   insert = vi.spyOn(CollectionRepository.prototype, 'insert').mockImplementation(async r => ({ ...r } as never));
   api = { listServices: vi.fn(async () => [a]), getServiceMetrics: vi.fn(async () => ok) };
@@ -62,6 +63,41 @@ it('falha de descoberta preserva cadastro; vazia válida reconcilia sem coleta',
 it('descoberta inválida inteira impede reconciliação parcial', async () => {
   vi.mocked(api.listServices).mockResolvedValueOnce([a, { ...a, id: 'b', location: { ...a.location, latitude: 91 } }]);
   await worker.run(); expect(ServiceRepository.prototype.upsert).not.toHaveBeenCalled();
+});
+it('falha global registra diagnóstico nos conhecidos, preserva removidos e recupera no próximo prazo', async () => {
+  const known = { ...stored, status: 'ativo' as const };
+  vi.mocked(ServiceRepository.prototype.findAll).mockResolvedValue([
+    known, { ...known, id: '2', external_id: 'b', status: 'sem_metricas' },
+    { ...known, id: '3', external_id: 'removed', status: 'removido' },
+  ]);
+  vi.mocked(api.listServices).mockRejectedValueOnce(new ExternalApiError('HTTP 503 em /services'));
+  await worker.run();
+  expect(ServiceRepository.prototype.upsert).not.toHaveBeenCalled();
+  expect(ServiceRepository.prototype.markMissingAsRemoved).not.toHaveBeenCalled();
+  expect(api.getServiceMetrics).not.toHaveBeenCalled();
+  expect(insert).toHaveBeenCalledTimes(2);
+  for (const [reading] of insert.mock.calls) expect(reading).toMatchObject({ status: 'erro',
+    error_message: expect.stringContaining('Descoberta indisponível'), metrics: {}, cpu_percent: null,
+    energy_kwh: null, co2e_grams: null, calculation_status: 'nao_calculado' });
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(1, known.id, 'indisponivel');
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenNthCalledWith(2, '2', 'indisponivel');
+  vi.mocked(ServiceRepository.prototype.findAll).mockResolvedValue([{ ...known, status: 'indisponivel' }]);
+  vi.mocked(api.listServices).mockRejectedValueOnce(new ExternalApiError('HTTP 503 em /services'));
+  now = 500; await worker.run(); expect(insert).toHaveBeenCalledTimes(2);
+  now = 1000; await worker.run();
+  expect(insert).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'ok' }));
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenLastCalledWith(known.id, 'ativo');
+});
+it('falha de persistência durante queda global não impede diagnóstico dos demais conhecidos', async () => {
+  vi.mocked(ServiceRepository.prototype.findAll).mockResolvedValue([
+    { ...stored, status: 'ativo' }, { ...stored, id: '2', external_id: 'b', status: 'ativo' },
+  ]);
+  vi.mocked(api.listServices).mockRejectedValueOnce(new ExternalApiError('Agregador fora do ar'));
+  insert.mockRejectedValueOnce(new Error('banco'));
+  await worker.run();
+  expect(insert).toHaveBeenCalledTimes(2);
+  expect(ServiceRepository.prototype.updateStatus).toHaveBeenCalledExactlyOnceWith('2', 'indisponivel');
+  expect(report).toHaveBeenCalledWith(expect.stringContaining('transação desfeita'));
 });
 it('respeita prazo distinto, alteração, último intervalo após falha e retorno imediato', async () => {
   vi.mocked(api.listServices).mockResolvedValue([a, { ...a, id: 'b' }]);
