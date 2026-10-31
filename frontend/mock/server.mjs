@@ -91,6 +91,36 @@ function serviceCollections(service, { from = 0, to = Date.now(), limit }) {
 
 const BUCKETS = { '15min': 15 * 60_000, '1h': 60 * 60_000, '1d': 24 * 60 * 60_000 };
 const MAX_SPAN_MS = 31 * 24 * 60 * 60_000;
+const DAY_MS = 24 * 60 * 60_000;
+
+/** Coletas de um serviço no período [from, to): o mesmo recorte de /collections/series, do resumo e da comparação. */
+function collectionsBetween(service, from, to) {
+  return serviceCollections(service, { from, to: to - 1, limit: Infinity });
+}
+
+/** Soma do campo, ou null quando nenhum item tem valor: null é "não calculado", nunca zero. */
+function sumOrNull(items, field) {
+  const values = items.map((item) => item[field]).filter((value) => value !== null);
+  return values.length === 0 ? null : values.reduce((total, value) => total + value, 0);
+}
+
+/** Média do campo entre os itens que têm valor, ou null quando nenhum tem. */
+function averageOrNull(items, field) {
+  const total = sumOrNull(items, field);
+  return total === null ? null : total / items.filter((item) => item[field] !== null).length;
+}
+
+/**
+ * Resumo e comparação leem o mesmo banco que GET /services, então seguem o cenário dela (#239):
+ * MOCK_SERVICES=vazio → nenhum serviço · MOCK_SERVICES=erro → HTTP 500, como o backend com o banco fora do ar.
+ */
+function listedServices() {
+  return SERVICES_SCENARIO === 'vazio' ? [] : SERVICES;
+}
+
+function simulatedFailure(res) {
+  return send(res, 500, { error: { code: 'INTERNAL_ERROR', message: 'Falha simulada no backend falso.' } });
+}
 
 /** Data com hora em ISO 8601 (só a data é recusada, como na API); null quando inválida. */
 function parseInstant(value) {
@@ -176,6 +206,65 @@ const routes = {
     totals.carbonIntensityGco2ePerKwh = intensityCount > 0 ? intensitySum / intensityCount : null;
     const buckets = [...groups.values()].sort((a, b) => a.start.localeCompare(b.start));
     return send(res, 200, { serviceId: service.id, from: new Date(from).toISOString(), to: new Date(to).toISOString(), bucket: query.get('bucket'), buckets, totals });
+  },
+
+  // Painel de indicadores do dashboard (RF08, #175): contrato de docs/api.md § GET /api/services/summary
+  'GET /services/summary': async (req, res) => {
+    if (SERVICES_SCENARIO === 'erro') return simulatedFailure(res);
+    const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
+    if (query.has('from') !== query.has('to')) return validationError(res, 'Informe from e to juntos, ou nenhum dos dois.');
+    // Sem período: as últimas 24 h até agora
+    const to = query.has('to') ? parseInstant(query.get('to')) : Date.now();
+    const from = query.has('from') ? parseInstant(query.get('from')) : to - DAY_MS;
+    if (from === null || to === null || from >= to || to - from > MAX_SPAN_MS) {
+      return validationError(res, 'Informe from e to com data e hora (ISO 8601), from antes de to e até 31 dias.');
+    }
+    const services = listedServices();
+    const collections = services.flatMap((service) => collectionsBetween(service, from, to));
+    const count = (status) => services.filter((service) => service.status === status).length;
+    return send(res, 200, {
+      period: { from: new Date(from).toISOString(), to: new Date(to).toISOString() },
+      // Só as coletas calculadas têm energia e CO₂e; as outras vêm null e ficam fora da soma
+      energyKwh: sumOrNull(collections, 'energyKwh'),
+      co2eGrams: sumOrNull(collections, 'co2eGrams'),
+      services: { active: count('ativo'), unavailable: count('indisponivel'), withoutMetrics: count('sem_metricas'), removed: count('removido') },
+    });
+  },
+
+  // Página Comparação (RF15, #193): contrato de docs/api.md § GET /api/services/compare, com os ids do mock
+  'GET /services/compare': async (req, res) => {
+    if (SERVICES_SCENARIO === 'erro') return simulatedFailure(res);
+    const query = new URL(req.url ?? '/', `http://localhost:${PORT}`).searchParams;
+    const ids = (query.get('ids') ?? '').split(',').filter((id) => id !== '');
+    const from = parseInstant(query.get('from'));
+    const to = parseInstant(query.get('to'));
+    if (ids.length < 2 || ids.length > 10 || new Set(ids).size !== ids.length || from === null || to === null || from >= to || to - from > MAX_SPAN_MS) {
+      return validationError(res, 'Informe de 2 a 10 ids distintos e from e to com data e hora (ISO 8601), até 31 dias.');
+    }
+    const services = ids.map((id) => listedServices().find((service) => service.id === id));
+    if (services.includes(undefined)) return send(res, 404, { error: { code: 'NOT_FOUND', message: 'Um ou mais serviços não foram encontrados.' } });
+    return send(res, 200, {
+      from: new Date(from).toISOString(),
+      to: new Date(to).toISOString(),
+      // Na ordem dos ids pedidos; serviço sem coletas no período vem com 0 e métricas null
+      services: services.map((service) => {
+        const items = collectionsBetween(service, from, to);
+        return {
+          id: service.id,
+          name: service.name,
+          region: service.region,
+          collections: items.length,
+          failed: items.filter((item) => item.status !== 'ok').length,
+          notCalculated: items.filter((item) => item.status === 'ok' && item.co2eGrams === null).length,
+          avgCpuPercent: averageOrNull(items, 'cpuPercent'),
+          avgMemoryGb: averageOrNull(items, 'memoryGb'),
+          avgDiskGb: averageOrNull(items, 'diskGb'),
+          avgNetworkGb: averageOrNull(items, 'networkGb'),
+          energyKwh: sumOrNull(items, 'energyKwh'),
+          co2eGrams: sumOrNull(items, 'co2eGrams'),
+        };
+      }),
+    });
   },
 };
 
